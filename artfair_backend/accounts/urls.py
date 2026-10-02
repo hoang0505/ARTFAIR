@@ -7,6 +7,7 @@ from .views import (
     UserMeView,
     ArtistProfileView,
     PublicArtistProfileView,
+    PublicArtistListView,
     NotificationListView,
     NotificationMarkReadView,
     NotificationMarkAllReadView,
@@ -26,6 +27,7 @@ urlpatterns = [
     # Profile endpoints
     path('me/', UserMeView.as_view(), name='user_me'),
     path('artist-profile/', ArtistProfileView.as_view(), name='creator_artist_profile'),
+    path('artists/', PublicArtistListView.as_view(), name='public_artist_list'),
     path('artists/<str:username>/', PublicArtistProfileView.as_view(), name='public_artist_profile'),
 
     # Notifications endpoints

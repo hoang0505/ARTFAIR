@@ -1,10 +1,10 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}ARTFAIR — Sàn Giao Dịch Quyền Sử Dụng Tác Phẩm Nghệ Thuật Số{% endblock %}</title>
+  <title>Bộ sưu tập: Digital Painting | ARTFAIR</title>
 
   <!-- Google Fonts: Be Vietnam Pro (Sans-serif) & Playfair Display (Serif) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,9 +12,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
 
   <!-- ARTFAIR Core CSS -->
-  <link rel="stylesheet" href="{% static 'css/artfair.css' %}">
-  <meta name="csrf-token" content="{{ csrf_token }}">
-  {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
+  <meta name="csrf-token" content="1ezVuuDbuWG2NYpOedvFqb0SL8TueIELyq6Gonf2twZqnXh84lWl9FjkZAuaZ9X0">
+  
 </head>
 <body>
 
@@ -25,7 +25,7 @@
   <header class="navbar">
     <div class="container navbar-inner">
       <!-- Brand Logo -->
-      <a href="{% url 'home' %}" class="logo" title="ARTFAIR Trang chủ">
+      <a href="/ARTFAIR/" class="logo" title="ARTFAIR Trang chủ">
         <span class="logo-icon">
           <!-- Artistic Petal Ribbon Monogram SVG -->
           <svg viewBox="0 0 32 32" fill="currentColor">
@@ -37,10 +37,10 @@
 
       <!-- Primary Nav Links (Desktop) -->
       <ul class="nav-links">
-        <li><a href="{% url 'home' %}" class="nav-link" id="navLinkExplore">Khám phá</a></li>
-        <li><a href="{% url 'artist_list' %}" class="nav-link" id="navLinkArtists">Nghệ sĩ</a></li>
-        <li><a href="{% url 'collections_list' %}" class="nav-link" id="navLinkCollections">Bộ sưu tập</a></li>
-        <li><a href="{% url 'about' %}" class="nav-link" id="navLinkAbout">Về ARTFAIR</a></li>
+        <li><a href="/ARTFAIR/" class="nav-link" id="navLinkExplore">Khám phá</a></li>
+        <li><a href="/ARTFAIR/artists/" class="nav-link" id="navLinkArtists">Nghệ sĩ</a></li>
+        <li><a href="/ARTFAIR/collections/" class="nav-link" id="navLinkCollections">Bộ sưu tập</a></li>
+        <li><a href="/ARTFAIR/about/" class="nav-link" id="navLinkAbout">Về ARTFAIR</a></li>
       </ul>
 
       <!-- Quick Search Bar -->
@@ -93,12 +93,12 @@
         </div>
 
         <ul class="mobile-nav-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
-          <li><a href="{% url 'home' %}" class="mobile-nav-link">Khám phá tác phẩm</a></li>
-          <li><a href="{% url 'artist_list' %}" class="mobile-nav-link">Nghệ sĩ sáng tạo</a></li>
-          <li><a href="{% url 'collections_list' %}" class="mobile-nav-link">Bộ sưu tập tuyển chọn</a></li>
-          <li><a href="{% url 'creator_studio' %}" class="mobile-nav-link" style="color: var(--primary-berry); font-weight: 600;">Creator Studio (Đăng bán tranh)</a></li>
-          <li><a href="{% url 'about' %}" class="mobile-nav-link">Về ARTFAIR</a></li>
-          <li><a href="{% url 'help' %}" class="mobile-nav-link">Hướng dẫn & FAQ</a></li>
+          <li><a href="/ARTFAIR/" class="mobile-nav-link">Khám phá tác phẩm</a></li>
+          <li><a href="/ARTFAIR/artists/" class="mobile-nav-link">Nghệ sĩ sáng tạo</a></li>
+          <li><a href="/ARTFAIR/collections/" class="mobile-nav-link">Bộ sưu tập tuyển chọn</a></li>
+          <li><a href="/ARTFAIR/studio/" class="mobile-nav-link" style="color: var(--primary-berry); font-weight: 600;">Creator Studio (Đăng bán tranh)</a></li>
+          <li><a href="/ARTFAIR/about/" class="mobile-nav-link">Về ARTFAIR</a></li>
+          <li><a href="/ARTFAIR/help/" class="mobile-nav-link">Hướng dẫn & FAQ</a></li>
         </ul>
 
         <div style="border-top: 1px solid var(--border-light); margin-top: 24px; padding-top: 20px;">
@@ -115,7 +115,100 @@
 
   <!-- Main Content Body -->
   <main>
-    {% block content %}{% endblock %}
+    
+<div class="container" style="padding-top: 36px; padding-bottom: 72px;">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <a href="/ARTFAIR/" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
+    <span>/</span>
+    <a href="/ARTFAIR/collections/" style="color: var(--text-plum); text-decoration: none;">Bộ sưu tập</a>
+    <span>/</span>
+    <span style="color: var(--text-berry); font-weight: 600;">Digital Painting</span>
+  </nav>
+
+  <!-- Collection Header -->
+  <div style="background: linear-gradient(135deg, #FFFFFF 0%, #FAF5FF 100%); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 36px; margin-bottom: 36px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px;">
+    <div style="max-width: 680px;">
+      <div class="hero-pill" style="display: inline-flex; margin-bottom: 10px;">
+        Bộ sưu tập chủ đề
+      </div>
+      <h1 style="font-family: var(--font-serif); font-size: 2.2rem; color: var(--text-plum); margin: 0 0 10px 0; font-weight: 700;">
+        Digital Painting
+      </h1>
+      <p style="font-size: 0.95rem; color: var(--text-muted); margin: 0; line-height: 1.6;">
+        Tranh vẽ kỹ thuật số 2D độ phân giải cao.
+      </p>
+    </div>
+
+    <!-- Sorter -->
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span style="font-size: 0.88rem; color: var(--text-muted); font-weight: 600;">1 tác phẩm</span>
+      <form method="GET" action="" style="display: flex; align-items: center;">
+        <select name="sort" onchange="this.form.submit()" style="height: 38px; padding: 0 14px; background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-full); font-size: 0.88rem; color: var(--text-plum); cursor: pointer;">
+          <option value="-created_at" selected>Mới nhất</option>
+          <option value="created_at" >Cũ nhất</option>
+          <option value="title" >Tên tác phẩm (A - Z)</option>
+        </select>
+      </form>
+    </div>
+  </div>
+
+  <!-- Artwork Cards Grid -->
+  
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 24px; margin-bottom: 48px;">
+      
+        <article class="art-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; transition: transform var(--trans-fast), box-shadow var(--trans-fast);">
+          
+          <div class="art-card-img-wrap" style="position: relative; aspect-ratio: 4/3; overflow: hidden; background: #F8F5F8;">
+            
+              <img src="https://hoang0505.pythonanywhere.com/media/previews/2026/10/saigon_2077_master_preview.jpg" alt="Sài Gòn Năm 2077 - Đêm Mưa Neon" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+            
+            
+            <span class="art-card-badge" style="position: absolute; top: 12px; left: 12px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(4px); padding: 3px 10px; border-radius: var(--radius-full); font-size: 0.72rem; font-weight: 600; color: var(--text-plum);">
+              Digital Painting
+            </span>
+          </div>
+
+          <div class="art-card-body" style="padding: 16px; flex: 1; display: flex; flex-direction: column;">
+            <h3 style="font-family: var(--font-serif); font-size: 1.05rem; font-weight: 700; margin: 0 0 4px 0; color: var(--text-plum); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <a href="/ARTFAIR/artworks/sai-gon-2077-dem-mua-neon/" style="color: inherit; text-decoration: none;">
+                Sài Gòn Năm 2077 - Đêm Mưa Neon
+              </a>
+            </h3>
+
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+              Bởi <a href="/ARTFAIR/artists/creator_an/" style="color: var(--primary-berry); text-decoration: none; font-weight: 600;">
+                An Nguyễn Digital Art
+              </a>
+            </div>
+
+            <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-light); padding-top: 10px;">
+              <span style="font-size: 0.95rem; font-weight: 800; color: var(--primary-berry);">
+                
+                  
+                    Từ 1500000 ₫
+                  
+                
+              </span>
+
+              <a href="/ARTFAIR/artworks/sai-gon-2077-dem-mua-neon/" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 4px 12px; text-decoration: none;">
+                Chi tiết &rarr;
+              </a>
+            </div>
+          </div>
+
+        </article>
+      
+    </div>
+
+    <!-- Pagination -->
+    
+
+  
+
+</div>
+
   </main>
 
   <!-- Global Boutique Footer -->
@@ -141,10 +234,10 @@
       <div class="footer-col-links">
         <div class="footer-heading">Khám phá</div>
         <ul class="footer-links-list">
-          <li><a href="{% url 'home' %}">Tác phẩm mới</a></li>
-          <li><a href="{% url 'artist_list' %}">Nghệ sĩ sáng tạo</a></li>
-          <li><a href="{% url 'collections_list' %}">Bộ sưu tập tuyển chọn</a></li>
-          <li><a href="{% url 'creator_studio' %}">Creator Studio (Đăng bán tranh)</a></li>
+          <li><a href="/ARTFAIR/">Tác phẩm mới</a></li>
+          <li><a href="/ARTFAIR/artists/">Nghệ sĩ sáng tạo</a></li>
+          <li><a href="/ARTFAIR/collections/">Bộ sưu tập tuyển chọn</a></li>
+          <li><a href="/ARTFAIR/studio/">Creator Studio (Đăng bán tranh)</a></li>
         </ul>
       </div>
 
@@ -152,10 +245,10 @@
       <div class="footer-col-links">
         <div class="footer-heading">Thông tin & Hỗ trợ</div>
         <ul class="footer-links-list">
-          <li><a href="{% url 'about' %}">Về ARTFAIR</a></li>
-          <li><a href="{% url 'help' %}">Hướng dẫn & Câu hỏi thường gặp</a></li>
-          <li><a href="{% url 'terms' %}">Điều khoản sử dụng</a></li>
-          <li><a href="{% url 'privacy' %}">Chính sách bảo mật</a></li>
+          <li><a href="/ARTFAIR/about/">Về ARTFAIR</a></li>
+          <li><a href="/ARTFAIR/help/">Hướng dẫn & Câu hỏi thường gặp</a></li>
+          <li><a href="/ARTFAIR/terms/">Điều khoản sử dụng</a></li>
+          <li><a href="/ARTFAIR/privacy/">Chính sách bảo mật</a></li>
         </ul>
       </div>
     </div>
@@ -217,7 +310,7 @@
                 </button>
               </div>
               <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
-                <a href="/help/" style="font-size: 0.8rem; color: var(--primary-berry); text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
+                <a href="/ARTFAIR/help/" style="font-size: 0.8rem; color: var(--primary-berry); text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
               </div>
             </div>
 
@@ -297,7 +390,7 @@
             <div style="margin-top: 12px; margin-bottom: 8px;">
               <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
                 <input type="checkbox" id="regAgreeTerms" required style="margin-top: 3px; accent-color: var(--primary-berry);">
-                <span>Tôi đồng ý với <a href="/about/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Điều khoản sử dụng</a> và <a href="/help/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Chính sách bảo mật</a> của ARTFAIR.</span>
+                <span>Tôi đồng ý với <a href="/ARTFAIR/about/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Điều khoản sử dụng</a> và <a href="/ARTFAIR/help/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Chính sách bảo mật</a> của ARTFAIR.</span>
               </label>
             </div>
 
@@ -370,8 +463,8 @@
   </div>
 
   <!-- Core JavaScript -->
-  <script src="{% static 'js/config.js' %}"></script>
-  <script src="{% static 'js/artfair.js' %}"></script>
-  {% block extra_scripts %}{% endblock %}
+  <script src="/ARTFAIR/static/js/config.js"></script>
+  <script src="/ARTFAIR/static/js/artfair.js"></script>
+  
 </body>
 </html>

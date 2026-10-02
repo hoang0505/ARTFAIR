@@ -6,7 +6,8 @@ from django.utils.decorators import method_decorator
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveAPIView, RetrieveUpdateAPIView
+from rest_framework.generics import RetrieveAPIView, RetrieveUpdateAPIView, ListAPIView
+from rest_framework.authtoken.models import Token
 
 from .models import User, ArtistProfile
 from .serializers import (
@@ -48,7 +49,9 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            token, _ = Token.objects.get_or_create(user=user)
             data = UserMeSerializer(user).data
+            data['token'] = token.key
             data['csrf_token'] = get_token(request)
             return Response(
                 data,
@@ -60,9 +63,9 @@ class RegisterView(APIView):
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class LoginView(APIView):
     """
-    Session login endpoint.
-    Verifies credentials and initiates a Django session with CSRF protection.
-    Rotates CSRF token and immediately returns the new valid token in payload.
+    Session and Token login endpoint.
+    Verifies credentials and initiates a Django session with CSRF protection,
+    plus issues a REST Token for cross-origin frontend clients (e.g. GitHub Pages).
     """
     permission_classes = [permissions.AllowAny]
 
@@ -90,8 +93,10 @@ class LoginView(APIView):
         login(request, user)
         # login() rotates token; get_token(request) retrieves the active rotated token
         active_csrf = get_token(request)
+        token, _ = Token.objects.get_or_create(user=user)
         return Response({
             'detail': 'Đăng nhập thành công.',
+            'token': token.key,
             'csrf_token': active_csrf,
             'user': UserMeSerializer(user).data
         }, status=status.HTTP_200_OK)
@@ -100,13 +105,14 @@ class LoginView(APIView):
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class LogoutView(APIView):
     """
-    Session logout endpoint.
-    Clears the Django session and refreshes CSRF token for subsequent guest requests.
+    Session and Token logout endpoint.
+    Clears the Django session, revokes the user's Token, and refreshes CSRF token.
     """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         if request.user.is_authenticated:
+            Token.objects.filter(user=request.user).delete()
             logout(request)
         new_csrf = get_token(request)
         return Response(
@@ -156,6 +162,36 @@ class PublicArtistProfileView(RetrieveAPIView):
 
     def get_queryset(self):
         return ArtistProfile.objects.filter(user__role=User.Role.CREATOR, user__is_active=True)
+
+
+class PublicArtistListView(ListAPIView):
+    """
+    Public directory of creator profiles (/api/accounts/artists/).
+    Supports search query 'q' and filtering by is_accepting_commissions.
+    """
+    permission_classes = [permissions.AllowAny]
+    serializer_class = PublicArtistProfileSerializer
+
+    def get_queryset(self):
+        from django.db.models import Q
+        qs = ArtistProfile.objects.filter(
+            user__role=User.Role.CREATOR,
+            user__is_active=True
+        ).exclude(user__username='admin').order_by('user__username')
+
+        q = self.request.query_params.get('q', '').strip()
+        if q:
+            qs = qs.filter(
+                Q(user__username__icontains=q) |
+                Q(display_name__icontains=q) |
+                Q(bio__icontains=q)
+            )
+
+        accepting = self.request.query_params.get('accepting', '').strip()
+        if accepting in ['1', 'true', 'yes']:
+            qs = qs.filter(is_accepting_commissions=True)
+
+        return qs
 
 
 class NotificationListView(APIView):

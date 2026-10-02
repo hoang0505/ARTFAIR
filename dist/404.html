@@ -1,10 +1,20 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+  <script>
+    (function() {
+      var p = window.location.pathname;
+      if (!p.startsWith('/ARTFAIR/') && p !== '/ARTFAIR') {
+        var cleanPath = p.replace(/^\/+/, '');
+        window.location.replace('/ARTFAIR/' + cleanPath + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}ARTFAIR — Sàn Giao Dịch Quyền Sử Dụng Tác Phẩm Nghệ Thuật Số{% endblock %}</title>
+  <title>404 — Không tìm thấy trang | ARTFAIR</title>
 
   <!-- Google Fonts: Be Vietnam Pro (Sans-serif) & Playfair Display (Serif) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,9 +22,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
 
   <!-- ARTFAIR Core CSS -->
-  <link rel="stylesheet" href="{% static 'css/artfair.css' %}">
-  <meta name="csrf-token" content="{{ csrf_token }}">
-  {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
+  <meta name="csrf-token" content="igHbyVvoUTarI63rrv5AIJiA21xDeVfgPseWsO7fTttPi5VLhDwgrdB2gt8jZmyv">
+  
 </head>
 <body>
 
@@ -25,7 +35,7 @@
   <header class="navbar">
     <div class="container navbar-inner">
       <!-- Brand Logo -->
-      <a href="{% url 'home' %}" class="logo" title="ARTFAIR Trang chủ">
+      <a href="/ARTFAIR/" class="logo" title="ARTFAIR Trang chủ">
         <span class="logo-icon">
           <!-- Artistic Petal Ribbon Monogram SVG -->
           <svg viewBox="0 0 32 32" fill="currentColor">
@@ -37,10 +47,10 @@
 
       <!-- Primary Nav Links (Desktop) -->
       <ul class="nav-links">
-        <li><a href="{% url 'home' %}" class="nav-link" id="navLinkExplore">Khám phá</a></li>
-        <li><a href="{% url 'artist_list' %}" class="nav-link" id="navLinkArtists">Nghệ sĩ</a></li>
-        <li><a href="{% url 'collections_list' %}" class="nav-link" id="navLinkCollections">Bộ sưu tập</a></li>
-        <li><a href="{% url 'about' %}" class="nav-link" id="navLinkAbout">Về ARTFAIR</a></li>
+        <li><a href="/ARTFAIR/" class="nav-link" id="navLinkExplore">Khám phá</a></li>
+        <li><a href="/ARTFAIR/artists/" class="nav-link" id="navLinkArtists">Nghệ sĩ</a></li>
+        <li><a href="/ARTFAIR/collections/" class="nav-link" id="navLinkCollections">Bộ sưu tập</a></li>
+        <li><a href="/ARTFAIR/about/" class="nav-link" id="navLinkAbout">Về ARTFAIR</a></li>
       </ul>
 
       <!-- Quick Search Bar -->
@@ -93,12 +103,12 @@
         </div>
 
         <ul class="mobile-nav-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
-          <li><a href="{% url 'home' %}" class="mobile-nav-link">Khám phá tác phẩm</a></li>
-          <li><a href="{% url 'artist_list' %}" class="mobile-nav-link">Nghệ sĩ sáng tạo</a></li>
-          <li><a href="{% url 'collections_list' %}" class="mobile-nav-link">Bộ sưu tập tuyển chọn</a></li>
-          <li><a href="{% url 'creator_studio' %}" class="mobile-nav-link" style="color: var(--primary-berry); font-weight: 600;">Creator Studio (Đăng bán tranh)</a></li>
-          <li><a href="{% url 'about' %}" class="mobile-nav-link">Về ARTFAIR</a></li>
-          <li><a href="{% url 'help' %}" class="mobile-nav-link">Hướng dẫn & FAQ</a></li>
+          <li><a href="/ARTFAIR/" class="mobile-nav-link">Khám phá tác phẩm</a></li>
+          <li><a href="/ARTFAIR/artists/" class="mobile-nav-link">Nghệ sĩ sáng tạo</a></li>
+          <li><a href="/ARTFAIR/collections/" class="mobile-nav-link">Bộ sưu tập tuyển chọn</a></li>
+          <li><a href="/ARTFAIR/studio/" class="mobile-nav-link" style="color: var(--primary-berry); font-weight: 600;">Creator Studio (Đăng bán tranh)</a></li>
+          <li><a href="/ARTFAIR/about/" class="mobile-nav-link">Về ARTFAIR</a></li>
+          <li><a href="/ARTFAIR/help/" class="mobile-nav-link">Hướng dẫn & FAQ</a></li>
         </ul>
 
         <div style="border-top: 1px solid var(--border-light); margin-top: 24px; padding-top: 20px;">
@@ -115,7 +125,45 @@
 
   <!-- Main Content Body -->
   <main>
-    {% block content %}{% endblock %}
+    
+<div class="container" style="padding-top: 64px; padding-bottom: 96px; text-align: center;">
+
+  <div style="max-width: 540px; margin: 0 auto; background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 48px 32px; box-shadow: var(--shadow-card);">
+    
+    <!-- Delicate 404 Badge -->
+    <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-page); color: var(--primary-berry); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid var(--border-subtle);">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
+
+    <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary-berry); text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 8px;">
+      Lỗi 404 &bull; Not Found
+    </span>
+
+    <h1 style="font-family: var(--font-serif); font-size: 2.1rem; color: var(--text-plum); margin: 0 0 12px 0; font-weight: 700;">
+      Trang không tồn tại
+    </h1>
+
+    <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin: 0 0 28px 0;">
+      Đường dẫn bạn đang tìm kiếm có thể đã bị thay đổi, xóa bỏ hoặc tạm thời không khả dụng trên hệ thống ARTFAIR.
+    </p>
+
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+      <a href="/ARTFAIR/" class="btn btn-primary" style="text-decoration: none; padding: 0 24px;">
+        Quay về Khám phá
+      </a>
+      <a href="/ARTFAIR/artists/" class="btn btn-secondary" style="text-decoration: none; padding: 0 20px;">
+        Xem các nghệ sĩ
+      </a>
+    </div>
+
+  </div>
+
+</div>
+
   </main>
 
   <!-- Global Boutique Footer -->
@@ -141,10 +189,10 @@
       <div class="footer-col-links">
         <div class="footer-heading">Khám phá</div>
         <ul class="footer-links-list">
-          <li><a href="{% url 'home' %}">Tác phẩm mới</a></li>
-          <li><a href="{% url 'artist_list' %}">Nghệ sĩ sáng tạo</a></li>
-          <li><a href="{% url 'collections_list' %}">Bộ sưu tập tuyển chọn</a></li>
-          <li><a href="{% url 'creator_studio' %}">Creator Studio (Đăng bán tranh)</a></li>
+          <li><a href="/ARTFAIR/">Tác phẩm mới</a></li>
+          <li><a href="/ARTFAIR/artists/">Nghệ sĩ sáng tạo</a></li>
+          <li><a href="/ARTFAIR/collections/">Bộ sưu tập tuyển chọn</a></li>
+          <li><a href="/ARTFAIR/studio/">Creator Studio (Đăng bán tranh)</a></li>
         </ul>
       </div>
 
@@ -152,10 +200,10 @@
       <div class="footer-col-links">
         <div class="footer-heading">Thông tin & Hỗ trợ</div>
         <ul class="footer-links-list">
-          <li><a href="{% url 'about' %}">Về ARTFAIR</a></li>
-          <li><a href="{% url 'help' %}">Hướng dẫn & Câu hỏi thường gặp</a></li>
-          <li><a href="{% url 'terms' %}">Điều khoản sử dụng</a></li>
-          <li><a href="{% url 'privacy' %}">Chính sách bảo mật</a></li>
+          <li><a href="/ARTFAIR/about/">Về ARTFAIR</a></li>
+          <li><a href="/ARTFAIR/help/">Hướng dẫn & Câu hỏi thường gặp</a></li>
+          <li><a href="/ARTFAIR/terms/">Điều khoản sử dụng</a></li>
+          <li><a href="/ARTFAIR/privacy/">Chính sách bảo mật</a></li>
         </ul>
       </div>
     </div>
@@ -217,7 +265,7 @@
                 </button>
               </div>
               <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
-                <a href="/help/" style="font-size: 0.8rem; color: var(--primary-berry); text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
+                <a href="/ARTFAIR/help/" style="font-size: 0.8rem; color: var(--primary-berry); text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
               </div>
             </div>
 
@@ -297,7 +345,7 @@
             <div style="margin-top: 12px; margin-bottom: 8px;">
               <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
                 <input type="checkbox" id="regAgreeTerms" required style="margin-top: 3px; accent-color: var(--primary-berry);">
-                <span>Tôi đồng ý với <a href="/about/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Điều khoản sử dụng</a> và <a href="/help/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Chính sách bảo mật</a> của ARTFAIR.</span>
+                <span>Tôi đồng ý với <a href="/ARTFAIR/about/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Điều khoản sử dụng</a> và <a href="/ARTFAIR/help/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Chính sách bảo mật</a> của ARTFAIR.</span>
               </label>
             </div>
 
@@ -370,8 +418,8 @@
   </div>
 
   <!-- Core JavaScript -->
-  <script src="{% static 'js/config.js' %}"></script>
-  <script src="{% static 'js/artfair.js' %}"></script>
-  {% block extra_scripts %}{% endblock %}
+  <script src="/ARTFAIR/static/js/config.js"></script>
+  <script src="/ARTFAIR/static/js/artfair.js"></script>
+  
 </body>
 </html>

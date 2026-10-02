@@ -1,10 +1,10 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}ARTFAIR — Sàn Giao Dịch Quyền Sử Dụng Tác Phẩm Nghệ Thuật Số{% endblock %}</title>
+  <title>Cài đặt tài khoản | ARTFAIR</title>
 
   <!-- Google Fonts: Be Vietnam Pro (Sans-serif) & Playfair Display (Serif) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,9 +12,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
 
   <!-- ARTFAIR Core CSS -->
-  <link rel="stylesheet" href="{% static 'css/artfair.css' %}">
-  <meta name="csrf-token" content="{{ csrf_token }}">
-  {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
+  <meta name="csrf-token" content="dDOhEmNqvoe65PoIdQ68SpFEZWfhg6hGKPl2yfphuYxuFOg23YxOBTY6doQX1xAV">
+  
 </head>
 <body>
 
@@ -25,7 +25,7 @@
   <header class="navbar">
     <div class="container navbar-inner">
       <!-- Brand Logo -->
-      <a href="{% url 'home' %}" class="logo" title="ARTFAIR Trang chủ">
+      <a href="/ARTFAIR/" class="logo" title="ARTFAIR Trang chủ">
         <span class="logo-icon">
           <!-- Artistic Petal Ribbon Monogram SVG -->
           <svg viewBox="0 0 32 32" fill="currentColor">
@@ -37,10 +37,10 @@
 
       <!-- Primary Nav Links (Desktop) -->
       <ul class="nav-links">
-        <li><a href="{% url 'home' %}" class="nav-link" id="navLinkExplore">Khám phá</a></li>
-        <li><a href="{% url 'artist_list' %}" class="nav-link" id="navLinkArtists">Nghệ sĩ</a></li>
-        <li><a href="{% url 'collections_list' %}" class="nav-link" id="navLinkCollections">Bộ sưu tập</a></li>
-        <li><a href="{% url 'about' %}" class="nav-link" id="navLinkAbout">Về ARTFAIR</a></li>
+        <li><a href="/ARTFAIR/" class="nav-link" id="navLinkExplore">Khám phá</a></li>
+        <li><a href="/ARTFAIR/artists/" class="nav-link" id="navLinkArtists">Nghệ sĩ</a></li>
+        <li><a href="/ARTFAIR/collections/" class="nav-link" id="navLinkCollections">Bộ sưu tập</a></li>
+        <li><a href="/ARTFAIR/about/" class="nav-link" id="navLinkAbout">Về ARTFAIR</a></li>
       </ul>
 
       <!-- Quick Search Bar -->
@@ -93,12 +93,12 @@
         </div>
 
         <ul class="mobile-nav-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
-          <li><a href="{% url 'home' %}" class="mobile-nav-link">Khám phá tác phẩm</a></li>
-          <li><a href="{% url 'artist_list' %}" class="mobile-nav-link">Nghệ sĩ sáng tạo</a></li>
-          <li><a href="{% url 'collections_list' %}" class="mobile-nav-link">Bộ sưu tập tuyển chọn</a></li>
-          <li><a href="{% url 'creator_studio' %}" class="mobile-nav-link" style="color: var(--primary-berry); font-weight: 600;">Creator Studio (Đăng bán tranh)</a></li>
-          <li><a href="{% url 'about' %}" class="mobile-nav-link">Về ARTFAIR</a></li>
-          <li><a href="{% url 'help' %}" class="mobile-nav-link">Hướng dẫn & FAQ</a></li>
+          <li><a href="/ARTFAIR/" class="mobile-nav-link">Khám phá tác phẩm</a></li>
+          <li><a href="/ARTFAIR/artists/" class="mobile-nav-link">Nghệ sĩ sáng tạo</a></li>
+          <li><a href="/ARTFAIR/collections/" class="mobile-nav-link">Bộ sưu tập tuyển chọn</a></li>
+          <li><a href="/ARTFAIR/studio/" class="mobile-nav-link" style="color: var(--primary-berry); font-weight: 600;">Creator Studio (Đăng bán tranh)</a></li>
+          <li><a href="/ARTFAIR/about/" class="mobile-nav-link">Về ARTFAIR</a></li>
+          <li><a href="/ARTFAIR/help/" class="mobile-nav-link">Hướng dẫn & FAQ</a></li>
         </ul>
 
         <div style="border-top: 1px solid var(--border-light); margin-top: 24px; padding-top: 20px;">
@@ -115,7 +115,158 @@
 
   <!-- Main Content Body -->
   <main>
-    {% block content %}{% endblock %}
+    
+<div class="container" style="padding-top: 36px; padding-bottom: 72px;">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <a href="/ARTFAIR/" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
+    <span>/</span>
+    <a href="/ARTFAIR/dashboard/" style="color: var(--text-plum); text-decoration: none;">Khu vực cá nhân</a>
+    <span>/</span>
+    <span style="color: var(--text-berry); font-weight: 600;">Cài đặt tài khoản</span>
+  </nav>
+
+  <!-- Page Header -->
+  <div style="margin-bottom: 36px;">
+    <h1 style="font-family: var(--font-serif); font-size: 2.1rem; color: var(--text-plum); margin: 0 0 8px 0; font-weight: 700;">
+      Cài đặt tài khoản
+    </h1>
+    <p style="font-size: 0.95rem; color: var(--text-muted); margin: 0;">
+      Quản lý thông tin cá nhân, hồ sơ nghệ sĩ và bảo mật tài khoản của bạn.
+    </p>
+  </div>
+
+  <!-- Messages / Alerts -->
+  
+
+  
+
+  <div style="display: grid; grid-template-columns: 260px 1fr; gap: 32px; align-items: flex-start;">
+
+    <!-- Left Navigation -->
+    <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 18px; box-shadow: var(--shadow-subtle);">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <a href="#section-profile" class="btn btn-ghost" style="justify-content: flex-start; width: 100%; font-weight: 600; color: var(--primary-berry); background: var(--primary-berry-light);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21v-2a6.5 6.5 0 0 1 13 0v2"></path></svg>
+          <span>Thông tin cá nhân</span>
+        </a>
+        <a href="#section-security" class="btn btn-ghost" style="justify-content: flex-start; width: 100%; font-weight: 500; color: var(--text-plum);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span>Đổi mật khẩu</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Right Forms Area -->
+    <div style="display: flex; flex-direction: column; gap: 36px;">
+
+      <!-- Form 1: Profile Info -->
+      <div id="section-profile" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 32px; box-shadow: var(--shadow-card);">
+        <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
+          Thông tin hồ sơ
+        </h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0 0 24px 0;">
+          Tên tài khoản: <strong>@bngoc05</strong> &bull; Vai trò: 
+          <span class="role-pill creator">Nghệ sĩ (Creator)</span>
+        </p>
+
+        <form method="POST" enctype="multipart/form-data" action="/ARTFAIR/settings/">
+          <input type="hidden" name="csrfmiddlewaretoken" value="dDOhEmNqvoe65PoIdQ68SpFEZWfhg6hGKPl2yfphuYxuFOg23YxOBTY6doQX1xAV">
+          <input type="hidden" name="action" value="profile">
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
+            <div>
+              <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Họ đệm</label>
+              <input type="text" name="last_name" value="" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Tên</label>
+              <input type="text" name="first_name" value="" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 18px;">
+            <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Email</label>
+            <input type="email" name="email" value="melisheuss@gmail.com" required style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+          </div>
+
+          <!-- Creator Specific Fields -->
+          
+            <div style="border-top: 1px solid var(--border-light); padding-top: 20px; margin-top: 24px;">
+              <h3 style="font-size: 1.1rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700;">
+                Hồ sơ nghệ sĩ công khai
+              </h3>
+
+              <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Bút danh / Tên hiển thị</label>
+                <input type="text" name="display_name" value="bngoc05" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+              </div>
+
+              <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Tiểu sử nghệ sĩ</label>
+                <textarea name="bio" rows="4" style="width: 100%; padding: 12px 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box; line-height: 1.5;"></textarea>
+              </div>
+
+              <div style="margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+                  <input type="checkbox" name="is_accepting_commissions" value="1"  style="width: 18px; height: 18px; accent-color: var(--primary-berry);">
+                  <span style="font-size: 0.92rem; font-weight: 600; color: var(--text-plum);">Đang mở nhận đơn đặt vẽ theo yêu cầu (Commission)</span>
+                </label>
+              </div>
+            </div>
+          
+
+          <div style="text-align: right; margin-top: 24px;">
+            <button type="submit" class="btn btn-primary" style="padding: 0 28px;">
+              Lưu thay đổi
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Form 2: Password Change -->
+      <div id="section-security" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 32px; box-shadow: var(--shadow-card);">
+        <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
+          Đổi mật khẩu
+        </h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0 0 24px 0;">
+          Vui lòng nhập mật khẩu hiện tại để thiết lập mật khẩu mới.
+        </p>
+
+        <form method="POST" action="/ARTFAIR/settings/">
+          <input type="hidden" name="csrfmiddlewaretoken" value="dDOhEmNqvoe65PoIdQ68SpFEZWfhg6hGKPl2yfphuYxuFOg23YxOBTY6doQX1xAV">
+          <input type="hidden" name="action" value="password">
+
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Mật khẩu hiện tại</label>
+            <input type="password" name="old_password" required style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Mật khẩu mới (tối thiểu 6 ký tự)</label>
+            <input type="password" name="new_password" required minlength="6" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+          </div>
+
+          <div style="margin-bottom: 24px;">
+            <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Xác nhận mật khẩu mới</label>
+            <input type="password" name="confirm_password" required minlength="6" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+          </div>
+
+          <div style="text-align: right;">
+            <button type="submit" class="btn btn-secondary" style="padding: 0 28px;">
+              Cập nhật mật khẩu
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
   </main>
 
   <!-- Global Boutique Footer -->
@@ -141,10 +292,10 @@
       <div class="footer-col-links">
         <div class="footer-heading">Khám phá</div>
         <ul class="footer-links-list">
-          <li><a href="{% url 'home' %}">Tác phẩm mới</a></li>
-          <li><a href="{% url 'artist_list' %}">Nghệ sĩ sáng tạo</a></li>
-          <li><a href="{% url 'collections_list' %}">Bộ sưu tập tuyển chọn</a></li>
-          <li><a href="{% url 'creator_studio' %}">Creator Studio (Đăng bán tranh)</a></li>
+          <li><a href="/ARTFAIR/">Tác phẩm mới</a></li>
+          <li><a href="/ARTFAIR/artists/">Nghệ sĩ sáng tạo</a></li>
+          <li><a href="/ARTFAIR/collections/">Bộ sưu tập tuyển chọn</a></li>
+          <li><a href="/ARTFAIR/studio/">Creator Studio (Đăng bán tranh)</a></li>
         </ul>
       </div>
 
@@ -152,10 +303,10 @@
       <div class="footer-col-links">
         <div class="footer-heading">Thông tin & Hỗ trợ</div>
         <ul class="footer-links-list">
-          <li><a href="{% url 'about' %}">Về ARTFAIR</a></li>
-          <li><a href="{% url 'help' %}">Hướng dẫn & Câu hỏi thường gặp</a></li>
-          <li><a href="{% url 'terms' %}">Điều khoản sử dụng</a></li>
-          <li><a href="{% url 'privacy' %}">Chính sách bảo mật</a></li>
+          <li><a href="/ARTFAIR/about/">Về ARTFAIR</a></li>
+          <li><a href="/ARTFAIR/help/">Hướng dẫn & Câu hỏi thường gặp</a></li>
+          <li><a href="/ARTFAIR/terms/">Điều khoản sử dụng</a></li>
+          <li><a href="/ARTFAIR/privacy/">Chính sách bảo mật</a></li>
         </ul>
       </div>
     </div>
@@ -217,7 +368,7 @@
                 </button>
               </div>
               <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
-                <a href="/help/" style="font-size: 0.8rem; color: var(--primary-berry); text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
+                <a href="/ARTFAIR/help/" style="font-size: 0.8rem; color: var(--primary-berry); text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
               </div>
             </div>
 
@@ -297,7 +448,7 @@
             <div style="margin-top: 12px; margin-bottom: 8px;">
               <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
                 <input type="checkbox" id="regAgreeTerms" required style="margin-top: 3px; accent-color: var(--primary-berry);">
-                <span>Tôi đồng ý với <a href="/about/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Điều khoản sử dụng</a> và <a href="/help/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Chính sách bảo mật</a> của ARTFAIR.</span>
+                <span>Tôi đồng ý với <a href="/ARTFAIR/about/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Điều khoản sử dụng</a> và <a href="/ARTFAIR/help/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Chính sách bảo mật</a> của ARTFAIR.</span>
               </label>
             </div>
 
@@ -370,8 +521,8 @@
   </div>
 
   <!-- Core JavaScript -->
-  <script src="{% static 'js/config.js' %}"></script>
-  <script src="{% static 'js/artfair.js' %}"></script>
-  {% block extra_scripts %}{% endblock %}
+  <script src="/ARTFAIR/static/js/config.js"></script>
+  <script src="/ARTFAIR/static/js/artfair.js"></script>
+  
 </body>
 </html>

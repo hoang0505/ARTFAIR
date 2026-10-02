@@ -1,10 +1,10 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}ARTFAIR — Sàn Giao Dịch Quyền Sử Dụng Tác Phẩm Nghệ Thuật Số{% endblock %}</title>
+  <title>Hướng dẫn & Câu hỏi thường gặp | ARTFAIR</title>
 
   <!-- Google Fonts: Be Vietnam Pro (Sans-serif) & Playfair Display (Serif) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,9 +12,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
 
   <!-- ARTFAIR Core CSS -->
-  <link rel="stylesheet" href="{% static 'css/artfair.css' %}">
-  <meta name="csrf-token" content="{{ csrf_token }}">
-  {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
+  <meta name="csrf-token" content="tQB0tNXG16nsCLVpVfsr68XJvlphtmS5028LnGzx0GGQcKNJLnT7PCgbJN0XeNbk">
+  
 </head>
 <body>
 
@@ -25,7 +25,7 @@
   <header class="navbar">
     <div class="container navbar-inner">
       <!-- Brand Logo -->
-      <a href="{% url 'home' %}" class="logo" title="ARTFAIR Trang chủ">
+      <a href="/ARTFAIR/" class="logo" title="ARTFAIR Trang chủ">
         <span class="logo-icon">
           <!-- Artistic Petal Ribbon Monogram SVG -->
           <svg viewBox="0 0 32 32" fill="currentColor">
@@ -37,10 +37,10 @@
 
       <!-- Primary Nav Links (Desktop) -->
       <ul class="nav-links">
-        <li><a href="{% url 'home' %}" class="nav-link" id="navLinkExplore">Khám phá</a></li>
-        <li><a href="{% url 'artist_list' %}" class="nav-link" id="navLinkArtists">Nghệ sĩ</a></li>
-        <li><a href="{% url 'collections_list' %}" class="nav-link" id="navLinkCollections">Bộ sưu tập</a></li>
-        <li><a href="{% url 'about' %}" class="nav-link" id="navLinkAbout">Về ARTFAIR</a></li>
+        <li><a href="/ARTFAIR/" class="nav-link" id="navLinkExplore">Khám phá</a></li>
+        <li><a href="/ARTFAIR/artists/" class="nav-link" id="navLinkArtists">Nghệ sĩ</a></li>
+        <li><a href="/ARTFAIR/collections/" class="nav-link" id="navLinkCollections">Bộ sưu tập</a></li>
+        <li><a href="/ARTFAIR/about/" class="nav-link" id="navLinkAbout">Về ARTFAIR</a></li>
       </ul>
 
       <!-- Quick Search Bar -->
@@ -93,12 +93,12 @@
         </div>
 
         <ul class="mobile-nav-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
-          <li><a href="{% url 'home' %}" class="mobile-nav-link">Khám phá tác phẩm</a></li>
-          <li><a href="{% url 'artist_list' %}" class="mobile-nav-link">Nghệ sĩ sáng tạo</a></li>
-          <li><a href="{% url 'collections_list' %}" class="mobile-nav-link">Bộ sưu tập tuyển chọn</a></li>
-          <li><a href="{% url 'creator_studio' %}" class="mobile-nav-link" style="color: var(--primary-berry); font-weight: 600;">Creator Studio (Đăng bán tranh)</a></li>
-          <li><a href="{% url 'about' %}" class="mobile-nav-link">Về ARTFAIR</a></li>
-          <li><a href="{% url 'help' %}" class="mobile-nav-link">Hướng dẫn & FAQ</a></li>
+          <li><a href="/ARTFAIR/" class="mobile-nav-link">Khám phá tác phẩm</a></li>
+          <li><a href="/ARTFAIR/artists/" class="mobile-nav-link">Nghệ sĩ sáng tạo</a></li>
+          <li><a href="/ARTFAIR/collections/" class="mobile-nav-link">Bộ sưu tập tuyển chọn</a></li>
+          <li><a href="/ARTFAIR/studio/" class="mobile-nav-link" style="color: var(--primary-berry); font-weight: 600;">Creator Studio (Đăng bán tranh)</a></li>
+          <li><a href="/ARTFAIR/about/" class="mobile-nav-link">Về ARTFAIR</a></li>
+          <li><a href="/ARTFAIR/help/" class="mobile-nav-link">Hướng dẫn & FAQ</a></li>
         </ul>
 
         <div style="border-top: 1px solid var(--border-light); margin-top: 24px; padding-top: 20px;">
@@ -115,7 +115,95 @@
 
   <!-- Main Content Body -->
   <main>
-    {% block content %}{% endblock %}
+    
+<div class="container" style="padding-top: 36px; padding-bottom: 72px;">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <a href="/ARTFAIR/" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
+    <span>/</span>
+    <span style="color: var(--text-berry); font-weight: 600;">Hướng dẫn & Hỗ trợ</span>
+  </nav>
+
+  <!-- Page Header -->
+  <div style="margin-bottom: 40px; text-align: center; max-width: 680px; margin-left: auto; margin-right: auto;">
+    <div class="hero-pill" style="display: inline-flex; margin-bottom: 12px;">
+      Trung tâm trợ giúp
+    </div>
+    <h1 style="font-family: var(--font-serif); font-size: 2.3rem; color: var(--text-plum); margin: 0 0 12px 0; font-weight: 700; line-height: 1.25;">
+      Hướng dẫn & Câu hỏi thường gặp
+    </h1>
+    <p style="font-size: 0.98rem; color: var(--text-muted); margin: 0; line-height: 1.6;">
+      Tổng hợp các thông tin chi tiết về quy trình mua quyền sử dụng tác phẩm, đặt vẽ theo yêu cầu và bảo vệ quyền sở hữu trí tuệ trên ARTFAIR.
+    </p>
+  </div>
+
+  <!-- FAQ Accordion / Cards List -->
+  <div style="max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+
+    <!-- Card 1 -->
+    <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px 32px; box-shadow: var(--shadow-card);">
+      <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 10px 0; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+        <span style="color: var(--primary-berry);">Q.</span> Làm thế nào để mua quyền sử dụng tác phẩm trên ARTFAIR?
+      </h2>
+      <p style="font-size: 0.92rem; color: var(--text-plum); line-height: 1.65; margin: 0;">
+        Bạn chỉ cần chọn tác phẩm yêu thích tại trang Khám phá, xem chi tiết các gói quyền (Cá nhân hoặc Thương mại), sau đó bấm nút <strong>Mua quyền sử dụng</strong>. Trong phiên bản thử nghiệm hiện tại, bạn bấm nút xác nhận thanh toán mô phỏng sandbox. Ngay sau khi hoàn tất, tác phẩm sẽ xuất hiện trong <em>Kho tranh của bạn</em> tại Khu vực cá nhân để tải file gốc và giấy chứng nhận PDF.
+      </p>
+    </div>
+
+    <!-- Card 2 -->
+    <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px 32px; box-shadow: var(--shadow-card);">
+      <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 10px 0; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+        <span style="color: var(--primary-berry);">Q.</span> Sự khác biệt giữa Quyền sử dụng cá nhân và Quyền thương mại là gì?
+      </h2>
+      <div style="font-size: 0.92rem; color: var(--text-plum); line-height: 1.65;">
+        <p style="margin: 0 0 8px 0;">
+          <strong>• Quyền sử dụng cá nhân (Personal):</strong> Cho phép bạn sử dụng tác phẩm cho các mục đích phi lợi nhuận như hình nền điện thoại/máy tính, in ấn trang trí phòng cá nhân, phục vụ học tập hoặc thuyết trình cá nhân. Tuyệt đối không được bán lại hay sử dụng vào bất kỳ sản phẩm sinh lời nào.
+        </p>
+        <p style="margin: 0;">
+          <strong>• Quyền sử dụng thương mại (Commercial):</strong> Cho phép bạn tích hợp tác phẩm vào các ấn phẩm truyền thông, quảng cáo doanh nghiệp, bao bì sản phẩm, website hoặc tài liệu thương mại theo phạm vi điều khoản đã thỏa thuận với tác giả.
+        </p>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px 32px; box-shadow: var(--shadow-card);">
+      <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 10px 0; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+        <span style="color: var(--primary-berry);">Q.</span> Tệp gốc chất lượng cao được lưu trữ và bảo vệ như thế nào?
+      </h2>
+      <p style="font-size: 0.92rem; color: var(--text-plum); line-height: 1.65; margin: 0;">
+        Trên trang web công khai, toàn bộ hình ảnh xem trước đều được tạo tự động với độ phân giải thấp và đóng dấu mờ bản quyền (watermark) bắt buộc. <strong>Tệp gốc có độ phân giải cao (JPG, PNG, PSD, AI, ZIP)</strong> được lưu trữ hoàn toàn trong kho riêng tư (Protected Media Vault). Chỉ người mua đã thanh toán thành công hoặc chính tác giả mới được cấp quyền tải tệp qua liên kết xác thực an toàn.
+      </p>
+    </div>
+
+    <!-- Card 4 -->
+    <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px 32px; box-shadow: var(--shadow-card);">
+      <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 10px 0; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+        <span style="color: var(--primary-berry);">Q.</span> Quy trình đặt vẽ Commission diễn ra như thế nào?
+      </h2>
+      <p style="font-size: 0.92rem; color: var(--text-plum); line-height: 1.65; margin: 0;">
+        1. Người mua vào trang hồ sơ của nghệ sĩ có biểu tượng <em>● Nhận vẽ</em> và gửi Brief yêu cầu.<br>
+        2. Nghệ sĩ nhận thông báo, xem xét ý tưởng và gửi lại báo giá chính thức kèm hạn chót và số lần chỉnh sửa.<br>
+        3. Người mua duyệt báo giá và thanh toán ký quỹ mô phỏng để nghệ sĩ bắt đầu vẽ.<br>
+        4. Nghệ sĩ cập nhật phác thảo, hoàn thiện và bàn giao file gốc.<br>
+        5. Người mua nghiệm thu hài lòng, số tiền ký quỹ được giải ngân vào số dư của nghệ sĩ và hệ thống tự động xuất chứng nhận điện tử.
+      </p>
+    </div>
+
+    <!-- Card 5 -->
+    <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px 32px; box-shadow: var(--shadow-card);">
+      <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 10px 0; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+        <span style="color: var(--primary-berry);">Q.</span> Nghệ sĩ rút doanh thu bán tranh và đặt vẽ như thế nào?
+      </h2>
+      <p style="font-size: 0.92rem; color: var(--text-plum); line-height: 1.65; margin: 0;">
+        Trong tab <em>Doanh thu & Rút tiền</em> tại Khu vực cá nhân, nghệ sĩ có thể theo dõi số dư khả dụng từ các đơn mua quyền sử dụng tác phẩm và các đơn commission đã nghiệm thu. Nghệ sĩ có thể tạo yêu cầu rút tiền mô phỏng (tối thiểu 100.000 ₫) vào số tài khoản ngân hàng của mình.
+      </p>
+    </div>
+
+  </div>
+
+</div>
+
   </main>
 
   <!-- Global Boutique Footer -->
@@ -141,10 +229,10 @@
       <div class="footer-col-links">
         <div class="footer-heading">Khám phá</div>
         <ul class="footer-links-list">
-          <li><a href="{% url 'home' %}">Tác phẩm mới</a></li>
-          <li><a href="{% url 'artist_list' %}">Nghệ sĩ sáng tạo</a></li>
-          <li><a href="{% url 'collections_list' %}">Bộ sưu tập tuyển chọn</a></li>
-          <li><a href="{% url 'creator_studio' %}">Creator Studio (Đăng bán tranh)</a></li>
+          <li><a href="/ARTFAIR/">Tác phẩm mới</a></li>
+          <li><a href="/ARTFAIR/artists/">Nghệ sĩ sáng tạo</a></li>
+          <li><a href="/ARTFAIR/collections/">Bộ sưu tập tuyển chọn</a></li>
+          <li><a href="/ARTFAIR/studio/">Creator Studio (Đăng bán tranh)</a></li>
         </ul>
       </div>
 
@@ -152,10 +240,10 @@
       <div class="footer-col-links">
         <div class="footer-heading">Thông tin & Hỗ trợ</div>
         <ul class="footer-links-list">
-          <li><a href="{% url 'about' %}">Về ARTFAIR</a></li>
-          <li><a href="{% url 'help' %}">Hướng dẫn & Câu hỏi thường gặp</a></li>
-          <li><a href="{% url 'terms' %}">Điều khoản sử dụng</a></li>
-          <li><a href="{% url 'privacy' %}">Chính sách bảo mật</a></li>
+          <li><a href="/ARTFAIR/about/">Về ARTFAIR</a></li>
+          <li><a href="/ARTFAIR/help/">Hướng dẫn & Câu hỏi thường gặp</a></li>
+          <li><a href="/ARTFAIR/terms/">Điều khoản sử dụng</a></li>
+          <li><a href="/ARTFAIR/privacy/">Chính sách bảo mật</a></li>
         </ul>
       </div>
     </div>
@@ -217,7 +305,7 @@
                 </button>
               </div>
               <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
-                <a href="/help/" style="font-size: 0.8rem; color: var(--primary-berry); text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
+                <a href="/ARTFAIR/help/" style="font-size: 0.8rem; color: var(--primary-berry); text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
               </div>
             </div>
 
@@ -297,7 +385,7 @@
             <div style="margin-top: 12px; margin-bottom: 8px;">
               <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
                 <input type="checkbox" id="regAgreeTerms" required style="margin-top: 3px; accent-color: var(--primary-berry);">
-                <span>Tôi đồng ý với <a href="/about/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Điều khoản sử dụng</a> và <a href="/help/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Chính sách bảo mật</a> của ARTFAIR.</span>
+                <span>Tôi đồng ý với <a href="/ARTFAIR/about/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Điều khoản sử dụng</a> và <a href="/ARTFAIR/help/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Chính sách bảo mật</a> của ARTFAIR.</span>
               </label>
             </div>
 
@@ -370,8 +458,8 @@
   </div>
 
   <!-- Core JavaScript -->
-  <script src="{% static 'js/config.js' %}"></script>
-  <script src="{% static 'js/artfair.js' %}"></script>
-  {% block extra_scripts %}{% endblock %}
+  <script src="/ARTFAIR/static/js/config.js"></script>
+  <script src="/ARTFAIR/static/js/artfair.js"></script>
+  
 </body>
 </html>
