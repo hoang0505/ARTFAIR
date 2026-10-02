@@ -210,3 +210,29 @@ class AccountsAuthTests(TestCase):
         user.refresh_from_db()
         self.assertTrue(user.check_password('NewPassword123!'))
 
+    def test_register_and_login_with_invalid_token_header_succeeds(self):
+        """
+        Verify that registering or logging in with a stale/invalid Authorization header
+        does NOT fail with 'Invalid token.' 401 response.
+        """
+        self.client.credentials(HTTP_AUTHORIZATION='Token bogus_stale_token_9999')
+
+        # Register should succeed despite invalid token header
+        reg_payload = {
+            'username': 'stale_token_user',
+            'email': 'stale_token@example.com',
+            'password': 'SecurePassword123!',
+            'role': User.Role.BUYER,
+        }
+        res = self.client.post(reverse('accounts:register'), reg_payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        # Login should succeed despite invalid token header
+        login_payload = {
+            'username': 'stale_token_user',
+            'password': 'SecurePassword123!',
+        }
+        res = self.client.post(reverse('accounts:login'), login_payload)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+

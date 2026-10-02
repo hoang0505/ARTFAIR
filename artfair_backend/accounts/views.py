@@ -27,6 +27,7 @@ class CSRFTokenView(APIView):
     Guarantees the csrftoken cookie is sent in Set-Cookie header.
     """
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def get(self, request):
         token = get_token(request)
@@ -44,6 +45,7 @@ class RegisterView(APIView):
     Cannot grant admin or verified privileges.
     """
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -76,6 +78,7 @@ class LoginView(APIView):
     Supports login via either username or email (case-insensitive).
     """
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)

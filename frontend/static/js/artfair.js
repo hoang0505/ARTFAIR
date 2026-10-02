@@ -109,9 +109,14 @@
     const method = (options.method || 'GET').toUpperCase();
     const headers = Object.assign({}, options.headers || {});
 
-    // Attach Token Authorization header if user has authenticated token
+    // Check if endpoint is an unauthenticated public auth endpoint
+    const isPublicAuthEndpoint = url.includes('/api/accounts/auth/login') ||
+                                 url.includes('/api/accounts/auth/register') ||
+                                 url.includes('/api/accounts/auth/csrf');
+
+    // Attach Token Authorization header if user has authenticated token (NEVER on login, register, or csrf)
     const token = getAuthToken();
-    if (token && !headers['Authorization']) {
+    if (token && !headers['Authorization'] && !isPublicAuthEndpoint) {
       headers['Authorization'] = `Token ${token}`;
     }
 
@@ -132,6 +137,21 @@
 
     try {
       const res = await fetch(resolvedUrl, fetchOptions);
+
+      // Check for Invalid Token failure (401 Unauthorized)
+      if (res.status === 401) {
+        const clone = res.clone();
+        try {
+          const bodyText = await clone.text();
+          if (bodyText.includes('Invalid token') || bodyText.includes('invalid_token')) {
+            console.warn('[ARTFAIR Auth] Stale or invalid token detected. Purging invalid token from storage...');
+            setAuthToken('');
+            state.currentUser = null;
+            renderNavbarAuth();
+            window.dispatchEvent(new CustomEvent('artfair:user_loaded', { detail: null }));
+          }
+        } catch (_) {}
+      }
 
       // Check for CSRF failure
       if (res.status === 403) {
@@ -662,6 +682,11 @@
     lastFocusedOpener = document.activeElement;
     const backdrop = document.getElementById('authModalBackdrop');
     if (!backdrop) return;
+
+    // If user is currently unauthenticated, wipe any orphan or stale token so fresh auth is clean
+    if (!state.currentUser) {
+      setAuthToken('');
+    }
 
     // Lock background scroll
     document.body.classList.add('modal-open');
