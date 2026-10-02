@@ -1,0 +1,1013 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hồ sơ nghệ sĩ An Nguyễn Digital Art | ARTFAIR</title>
+
+  <!-- Google Fonts: Be Vietnam Pro (Sans-serif) & Playfair Display (Serif) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet">
+
+  <!-- ARTFAIR Core CSS -->
+  <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
+  <meta name="csrf-token" content="ETLI9Btyp29zXyhM7EafPIJOkyghehgLb5it3u5poCsXxx96XMBVyc2gy0RXZIz0">
+  
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-inner">
+      <!-- Brand Logo -->
+      <a href="/ARTFAIR/" class="logo" title="ARTFAIR Trang chủ">
+        <span class="logo-icon">
+          <!-- Artistic Petal Ribbon Monogram SVG -->
+          <svg viewBox="0 0 32 32" fill="currentColor">
+            <path d="M16 3C11 9 7 15 7 21C7 25.97 11.03 29 16 29C20.97 29 25 25.97 25 21C25 15 21 9 16 3ZM16 26C13.24 26 11 23.76 11 21C11 17.5 13.8 13.2 16 9.8C18.2 13.2 21 17.5 21 21C21 23.76 18.76 26 16 26Z"/>
+          </svg>
+        </span>
+        ARTFAIR
+      </a>
+
+      <!-- Primary Nav Links (Desktop) -->
+      <ul class="nav-links">
+        <li><a href="/ARTFAIR/" class="nav-link" id="navLinkExplore">Khám phá</a></li>
+        <li><a href="/ARTFAIR/artists/" class="nav-link" id="navLinkArtists">Nghệ sĩ</a></li>
+        <li><a href="/ARTFAIR/collections/" class="nav-link" id="navLinkCollections">Bộ sưu tập</a></li>
+        <li><a href="/ARTFAIR/about/" class="nav-link" id="navLinkAbout">Về ARTFAIR</a></li>
+      </ul>
+
+      <!-- Quick Search Bar -->
+      <div class="nav-search">
+        <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" class="nav-search-input" id="navSearchInput" placeholder="Tìm kiếm tác phẩm, nghệ sĩ, chủ đề..." autocomplete="off">
+      </div>
+
+      <!-- Action & Auth Area -->
+      <div class="nav-actions">
+        <!-- Dynamic User Auth Area (Login/Register or User Badge Dropdown) -->
+        <div id="navbarAuthArea" style="display: flex; align-items: center; gap: 10px;">
+          <button class="btn btn-ghost" id="navBtnLogin" onclick="window.ArtFair && window.ArtFair.openAuthModal ? window.ArtFair.openAuthModal('login') : null">Đăng nhập</button>
+          <button class="btn btn-primary" id="navBtnRegister" onclick="window.ArtFair && window.ArtFair.openAuthModal ? window.ArtFair.openAuthModal('register') : null">Đăng ký</button>
+        </div>
+
+        <!-- Mobile Menu Toggle Button -->
+        <button class="mobile-menu-btn" id="mobileMenuToggleBtn" aria-label="Mở menu di động">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Menu Drawer Overlay -->
+  <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop">
+    <div class="mobile-drawer">
+      <div class="mobile-drawer-header">
+        <div class="logo">
+          <span class="logo-icon">
+            <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C11 9 7 15 7 21C7 25.97 11.03 29 16 29C20.97 29 25 25.97 25 21C25 15 21 9 16 3ZM16 26C13.24 26 11 23.76 11 21C11 17.5 13.8 13.2 16 9.8C18.2 13.2 21 17.5 21 21C21 23.76 18.76 26 16 26Z"/></svg>
+          </span>
+          ARTFAIR
+        </div>
+        <button class="modal-close-btn" id="mobileDrawerCloseBtn" aria-label="Đóng menu">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="mobile-drawer-body">
+        <div class="mobile-drawer-search" style="margin-bottom: 20px;">
+          <input type="text" id="mobileSearchInput" placeholder="Tìm tác phẩm, nghệ sĩ..." style="width: 100%; height: 42px; padding: 0 16px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-full); font-size: 0.9rem; color: var(--text-plum); box-sizing: border-box;">
+        </div>
+
+        <ul class="mobile-nav-list" style="list-style: none; display: flex; flex-direction: column; gap: 8px;">
+          <li><a href="/ARTFAIR/" class="mobile-nav-link">Khám phá tác phẩm</a></li>
+          <li><a href="/ARTFAIR/artists/" class="mobile-nav-link">Nghệ sĩ sáng tạo</a></li>
+          <li><a href="/ARTFAIR/collections/" class="mobile-nav-link">Bộ sưu tập tuyển chọn</a></li>
+          <li><a href="/ARTFAIR/studio/" class="mobile-nav-link" style="color: var(--primary-berry); font-weight: 600;">Creator Studio (Đăng bán tranh)</a></li>
+          <li><a href="/ARTFAIR/about/" class="mobile-nav-link">Về ARTFAIR</a></li>
+          <li><a href="/ARTFAIR/help/" class="mobile-nav-link">Hướng dẫn & FAQ</a></li>
+        </ul>
+
+        <div style="border-top: 1px solid var(--border-light); margin-top: 24px; padding-top: 20px;">
+          <div id="mobileDrawerAuthArea">
+            <div style="display: flex; gap: 10px;">
+              <button class="btn btn-secondary" id="mobileBtnLogin" style="flex: 1;" onclick="window.ArtFair && window.ArtFair.openAuthModal ? (document.getElementById('mobileDrawerBackdrop')?.classList.remove('show'), document.body.style.overflow='', window.ArtFair.openAuthModal('login')) : null">Đăng nhập</button>
+              <button class="btn btn-primary" id="mobileBtnRegister" style="flex: 1;" onclick="window.ArtFair && window.ArtFair.openAuthModal ? (document.getElementById('mobileDrawerBackdrop')?.classList.remove('show'), document.body.style.overflow='', window.ArtFair.openAuthModal('register')) : null">Đăng ký</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Body -->
+  <main>
+    
+<div class="container" style="padding-top: 28px; padding-bottom: 64px;">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <a href="/ARTFAIR/" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
+    <span>/</span>
+    <a href="/ARTFAIR/#gallerySection" style="color: var(--text-plum); text-decoration: none;">Khám phá tác phẩm</a>
+    <span>/</span>
+    <span style="color: var(--text-berry); font-weight: 600;">Hồ sơ nghệ sĩ</span>
+  </nav>
+
+  <!-- =========================================================================
+       1. ARTIST PROFILE HERO CARD
+       ========================================================================= -->
+  <div class="artist-hero-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-card); margin-bottom: 40px;">
+    
+    <!-- Cover Banner -->
+    <div class="artist-cover-banner" style="height: 220px; position: relative; background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 50%, #E8D7F1 100%); overflow: hidden;">
+      
+        <img src="https://hoang0505.pythonanywhere.com/media/covers/2026/10/cover_monet_water_lilies_1906.jpg" alt="Cover của creator_an" style="width: 100%; height: 100%; object-fit: cover;">
+      
+    </div>
+
+    <!-- Artist Info & Stats Area -->
+    <div class="artist-info-body" style="padding: 0 32px 32px 32px; position: relative;">
+      
+      <!-- Top Row: Avatar Overlap & Actions -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 20px; margin-top: -60px; margin-bottom: 20px;">
+        
+        <!-- Avatar -->
+        <div class="artist-avatar-wrapper" style="width: 120px; height: 120px; border-radius: var(--radius-full); border: 4px solid #FFFFFF; background: linear-gradient(135deg, var(--primary-berry), var(--primary-violet)); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: 700; box-shadow: 0 8px 24px rgba(197, 42, 112, 0.25); overflow: hidden; flex-shrink: 0;">
+          
+            <img src="https://hoang0505.pythonanywhere.com/media/avatars/2026/10/avatar_creator_an.png" alt="creator_an" style="width: 100%; height: 100%; object-fit: cover;">
+          
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="artist-actions-group" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          
+            
+              <button class="btn btn-primary btn-pulse-glow" id="btnOpenCommissionModal" style="display: flex; align-items: center; gap: 8px; padding: 12px 24px; font-weight: 700;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                <span>Đặt vẽ với nghệ sĩ</span>
+              </button>
+            
+          
+        </div>
+
+      </div>
+
+      <!-- Identity & Status Badges -->
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
+          <h1 style="font-family: var(--font-serif); font-size: 1.9rem; color: var(--text-plum); margin: 0; font-weight: 700;">
+            An Nguyễn Digital Art
+          </h1>
+          <span class="role-pill creator" style="font-size: 0.8rem; padding: 3px 10px;">Nghệ sĩ (Creator)</span>
+          
+          <!-- Activity Tier Badge with transparent criteria -->
+          
+          
+          
+            <span class="commission-status-pill open" style="font-size: 0.8rem; background: #E6F7FF; color: #0070BA; border: 1px solid #91D5FF; border-radius: var(--radius-full); padding: 3px 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: #1890FF; display: inline-block;"></span>
+              Đang nhận đặt vẽ
+            </span>
+          
+        </div>
+
+        <p style="margin: 0; font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">
+          @creator_an
+        </p>
+      </div>
+
+      <!-- Bio / Description -->
+      <div style="max-width: 850px; margin-bottom: 24px; color: var(--text-plum); font-size: 0.96rem; line-height: 1.6;">
+        
+          <p>Họa sĩ minh họa 2D chuyên phong cách Cyberpunk và Fantasy tại TP. Hồ Chí Minh.</p>
+
+<p>[Dữ liệu minh họa — Tranh gốc: Water Lilies (Claude Monet, 1906 - Public Domain CC0)]</p>
+        
+      </div>
+
+      <!-- Real Platform Stats (No fake ratings, no fake sales) -->
+      <div class="artist-stats-row" style="display: flex; gap: 28px; flex-wrap: wrap; padding-top: 18px; border-top: 1px solid var(--border-subtle);">
+        <div class="stat-pill-item" style="display: flex; flex-direction: column;">
+          <span style="font-size: 1.3rem; font-weight: 800; color: var(--text-berry); font-family: var(--font-serif);">
+            1
+          </span>
+          <span style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px;">
+            Tác phẩm đang bán
+          </span>
+        </div>
+
+        <div class="stat-pill-item" style="display: flex; flex-direction: column;">
+          <span style="font-size: 1.3rem; font-weight: 800; color: var(--text-plum); font-family: var(--font-serif);">
+            0
+          </span>
+          <span style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px;">
+            Commission hoàn tất
+          </span>
+        </div>
+
+        <div class="stat-pill-item" style="display: flex; flex-direction: column;">
+          <span style="font-size: 1.3rem; font-weight: 800; color: #D97706; font-family: var(--font-serif);">
+            
+              <span style="font-size: 1.05rem; color: var(--text-muted); font-weight: 600;">Chưa có</span>
+            
+          </span>
+          <span style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px;">
+            Đánh giá người mua
+          </span>
+        </div>
+
+        <div class="stat-pill-item" style="display: flex; flex-direction: column;">
+          <span style="font-size: 1.3rem; font-weight: 800; color: var(--text-plum); font-family: var(--font-serif);">
+            10/2026
+          </span>
+          <span style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px;">
+            Gia nhập ARTFAIR
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- =========================================================================
+       2. PUBLISHED ARTWORKS CATALOG
+       ========================================================================= -->
+  <div class="artist-catalog-section" style="margin-top: 32px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+      <div>
+        <h2 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--text-plum); margin: 0 0 4px 0;">
+          Tác phẩm của nghệ sĩ
+        </h2>
+        <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+          Các tác phẩm số đã phát hành. Chọn mua quyền sử dụng cá nhân hoặc thương mại không độc quyền.
+        </p>
+      </div>
+      <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-plum);">
+        1 tác phẩm
+      </span>
+    </div>
+
+    
+      <div class="artworks-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; margin-bottom: 32px;">
+        
+          <div class="artwork-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
+            <!-- Thumbnail Image -->
+            <a href="/ARTFAIR/artworks/sai-gon-2077-dem-mua-neon/" style="display: block; position: relative; height: 220px; background: #FAF5FF; overflow: hidden; text-decoration: none;">
+              
+                <img src="https://hoang0505.pythonanywhere.com/media/previews/2026/10/saigon_2077_master_preview.jpg" alt="Sài Gòn Năm 2077 - Đêm Mưa Neon" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+              
+              
+              
+                <span style="position: absolute; top: 10px; left: 10px; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-full); background: rgba(255, 255, 255, 0.9); color: var(--text-plum); backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+                  Digital Painting
+                </span>
+              
+            </a>
+
+            <!-- Card Info -->
+            <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="margin-bottom: 12px;">
+                <h3 style="font-family: var(--font-serif); font-size: 1.05rem; margin: 0 0 6px 0; color: var(--text-plum); font-weight: 700; line-height: 1.3;">
+                  <a href="/ARTFAIR/artworks/sai-gon-2077-dem-mua-neon/" style="color: inherit; text-decoration: none;">
+                    Sài Gòn Năm 2077 - Đêm Mưa Neon
+                  </a>
+                </h3>
+                <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                  Bức tranh phong cảnh Cyberpunk Sài Gòn tương lai rực rỡ ánh đèn neon dưới …
+                </p>
+              </div>
+
+              <!-- Prices & Action -->
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; padding-top: 10px; border-top: 1px dashed var(--border-subtle);">
+                  <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Giá từ:</span>
+                  <span style="font-size: 0.95rem; font-weight: 800; color: var(--text-berry);">
+                    
+                      1500000 ₫
+                    
+                  </span>
+                </div>
+
+                <a href="/ARTFAIR/artworks/sai-gon-2077-dem-mua-neon/" class="btn btn-secondary btn-sm" style="width: 100%; text-align: center; text-decoration: none;">
+                  Xem chi tiết tác phẩm
+                </a>
+              </div>
+            </div>
+          </div>
+        
+      </div>
+
+      <!-- Pagination -->
+      
+
+    
+
+  </div>
+
+  <!-- =========================================================================
+       3. REVIEWS & RATINGS SECTION
+       ========================================================================= -->
+  <div class="artist-reviews-section" id="reviewsSection" style="margin-top: 48px; background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 32px; box-shadow: var(--shadow-sm);">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+      <div>
+        <h2 style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--text-plum); margin: 0 0 4px 0;">
+          Đánh giá từ người mua
+        </h2>
+        <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+          Đánh giá minh bạch từ khách hàng đã hoàn tất giao dịch mua quyền tác phẩm hoặc đặt vẽ Commission.
+        </p>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span style="font-size: 1.8rem; font-weight: 800; color: #D97706; font-family: var(--font-serif);">
+            —
+          </span>
+          <span style="font-size: 0.9rem; color: var(--text-muted);">
+            / 5.0 ( đánh giá)
+          </span>
+        </div>
+
+        
+      </div>
+    </div>
+
+    
+      <div style="text-align: center; padding: 36px 16px; background: var(--bg-lavender-subtle); border-radius: var(--radius-md); color: var(--text-muted);">
+        <p style="margin: 0 0 6px 0; font-size: 0.95rem; font-weight: 600; color: var(--text-plum);">Nghệ sĩ chưa có đánh giá nào</p>
+        <p style="margin: 0; font-size: 0.84rem;">Chỉ người mua đã hoàn thành đơn mua bản quyền hoặc đơn đặt vẽ mới có thể để lại đánh giá thực tế.</p>
+      </div>
+    
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================================
+     3. COMMISSION REQUEST MODAL
+     ========================================================================= -->
+<div class="modal-backdrop" id="commissionModalBackdrop" style="display: none;">
+  <div class="modal-dialog" style="max-width: 640px; max-height: 90vh; overflow-y: auto;">
+    <button class="modal-close-btn" id="btnCloseCommissionModal" aria-label="Đóng cửa sổ">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="modal-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px; margin-bottom: 20px;">
+      <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-plum); margin: 0 0 4px 0;">
+        Đặt vẽ Commission với @creator_an
+      </h3>
+      <p style="margin: 0; font-size: 0.84rem; color: var(--text-berry); font-weight: 600;">
+        ★ Thanh toán mô phỏng — Không giao dịch tiền thật
+      </p>
+    </div>
+
+    <!-- Alert / Notice Box -->
+    <div style="background: var(--bg-lavender-subtle); border: 1px solid rgba(197, 42, 112, 0.15); border-radius: var(--radius-md); padding: 12px 16px; font-size: 0.82rem; color: var(--text-plum); margin-bottom: 20px; line-height: 1.5;">
+      <strong>Quy trình thực hiện:</strong> Bạn gửi brief ý tưởng &rarr; Nghệ sĩ phản hồi kèm báo giá chính thức &rarr; Bạn duyệt và thanh toán ký quỹ mô phỏng &rarr; Nghệ sĩ vẽ và bàn giao &rarr; Bạn nghiệm thu và nhận Giấy chứng nhận bản quyền PDF.
+    </div>
+
+    <form id="commissionRequestForm" enctype="multipart/form-data">
+      <input type="hidden" name="csrfmiddlewaretoken" value="ETLI9Btyp29zXyhM7EafPIJOkyghehgLb5it3u5poCsXxx96XMBVyc2gy0RXZIz0">
+      <input type="hidden" name="creator_username" value="creator_an">
+
+      <!-- Tiêu đề -->
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label for="commTitle" style="display: block; font-size: 0.88rem; font-weight: 700; color: var(--text-plum); margin-bottom: 6px;">
+          Tiêu đề yêu cầu <span style="color: var(--primary-berry);">*</span>
+        </label>
+        <input type="text" id="commTitle" name="title" class="form-input" placeholder="Ví dụ: Thiết kế nhân vật minh họa bìa sách fantasy..." required style="width: 100%;">
+      </div>
+
+      <!-- Mô tả brief -->
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label for="commDescription" style="display: block; font-size: 0.88rem; font-weight: 700; color: var(--text-plum); margin-bottom: 6px;">
+          Mô tả ý tưởng & Brief chi tiết <span style="color: var(--primary-berry);">*</span>
+        </label>
+        <textarea id="commDescription" name="description" class="form-input" rows="4" placeholder="Mô tả phong cách, bối cảnh, màu sắc chủ đạo, kích thước hoặc tỉ lệ mong muốn..." required style="width: 100%;"></textarea>
+      </div>
+
+      <!-- Hai cột: Ngân sách & Hạn hoàn thành -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+        <div class="form-group">
+          <label for="commBudget" style="display: block; font-size: 0.88rem; font-weight: 700; color: var(--text-plum); margin-bottom: 6px;">
+            Ngân sách dự kiến (VND) <span style="color: var(--primary-berry);">*</span>
+          </label>
+          <input type="number" id="commBudget" name="budget" class="form-input" min="1000" step="1000" placeholder="VD: 500000" required style="width: 100%;">
+          <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 4px;">Tối thiểu 1,000 VND</span>
+        </div>
+
+        <div class="form-group">
+          <label for="commDeadline" style="display: block; font-size: 0.88rem; font-weight: 700; color: var(--text-plum); margin-bottom: 6px;">
+            Hạn mong muốn bàn giao <span style="color: var(--primary-berry);">*</span>
+          </label>
+          <input type="date" id="commDeadline" name="deadline" class="form-input" required style="width: 100%;">
+        </div>
+      </div>
+
+      <!-- Gói quyền sử dụng -->
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 0.88rem; font-weight: 700; color: var(--text-plum); margin-bottom: 8px;">
+          Phạm vi bản quyền dự kiến <span style="color: var(--primary-berry);">*</span>
+        </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <label style="border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 10px 14px; cursor: pointer; display: flex; gap: 8px; align-items: flex-start; background: #FFFFFF;">
+            <input type="radio" name="license_type" value="PERSONAL" checked style="margin-top: 3px;">
+            <div>
+              <strong style="font-size: 0.88rem; color: var(--text-plum); display: block;">Cá nhân (Personal)</strong>
+              <span style="font-size: 0.74rem; color: var(--text-muted); display: block; line-height: 1.3;">Dùng làm avatar, hình nền, sưu tầm cá nhân. Không thương mại.</span>
+            </div>
+          </label>
+
+          <label style="border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 10px 14px; cursor: pointer; display: flex; gap: 8px; align-items: flex-start; background: #FFFFFF;">
+            <input type="radio" name="license_type" value="COMMERCIAL" style="margin-top: 3px;">
+            <div>
+              <strong style="font-size: 0.88rem; color: var(--text-plum); display: block;">Thương mại (Commercial)</strong>
+              <span style="font-size: 0.74rem; color: var(--text-muted); display: block; line-height: 1.3;">Sử dụng cho ấn phẩm, quảng cáo, sản phẩm kinh doanh.</span>
+            </div>
+          </label>
+        </div>
+        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 6px;">
+          * Lưu ý: Quyền sử dụng không độc quyền, quyền tác giả gốc vẫn thuộc về nghệ sĩ sáng tạo.
+        </span>
+      </div>
+
+      <!-- File tham khảo (Moodboard / Reference) -->
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label for="commReferenceFile" style="display: block; font-size: 0.88rem; font-weight: 700; color: var(--text-plum); margin-bottom: 6px;">
+          Tệp tham khảo / Moodboard (Tùy chọn)
+        </label>
+        <input type="file" id="commReferenceFile" name="reference_file" class="form-input" accept=".jpg,.jpeg,.png,.webp,.pdf,.zip" style="width: 100%; font-size: 0.84rem;">
+        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 4px;">
+          Hỗ trợ ảnh JPG, PNG, WEBP, PDF hoặc ZIP (Tối đa 10MB). Tệp được lưu trong kho riêng tư bảo mật.
+        </span>
+      </div>
+
+      <!-- Điều khoản xác nhận -->
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label style="display: flex; gap: 10px; align-items: flex-start; cursor: pointer;">
+          <input type="checkbox" id="commAgreeTerms" required style="margin-top: 3px;">
+          <span style="font-size: 0.82rem; color: var(--text-plum); line-height: 1.4;">
+            Tôi đồng ý với quy trình giao dịch Commission của ARTFAIR: Giá cuối cùng do Nghệ sĩ báo giá xác nhận; mọi thanh toán đều là ký quỹ mô phỏng bảo đảm và chỉ giải ngân khi tôi xác nhận hoàn tất nghiệm thu.
+          </span>
+        </label>
+      </div>
+
+      <!-- Error box -->
+      <div id="commFormErrorBox" style="display: none; background: #FFF1F0; border: 1px solid #FFA39E; border-radius: var(--radius-md); padding: 10px 14px; font-size: 0.84rem; color: #CF1322; margin-bottom: 16px;"></div>
+
+      <!-- Buttons -->
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="btnCancelCommissionModal">Hủy bỏ</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitCommission">
+          <span id="btnSubmitCommText">Gửi yêu cầu đặt vẽ</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-backdrop" id="commissionSuccessBackdrop" style="display: none;">
+  <div class="modal-dialog" style="max-width: 480px; text-align: center; padding: 32px 24px;">
+    <div style="width: 64px; height: 64px; border-radius: 50%; background: #E6FFFB; color: #13C2C2; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 2px solid #87E8DE;">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <h3 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 8px;">
+      Gửi yêu cầu thành công!
+    </h3>
+    <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px;">
+      Mã đơn của bạn: <strong id="successCommCode" style="color: var(--text-berry);"></strong>
+    </p>
+    <p style="font-size: 0.84rem; color: var(--text-plum); line-height: 1.5; margin-bottom: 24px;">
+      Yêu cầu đã được chuyển tới nghệ sĩ @creator_an. Nghệ sĩ sẽ xem xét ý tưởng và gửi lại báo giá chính thức cho bạn.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center;">
+      <button class="btn btn-secondary" id="btnCloseSuccessModal">Đóng</button>
+      <a href="#" id="linkViewCommissionDetail" class="btn btn-primary" style="text-decoration: none;">
+        Theo dõi tiến độ đơn &rarr;
+      </a>
+    </div>
+  </div>
+</div>
+
+  </main>
+
+  <!-- Global Boutique Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <!-- Column 1: Brand -->
+      <div class="footer-col-brand">
+        <div class="footer-logo">
+          <span class="logo-icon">
+            <svg viewBox="0 0 32 32" fill="currentColor"><path d="M16 3C11 9 7 15 7 21C7 25.97 11.03 29 16 29C20.97 29 25 25.97 25 21C25 15 21 9 16 3ZM16 26C13.24 26 11 23.76 11 21C11 17.5 13.8 13.2 16 9.8C18.2 13.2 21 17.5 21 21C21 23.76 18.76 26 16 26Z"/></svg>
+          </span>
+          ARTFAIR
+        </div>
+        <p class="footer-desc">
+          Nền tảng giao dịch quyền sử dụng tác phẩm nghệ thuật số và kết nối đặt vẽ theo yêu cầu tại Việt Nam.
+        </p>
+        <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin-top: 8px;">
+          Bản quyền tác phẩm gốc thuộc về các tác giả và nghệ sĩ sáng tạo. Người mua được cấp quyền sử dụng hợp pháp theo thỏa thuận.
+        </p>
+      </div>
+
+      <!-- Column 2: Khám phá -->
+      <div class="footer-col-links">
+        <div class="footer-heading">Khám phá</div>
+        <ul class="footer-links-list">
+          <li><a href="/ARTFAIR/">Tác phẩm mới</a></li>
+          <li><a href="/ARTFAIR/artists/">Nghệ sĩ sáng tạo</a></li>
+          <li><a href="/ARTFAIR/collections/">Bộ sưu tập tuyển chọn</a></li>
+          <li><a href="/ARTFAIR/studio/">Creator Studio (Đăng bán tranh)</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Thông tin & Hỗ trợ -->
+      <div class="footer-col-links">
+        <div class="footer-heading">Thông tin & Hỗ trợ</div>
+        <ul class="footer-links-list">
+          <li><a href="/ARTFAIR/about/">Về ARTFAIR</a></li>
+          <li><a href="/ARTFAIR/help/">Hướng dẫn & Câu hỏi thường gặp</a></li>
+          <li><a href="/ARTFAIR/terms/">Điều khoản sử dụng</a></li>
+          <li><a href="/ARTFAIR/privacy/">Chính sách bảo mật</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Copyright -->
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <div>© 2026 ARTFAIR Platform. Bản quyền thuộc về các tác giả và nghệ sĩ sáng tạo.</div>
+        <div style="font-size: 0.8rem; color: var(--text-light);">Môi trường thử nghiệm &bull; Thanh toán mô phỏng Sandbox</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       Authentication Modal (Login & Register Tabs)
+       ========================================================================== -->
+  <div class="modal-backdrop" id="authModalBackdrop">
+    <div class="modal-dialog">
+      <!-- Close Button -->
+      <button class="modal-close-btn" id="modalCloseBtn" aria-label="Đóng cửa sổ">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h2 class="modal-title">Chào mừng đến ARTFAIR</h2>
+        <p class="modal-subtitle">Không gian kết nối nghệ thuật số và cấp quyền sử dụng tác phẩm</p>
+
+        <!-- Tabs Switcher -->
+        <div class="modal-tabs">
+          <button class="modal-tab-btn active" id="tabLoginBtn" type="button">Đăng nhập</button>
+          <button class="modal-tab-btn" id="tabRegisterBtn" type="button">Đăng ký</button>
+        </div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <!-- 1. Tab Đăng nhập -->
+        <div class="tab-pane active" id="paneLogin">
+          <div class="form-alert" id="loginAlert"></div>
+          <form id="formLogin" autocomplete="on">
+            <div class="form-group">
+              <label class="form-label" for="loginUsername">Tên đăng nhập</label>
+              <input type="text" class="form-input" id="loginUsername" placeholder="Nhập username của bạn" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="loginPassword">Mật khẩu</label>
+              <div class="form-input-wrapper">
+                <input type="password" class="form-input" id="loginPassword" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+                <button type="button" class="password-toggle-btn" id="toggleLoginPassword" title="Hiện/ẩn mật khẩu">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+              <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
+                <a href="/ARTFAIR/help/" style="font-size: 0.8rem; color: var(--primary-berry); text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full" id="btnLoginSubmit" style="margin-top: 10px;">
+              Đăng nhập
+            </button>
+
+            <!-- Social SSO Logins -->
+            <div style="display: flex; align-items: center; margin: 18px 0 12px; gap: 10px;">
+              <div style="flex: 1; height: 1px; background: var(--border-subtle);"></div>
+              <span style="font-size: 0.74rem; color: var(--text-muted); text-transform: uppercase;">Hoặc đăng nhập nhanh</span>
+              <div style="flex: 1; height: 1px; background: var(--border-subtle);"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <button type="button" class="btn btn-secondary" onclick="window.ArtFair && window.ArtFair.showNotice ? window.ArtFair.showNotice('Đăng nhập Google SSO đang trong giai đoạn thử nghiệm Sandbox.') : null" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.82rem; padding: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8s.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 16.4C3.7 20.4 7.5 23 12 23z"/></svg>
+                <span>Google SSO</span>
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="window.ArtFair && window.ArtFair.showNotice ? window.ArtFair.showNotice('Đăng nhập Apple ID đang trong giai đoạn thử nghiệm Sandbox.') : null" style="display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 0.82rem; padding: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.87c.66-.82 1.11-1.96.99-3.1-.96.04-2.12.64-2.8 1.44-.61.71-1.14 1.87-1 2.98 1.07.08 2.16-.54 2.81-1.32"/></svg>
+                <span>Apple ID</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- 2. Tab Đăng ký -->
+        <div class="tab-pane" id="paneRegister">
+          <div class="form-alert" id="registerAlert"></div>
+          <form id="formRegister" autocomplete="off">
+            <div class="form-group">
+              <label class="form-label" for="regUsername">Tên đăng nhập</label>
+              <input type="text" class="form-input" id="regUsername" placeholder="Tên định danh (ít nhất 3 ký tự)" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="regEmail">Địa chỉ Email</label>
+              <input type="email" class="form-input" id="regEmail" placeholder="email@example.com" required autocomplete="email">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="regPassword">Mật khẩu</label>
+              <div class="form-input-wrapper">
+                <input type="password" class="form-input" id="regPassword" placeholder="Tối thiểu 8 ký tự" required autocomplete="new-password">
+                <button type="button" class="password-toggle-btn" id="toggleRegPassword" title="Hiện/ẩn mật khẩu">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="regConfirmPassword">Xác nhận mật khẩu</label>
+              <input type="password" class="form-input" id="regConfirmPassword" placeholder="Nhập lại mật khẩu để xác nhận" required autocomplete="new-password">
+            </div>
+
+            <!-- Role Selector -->
+            <div class="form-group">
+              <label class="form-label">Vai trò tài khoản của bạn</label>
+              <div class="role-cards-grid">
+                <div class="role-radio-card active" id="roleCardBuyer">
+                  <input type="radio" name="regRole" value="BUYER" checked style="display: none;">
+                  <div class="role-card-title">Người mua</div>
+                  <div class="role-card-desc">Khám phá và mua quyền sử dụng tác phẩm phi thương mại hoặc thương mại.</div>
+                </div>
+
+                <div class="role-radio-card" id="roleCardCreator">
+                  <input type="radio" name="regRole" value="CREATOR" style="display: none;">
+                  <div class="role-card-title">Nghệ sĩ</div>
+                  <div class="role-card-desc">Có toàn bộ quyền mua của Người mua và thêm quyền mở studio đăng bán tranh.</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 12px; margin-bottom: 8px;">
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
+                <input type="checkbox" id="regAgreeTerms" required style="margin-top: 3px; accent-color: var(--primary-berry);">
+                <span>Tôi đồng ý với <a href="/ARTFAIR/about/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Điều khoản sử dụng</a> và <a href="/ARTFAIR/help/" target="_blank" style="color: var(--primary-berry); font-weight: 600;">Chính sách bảo mật</a> của ARTFAIR.</span>
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-full" id="btnRegisterSubmit" style="margin-top: 10px;">
+              Tạo tài khoản
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       Quick View Modal (Xem chi tiết tác phẩm & gói quyền)
+       ========================================================================== -->
+  <div class="modal-backdrop" id="quickViewBackdrop">
+    <div class="modal-dialog quick-view-dialog">
+      <button class="modal-close-btn" id="qvCloseBtn" aria-label="Đóng cửa sổ">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div style="padding: 32px;">
+        <div class="quick-view-grid">
+          <!-- Image Box -->
+          <div class="quick-view-img-box">
+            <img id="qvImage" class="quick-view-img" src="" alt="Ảnh xem trước tác phẩm">
+          </div>
+
+          <!-- Info & Licenses Box -->
+          <div class="quick-view-info">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+              <span class="role-pill creator" id="qvCategory"></span>
+              <div id="qvTags"></div>
+            </div>
+
+            <h2 class="quick-view-title" id="qvTitle"></h2>
+            
+            <div class="quick-view-artist">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Nghệ sĩ: <strong id="qvArtist" style="color: var(--text-plum);"></strong></span>
+            </div>
+
+            <p class="quick-view-desc" id="qvDesc"></p>
+
+            <div style="margin-top: auto;">
+              <div style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;">
+                Các gói quyền sử dụng khả dụng:
+              </div>
+              <div class="license-tiers-box" id="qvLicenseTiers"></div>
+
+              <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" id="qvBuyBtn" style="flex: 1;">
+                  Mua quyền sử dụng
+                </button>
+              </div>
+              <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 8px; text-align: center;">
+                * Tác phẩm được cấp phép sử dụng không độc quyền.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core JavaScript -->
+  <script src="/ARTFAIR/static/js/config.js"></script>
+  <script src="/ARTFAIR/static/js/artfair.js"></script>
+  
+<script>
+  (function() {
+    // Tomorrow as minimum deadline
+    const deadlineInput = document.getElementById('commDeadline');
+    if (deadlineInput) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const yyyy = tomorrow.getFullYear();
+      const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+      const dd = String(tomorrow.getDate()).padStart(2, '0');
+      deadlineInput.min = `${yyyy}-${mm}-${dd}`;
+      deadlineInput.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    const modalBackdrop = document.getElementById('commissionModalBackdrop');
+    const successBackdrop = document.getElementById('commissionSuccessBackdrop');
+    const openBtn = document.getElementById('btnOpenCommissionModal');
+    const closeBtn = document.getElementById('btnCloseCommissionModal');
+    const cancelBtn = document.getElementById('btnCancelCommissionModal');
+    const closeSuccessBtn = document.getElementById('btnCloseSuccessModal');
+    const form = document.getElementById('commissionRequestForm');
+    const errorBox = document.getElementById('commFormErrorBox');
+    const submitBtn = document.getElementById('btnSubmitCommission');
+    const submitText = document.getElementById('btnSubmitCommText');
+
+    function openModal() {
+      // Check auth state
+      if (!window.ArtFair || !window.ArtFair.currentUser) {
+        if (window.ArtFair && window.ArtFair.openAuthModal) {
+          window.ArtFair.showToast('Vui lòng đăng nhập để gửi yêu cầu đặt vẽ.', 'info');
+          window.ArtFair.openAuthModal('login');
+        }
+        return;
+      }
+
+      // Check self-commission
+      if (window.ArtFair.currentUser.username === "creator_an") {
+        window.ArtFair.showToast('Bạn không thể tự gửi yêu cầu đặt vẽ cho chính mình.', 'warning');
+        return;
+      }
+
+      if (modalBackdrop) {
+        modalBackdrop.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeModal() {
+      if (modalBackdrop) {
+        modalBackdrop.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+      if (errorBox) {
+        errorBox.style.display = 'none';
+        errorBox.textContent = '';
+      }
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+    if (closeSuccessBtn) {
+      closeSuccessBtn.addEventListener('click', function() {
+        if (successBackdrop) successBackdrop.style.display = 'none';
+        document.body.style.overflow = '';
+      });
+    }
+
+    // Handle Form Submit
+    if (form) {
+      form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (errorBox) {
+          errorBox.style.display = 'none';
+          errorBox.textContent = '';
+        }
+
+        const formData = new FormData(form);
+
+        // Anti double-click
+        submitBtn.disabled = true;
+        submitText.textContent = 'Đang gửi yêu cầu...';
+
+        try {
+          const response = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/commissions/', {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            closeModal();
+            form.reset();
+            
+            // Show success modal
+            document.getElementById('successCommCode').textContent = data.commission_code || `#${data.id}`;
+            document.getElementById('linkViewCommissionDetail').href = `/commissions/${data.id}/`;
+            if (successBackdrop) {
+              successBackdrop.style.display = 'flex';
+              document.body.style.overflow = 'hidden';
+            }
+          } else {
+            let errorMsg = 'Có lỗi xảy ra khi gửi yêu cầu.';
+            if (data.detail) {
+              errorMsg = data.detail;
+            } else if (typeof data === 'object') {
+              const messages = [];
+              for (const [k, v] of Object.entries(data)) {
+                messages.push(`${Array.isArray(v) ? v.join(', ') : v}`);
+              }
+              if (messages.length > 0) errorMsg = messages.join('\n');
+            }
+            if (errorBox) {
+              errorBox.textContent = errorMsg;
+              errorBox.style.display = 'block';
+            }
+          }
+        } catch (err) {
+          if (errorBox) {
+            errorBox.textContent = 'Lỗi kết nối máy chủ: ' + err.message;
+            errorBox.style.display = 'block';
+          }
+        } finally {
+          submitBtn.disabled = false;
+          submitText.textContent = 'Gửi yêu cầu đặt vẽ';
+        }
+      });
+    }
+  })();
+</script>
+
+
+
+<script>
+  (function() {
+    // Review Modal & Submission
+    const btnOpenReview = document.getElementById('btnOpenReviewModal');
+    const reviewBackdrop = document.getElementById('reviewModalBackdrop');
+    const btnCloseReview = document.getElementById('btnCloseReviewModal');
+    const btnCancelReview = document.getElementById('btnCancelReviewModal');
+    const reviewForm = document.getElementById('artistReviewForm');
+    const ratingInput = document.getElementById('reviewRatingInput');
+    const starSelector = document.getElementById('starRatingSelector');
+
+    function updateStarDisplay(val) {
+      if (!starSelector) return;
+      const stars = starSelector.querySelectorAll('span');
+      stars.forEach(s => {
+        const num = parseInt(s.getAttribute('data-star'));
+        s.style.color = num <= val ? '#F59E0B' : '#E5E7EB';
+      });
+    }
+
+    if (starSelector) {
+      updateStarDisplay(parseInt(ratingInput?.value || 5));
+      starSelector.querySelectorAll('span').forEach(s => {
+        s.addEventListener('click', () => {
+          const num = parseInt(s.getAttribute('data-star'));
+          if (ratingInput) ratingInput.value = num;
+          updateStarDisplay(num);
+        });
+      });
+    }
+
+    if (btnOpenReview && reviewBackdrop) {
+      btnOpenReview.addEventListener('click', () => {
+        reviewBackdrop.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      });
+    }
+    const closeReviewModal = () => {
+      if (reviewBackdrop) {
+        reviewBackdrop.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    };
+    btnCloseReview?.addEventListener('click', closeReviewModal);
+    btnCancelReview?.addEventListener('click', closeReviewModal);
+
+    if (reviewForm) {
+      reviewForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const rating = parseInt(ratingInput.value);
+        const comment = document.getElementById('reviewCommentInput').value.trim();
+        const btnSub = document.getElementById('btnSubmitReview');
+        const alertBox = document.getElementById('reviewAlertBox');
+        btnSub.disabled = true;
+        btnSub.textContent = 'Đang gửi...';
+
+        try {
+          const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/accounts/artists/creator_an/reviews/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ rating, comment })
+          });
+
+          if (res.status === 403) {
+            const bodyText = await res.clone().text().catch(() => '');
+            if (bodyText.includes('CSRF') || bodyText.includes('csrf') || bodyText.includes('Csrftoken')) {
+              if (alertBox) {
+                alertBox.textContent = 'Phiên xác thực đã thay đổi. Vui lòng tải lại trang và thử lại.';
+                alertBox.style.display = 'block';
+              }
+              if (window.ArtFair?.fetchCsrfToken) await window.ArtFair.fetchCsrfToken();
+              return;
+            }
+          }
+
+          const data = await res.json();
+          if (res.ok) {
+            closeReviewModal();
+            window.location.reload();
+          } else {
+            if (alertBox) {
+              alertBox.textContent = data.detail || 'Không thể gửi đánh giá.';
+              alertBox.style.display = 'block';
+            }
+          }
+        } catch(err) {
+          if (alertBox) {
+            alertBox.textContent = 'Lỗi kết nối khi gửi đánh giá.';
+            alertBox.style.display = 'block';
+          }
+        } finally {
+          btnSub.disabled = false;
+          btnSub.textContent = 'Gửi đánh giá';
+        }
+      });
+    }
+  })();
+</script>
+
+</body>
+</html>
