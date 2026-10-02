@@ -266,23 +266,34 @@ def build():
         }, request=dummy_request)
         write_page(f'artworks/{art.slug}/index.html', art_html)
 
-    # 4.6 Artist Public Profiles (/artists/<username>/)
+    # 4.6 User & Artist Public Profiles (/artists/<username>/)
     from accounts.models import ArtistReview
-    for artist in creators:
-        artworks_qs = Artwork.objects.filter(
-            creator=artist,
-            status=Artwork.Status.PUBLISHED
-        ).select_related('category').prefetch_related('license_options').order_by('-created_at')
-        artist_paginator = Paginator(artworks_qs, 8)
-        artist_page_obj = artist_paginator.get_page(1)
-        reviews = ArtistReview.objects.filter(artist=artist).select_related('reviewer').order_by('-created_at')
+    all_users = User.objects.all().select_related('artist_profile').order_by('-id')
+    for user_obj in all_users:
+        if user_obj.is_creator:
+            artworks_qs = Artwork.objects.filter(
+                creator=user_obj,
+                status=Artwork.Status.PUBLISHED
+            ).select_related('category').prefetch_related('license_options').order_by('-created_at')
+            artist_paginator = Paginator(artworks_qs, 8)
+            artist_page_obj = artist_paginator.get_page(1)
+            reviews = ArtistReview.objects.filter(artist=user_obj).select_related('reviewer').order_by('-created_at')
+            total_art_count = artworks_qs.count()
+            comm_count = Commission.objects.filter(creator=user_obj, status=Commission.Status.COMPLETED).count()
+        else:
+            artworks_qs = Artwork.objects.none()
+            artist_paginator = Paginator(artworks_qs, 8)
+            artist_page_obj = artist_paginator.get_page(1)
+            reviews = ArtistReview.objects.none()
+            total_art_count = 0
+            comm_count = 0
 
         artist_html = render_to_string('artist_profile.html', {
-            'artist': artist,
-            'profile': getattr(artist, 'artist_profile', None),
+            'artist': user_obj,
+            'profile': getattr(user_obj, 'artist_profile', None),
             'page_obj': artist_page_obj,
-            'total_artworks_count': artworks_qs.count(),
-            'completed_commissions_count': Commission.objects.filter(creator=artist, status=Commission.Status.COMPLETED).count(),
+            'total_artworks_count': total_art_count,
+            'completed_commissions_count': comm_count,
             'is_owner': False,
             'reviews': reviews,
             'can_review': False,
@@ -290,7 +301,7 @@ def build():
             'eligible_commission': None,
             'existing_user_review': None,
         }, request=dummy_request)
-        write_page(f'artists/{artist.username}/index.html', artist_html)
+        write_page(f'artists/{user_obj.username}/index.html', artist_html)
 
     # 4.7 Commission Detail Pages (/commissions/<id>/)
     from commissions.serializers import CommissionDetailSerializer
@@ -300,9 +311,9 @@ def build():
         comm_html = render_to_string('commission_detail.html', {
             'commission': comm,
             'commission_json': json.dumps(serializer.data, default=str),
-            'is_buyer': True,
+            'is_buyer': False,
             'is_creator': False,
-            'user_role': 'BUYER',
+            'user_role': 'GUEST',
         }, request=dummy_request)
         write_page(f'commissions/{comm.id}/index.html', comm_html)
 
@@ -320,43 +331,44 @@ def build():
     write_page('privacy/index.html', privacy_html)
 
     # 4.9 User Portal Pages (Studio, Dashboard, Settings)
-    studio_artworks = Artwork.objects.all().select_related('category').prefetch_related('tags', 'license_options')
-    sample_user = creators[0] if creators else User.objects.first()
-    sample_profile = getattr(sample_user, 'artist_profile', None) if sample_user else None
-
+    # Neutral rendering with ZERO hardcoded private data.
+    # Authenticated user data is dynamically and securely hydrated via live API.
     studio_html = render_to_string('studio.html', {
-        'artworks': studio_artworks,
+        'artworks': Artwork.objects.none(),
         'categories': categories,
         'tags': tags,
-        'total_artworks': studio_artworks.count(),
-        'published_count': studio_artworks.filter(status=Artwork.Status.PUBLISHED).count(),
-        'draft_count': studio_artworks.filter(status=Artwork.Status.DRAFT).count(),
-        'archived_count': studio_artworks.filter(status=Artwork.Status.ARCHIVED).count(),
+        'total_artworks': 0,
+        'published_count': 0,
+        'draft_count': 0,
+        'archived_count': 0,
         'total_completed_orders': 0,
         'total_revenue': Decimal('0'),
-        'artist_profile': sample_profile,
+        'artist_profile': None,
+        'user': None,
     }, request=dummy_request)
     write_page('studio/index.html', studio_html)
 
     dash_html = render_to_string('dashboard.html', {
-        'user': sample_user,
-        'artist_profile': sample_profile,
-        'library_orders': Order.objects.filter(buyer=sample_user, status=Order.Status.COMPLETED) if sample_user else Order.objects.none(),
-        'my_orders': Order.objects.filter(buyer=sample_user) if sample_user else Order.objects.none(),
-        'buyer_commissions': Commission.objects.filter(buyer=sample_user) if sample_user else Commission.objects.none(),
+        'user': None,
+        'artist_profile': None,
+        'library_orders': Order.objects.none(),
+        'my_orders': Order.objects.none(),
+        'buyer_commissions': Commission.objects.none(),
         'user_favorites': [],
         'user_notifications': [],
-        'creator_commissions': Commission.objects.filter(creator=sample_user) if sample_user else Commission.objects.none(),
+        'creator_commissions': Commission.objects.none(),
+        'financials': {'available_balance': 0, 'total_revenue': 0, 'total_withdrawn': 0},
     }, request=dummy_request)
     write_page('dashboard/index.html', dash_html)
 
     settings_html = render_to_string('settings.html', {
-        'user': sample_user,
-        'artist_profile': sample_profile,
+        'user': None,
+        'artist_profile': None,
         'success_msg': None,
         'error_msg': None,
     }, request=dummy_request)
     write_page('settings/index.html', settings_html)
+
 
     # 4.10 404 Error Page with auto-redirection fallback for missing prefix
     raw_404_html = render_to_string('404.html', {}, request=dummy_request)

@@ -17,48 +17,49 @@
   <!-- Welcome Banner -->
   <div class="dashboard-header-card" style="background: linear-gradient(135deg, #FFFFFF 0%, var(--bg-lavender-subtle) 100%); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 28px 32px; margin-bottom: 32px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
     <div style="display: flex; align-items: center; gap: 20px;">
-      <div class="user-avatar-lg" style="width: 68px; height: 68px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--primary-berry), var(--primary-violet)); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; box-shadow: 0 4px 12px rgba(197, 42, 112, 0.25); border: 2px solid white; overflow: hidden;">
+      <div class="user-avatar-lg" id="dashHeaderAvatar" style="width: 68px; height: 68px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--primary-berry), var(--primary-violet)); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 700; box-shadow: 0 4px 12px rgba(197, 42, 112, 0.25); border: 2px solid white; overflow: hidden; flex-shrink: 0;">
         {% if artist_profile and artist_profile.avatar %}
-          <img src="{{ artist_profile.avatar.url }}" alt="{{ user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
-        {% else %}
+          <img src="{{ artist_profile.avatar.url }}" alt="{% if user %}{{ user.username }}{% else %}user{% endif %}" style="width: 100%; height: 100%; object-fit: cover;">
+        {% elif user %}
           <span>{{ user.username|slice:":1"|upper }}</span>
+        {% else %}
+          <span>U</span>
         {% endif %}
       </div>
       <div>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px; flex-wrap: wrap;">
-          <h1 style="font-family: var(--font-serif); font-size: 1.6rem; color: var(--text-plum); margin: 0; font-weight: 700;">
-            {% if artist_profile and artist_profile.display_name %}{{ artist_profile.display_name }}{% else %}{{ user.get_full_name|default:user.username }}{% endif %}
+          <h1 id="dashHeaderDisplayName" style="font-family: var(--font-serif); font-size: 1.6rem; color: var(--text-plum); margin: 0; font-weight: 700;">
+            {% if artist_profile and artist_profile.display_name %}{{ artist_profile.display_name }}{% elif user and user.get_full_name %}{{ user.get_full_name }}{% elif user %}{{ user.username }}{% else %}Tài khoản cá nhân{% endif %}
           </h1>
-          <span class="role-pill {% if user.is_creator %}creator{% else %}buyer{% endif %}" style="font-size: 0.8rem; padding: 3px 10px;">
-            {% if user.is_creator %}Nghệ sĩ (Creator){% else %}Người mua (Buyer){% endif %}
+          <span id="dashHeaderRolePill" class="role-pill {% if user and user.is_creator %}creator{% else %}buyer{% endif %}" style="font-size: 0.8rem; padding: 3px 10px;">
+            {% if user and user.is_creator %}Nghệ sĩ (Creator){% else %}Người mua (Buyer){% endif %}
           </span>
-          {% if user.is_email_verified %}
-            <span style="font-size: 0.75rem; background: #E6FFFB; color: #08979C; border: 1px solid #87E8DE; border-radius: var(--radius-full); padding: 2px 8px; font-weight: 500;">Đã xác thực</span>
-          {% endif %}
+          <span id="dashHeaderVerifiedBadge" style="font-size: 0.75rem; background: #E6FFFB; color: #08979C; border: 1px solid #87E8DE; border-radius: var(--radius-full); padding: 2px 8px; font-weight: 500; display: {% if user and user.is_email_verified %}inline-block{% else %}none{% endif %};">Đã xác thực</span>
         </div>
-        <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">
-          @{{ user.username }} &bull; Tham gia từ {{ user.date_joined|date:"d/m/Y" }}
+        <p id="dashHeaderMeta" style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">
+          {% if user %}@{{ user.username }} &bull; Tham gia từ {{ user.date_joined|date:"d/m/Y" }}{% else %}Đang tải dữ liệu cá nhân...{% endif %}
         </p>
       </div>
     </div>
 
-    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <div id="dashHeaderActions" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
       <a href="/#gallerySection" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         <span>Khám phá thêm tranh</span>
       </a>
-      {% if user.is_creator %}
-        <a href="/artists/{{ user.username }}/" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;" title="Xem trang hồ sơ công khai của bạn">
+      <span id="dashCreatorActionButtons" class="creator-only-feature" style="display: {% if user.is_creator %}inline-flex{% else %}none{% endif %}; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <a id="dashBtnViewPublicProfile" href="/artists/{{ user.username|default:'' }}/" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;" title="Xem trang hồ sơ công khai của bạn">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           <span>Xem hồ sơ công khai</span>
         </a>
-        <a href="/studio/" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+        <a href="/studio/" class="btn btn-secondary dash-studio-link" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
           <span>Mở Creator Studio</span>
         </a>
-      {% endif %}
+      </span>
     </div>
   </div>
+
 
   <!-- Dashboard Layout: Sidebar + Content -->
   <div class="dashboard-grid">
@@ -102,7 +103,7 @@
         </button>
       </nav>
 
-      {% if user.is_creator %}
+      <div id="dashSidebarCreatorSection" class="creator-only-feature" style="display: {% if user.is_creator %}block{% else %}none{% endif %};">
         <div class="sidebar-section-title" style="margin-top: 24px;">Dành riêng cho Nghệ sĩ</div>
         <nav class="dashboard-menu">
           <button class="dashboard-nav-item" data-tab="tab-revenue">
@@ -121,12 +122,12 @@
             <span class="badge-count" id="creatorCommissionsCountBadge">{{ creator_commissions.count }}</span>
           </button>
 
-          <a href="/studio/" class="dashboard-nav-item" style="text-decoration: none;">
+          <a href="/studio/" class="dashboard-nav-item dash-studio-link" style="text-decoration: none;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
             <span>Quản lý tranh trên Studio</span>
           </a>
         </nav>
-      {% endif %}
+      </div>
 
       <div class="sidebar-section-title" style="margin-top: 24px;">Khám phá & Sàn đấu</div>
       <nav class="dashboard-menu">
@@ -147,68 +148,70 @@
             <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 4px 0;">Kho tác phẩm đã mua</h2>
             <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">Các tác phẩm bạn đã được cấp quyền sử dụng hợp lệ. Có thể tải tệp bàn giao gốc và xuất chứng nhận PDF bất cứ lúc nào.</p>
           </div>
-          <span style="font-size: 0.88rem; color: var(--text-plum); font-weight: 600;">Tổng cộng: {{ library_orders.count }} quyền</span>
+          <span id="libraryCountHeader" style="font-size: 0.88rem; color: var(--text-plum); font-weight: 600;">Tổng cộng: {{ library_orders.count }} quyền</span>
         </div>
 
-        {% if library_orders %}
-          <div class="library-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-            {% for item in library_orders %}
-              <div class="library-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
-                <div style="position: relative; height: 180px; background: #FAF5FF; overflow: hidden;">
-                  {% if item.artwork.preview_image %}
-                    <img src="{{ item.artwork.preview_image.url }}" alt="{{ item.artwork.title }}" style="width: 100%; height: 100%; object-fit: cover;">
-                  {% else %}
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">Chưa có ảnh</div>
-                  {% endif %}
-                  <span class="license-badge" style="position: absolute; top: 10px; right: 10px; font-size: 0.72rem; font-weight: 700; padding: 4px 8px; border-radius: var(--radius-full); background: rgba(46, 18, 77, 0.85); color: #FFFFFF; backdrop-filter: blur(4px);">
-                    {{ item.get_license_type_display }}
-                  </span>
-                </div>
-
-                <div style="padding: 16px; flex: 1; display: flex; flex-direction: column;">
-                  <h3 style="font-family: var(--font-serif); font-size: 1.05rem; color: var(--text-plum); margin: 0 0 4px 0; font-weight: 600;">
-                    {{ item.artwork.title }}
-                  </h3>
-                  <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
-                    Nghệ sĩ: <strong>@{{ item.artwork.creator.username }}</strong>
+        <div id="dashLibraryContainer">
+          {% if library_orders %}
+            <div class="library-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+              {% for item in library_orders %}
+                <div class="library-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
+                  <div style="position: relative; height: 180px; background: #FAF5FF; overflow: hidden;">
+                    {% if item.artwork.preview_image %}
+                      <img src="{{ item.artwork.preview_image.url }}" alt="{{ item.artwork.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">Chưa có ảnh</div>
+                    {% endif %}
+                    <span class="license-badge" style="position: absolute; top: 10px; right: 10px; font-size: 0.72rem; font-weight: 700; padding: 4px 8px; border-radius: var(--radius-full); background: rgba(46, 18, 77, 0.85); color: #FFFFFF; backdrop-filter: blur(4px);">
+                      {{ item.get_license_type_display }}
+                    </span>
                   </div>
 
-                  <div style="font-size: 0.78rem; color: var(--text-muted); background: var(--bg-lavender-subtle); padding: 8px 10px; border-radius: var(--radius-sm); margin-bottom: 14px;">
-                    <div>Mã đơn: <strong style="color: var(--text-plum);">{{ item.order_code }}</strong></div>
-                    <div>Ngày mua: {{ item.completed_at|date:"d/m/Y H:i" }}</div>
-                  </div>
+                  <div style="padding: 16px; flex: 1; display: flex; flex-direction: column;">
+                    <h3 style="font-family: var(--font-serif); font-size: 1.05rem; color: var(--text-plum); margin: 0 0 4px 0; font-weight: 600;">
+                      {{ item.artwork.title }}
+                    </h3>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+                      Nghệ sĩ: <strong>@{{ item.artwork.creator.username }}</strong>
+                    </div>
 
-                  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; gap: 8px;">
-                      <a href="/artworks/{{ item.artwork.slug }}/" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; text-decoration: none; padding: 6px 10px; font-size: 0.8rem;">
-                        Xem trang
-                      </a>
-                      <a href="/api/artworks/{{ item.artwork.id }}/download-file/" class="btn btn-primary btn-sm" style="flex: 1; text-align: center; text-decoration: none; padding: 6px 10px; font-size: 0.8rem;" download>
-                        Tải tệp gốc
+                    <div style="font-size: 0.78rem; color: var(--text-muted); background: var(--bg-lavender-subtle); padding: 8px 10px; border-radius: var(--radius-sm); margin-bottom: 14px;">
+                      <div>Mã đơn: <strong style="color: var(--text-plum);">{{ item.order_code }}</strong></div>
+                      <div>Ngày mua: {{ item.completed_at|date:"d/m/Y H:i" }}</div>
+                    </div>
+
+                    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+                      <div style="display: flex; gap: 8px;">
+                        <a href="/artworks/{{ item.artwork.slug }}/" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; text-decoration: none; padding: 6px 10px; font-size: 0.8rem;">
+                          Xem trang
+                        </a>
+                        <a href="/api/artworks/{{ item.artwork.id }}/download-file/" class="btn btn-primary btn-sm" style="flex: 1; text-align: center; text-decoration: none; padding: 6px 10px; font-size: 0.8rem;" download>
+                          Tải tệp gốc
+                        </a>
+                      </div>
+                      <a href="/api/artworks/orders/{{ item.order_code }}/certificate/" class="btn btn-ghost btn-sm" style="width: 100%; text-align: center; text-decoration: none; padding: 6px 10px; font-size: 0.8rem; border: 1px dashed var(--primary-berry); color: var(--primary-berry);" target="_blank">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        Xuất chứng nhận PDF
                       </a>
                     </div>
-                    <a href="/api/artworks/orders/{{ item.order_code }}/certificate/" class="btn btn-ghost btn-sm" style="width: 100%; text-align: center; text-decoration: none; padding: 6px 10px; font-size: 0.8rem; border: 1px dashed var(--primary-berry); color: var(--primary-berry);" target="_blank">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                      Xuất chứng nhận PDF
-                    </a>
                   </div>
                 </div>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <!-- Empty State -->
-          <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
-            <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              {% endfor %}
             </div>
-            <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Kho tác phẩm của bạn đang trống</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
-              Bạn chưa mua quyền sử dụng tác phẩm nào. Hãy khám phá và sở hữu quyền tác phẩm số từ các nghệ sĩ Việt Nam ngay hôm nay!
-            </p>
-            <a href="/" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá tác phẩm ngay</a>
-          </div>
-        {% endif %}
+          {% else %}
+            <!-- Empty State -->
+            <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+              <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+              </div>
+              <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Kho tác phẩm của bạn đang trống</h3>
+              <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                Bạn chưa mua quyền sử dụng tác phẩm nào. Hãy khám phá và sở hữu quyền tác phẩm số từ các nghệ sĩ Việt Nam ngay hôm nay!
+              </p>
+              <a href="/" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá tác phẩm ngay</a>
+            </div>
+          {% endif %}
+        </div>
       </section>
 
       <!-- ================= TAB: TÁC PHẨM YÊU THÍCH (FAVORITES) ================= -->
@@ -218,58 +221,60 @@
             <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 4px 0;">Tác phẩm yêu thích</h2>
             <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">Danh sách các tác phẩm bạn đã lưu để theo dõi và cân nhắc mua bản quyền.</p>
           </div>
-          <span style="font-size: 0.88rem; color: var(--text-plum); font-weight: 600;">Tổng cộng: {{ user_favorites.count|default:0 }} tác phẩm</span>
+          <span id="favoritesCountHeader" style="font-size: 0.88rem; color: var(--text-plum); font-weight: 600;">Tổng cộng: {{ user_favorites.count|default:0 }} tác phẩm</span>
         </div>
 
-        {% if user_favorites %}
-          <div class="favorites-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-            {% for fav in user_favorites %}
-              <div class="favorite-card" id="favCard_{{ fav.artwork.id }}" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column;">
-                <div style="position: relative; height: 190px; background: #FAF5FF; overflow: hidden;">
-                  {% if fav.artwork.preview_image %}
-                    <img src="{{ fav.artwork.preview_image.url }}" alt="{{ fav.artwork.title }}" style="width: 100%; height: 100%; object-fit: cover;" draggable="false" class="protected-artwork-img">
-                  {% else %}
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">Chưa có ảnh</div>
-                  {% endif %}
-                  {% if fav.artwork.category %}
-                    <span style="position: absolute; top: 10px; left: 10px; font-size: 0.72rem; font-weight: 700; padding: 4px 8px; border-radius: var(--radius-full); background: rgba(255, 255, 255, 0.9); color: var(--text-plum); backdrop-filter: blur(4px);">
-                      {{ fav.artwork.category.name }}
-                    </span>
-                  {% endif %}
-                </div>
-
-                <div style="padding: 16px; flex: 1; display: flex; flex-direction: column;">
-                  <h3 style="font-family: var(--font-serif); font-size: 1.05rem; color: var(--text-plum); margin: 0 0 4px 0; font-weight: 600;">
-                    <a href="/artworks/{{ fav.artwork.slug }}/" style="color: inherit; text-decoration: none;">{{ fav.artwork.title }}</a>
-                  </h3>
-                  <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
-                    Nghệ sĩ: <a href="/artists/{{ fav.artwork.creator.username }}/" style="color: var(--primary-berry); text-decoration: none; font-weight: 600;">@{{ fav.artwork.creator.username }}</a>
+        <div id="dashFavoritesContainer">
+          {% if user_favorites %}
+            <div class="favorites-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+              {% for fav in user_favorites %}
+                <div class="favorite-card" id="favCard_{{ fav.artwork.id }}" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column;">
+                  <div style="position: relative; height: 190px; background: #FAF5FF; overflow: hidden;">
+                    {% if fav.artwork.preview_image %}
+                      <img src="{{ fav.artwork.preview_image.url }}" alt="{{ fav.artwork.title }}" style="width: 100%; height: 100%; object-fit: cover;" draggable="false" class="protected-artwork-img">
+                    {% else %}
+                      <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">Chưa có ảnh</div>
+                    {% endif %}
+                    {% if fav.artwork.category %}
+                      <span style="position: absolute; top: 10px; left: 10px; font-size: 0.72rem; font-weight: 700; padding: 4px 8px; border-radius: var(--radius-full); background: rgba(255, 255, 255, 0.9); color: var(--text-plum); backdrop-filter: blur(4px);">
+                        {{ fav.artwork.category.name }}
+                      </span>
+                    {% endif %}
                   </div>
 
-                  <div style="margin-top: auto; display: flex; gap: 8px;">
-                    <a href="/artworks/{{ fav.artwork.slug }}/" class="btn btn-primary btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.82rem;">
-                      Xem chi tiết & Mua
-                    </a>
-                    <button type="button" class="btn btn-secondary btn-sm btn-remove-favorite" data-artwork-id="{{ fav.artwork.id }}" title="Xóa khỏi danh sách yêu thích" style="color: #DC2626; border-color: rgba(220, 38, 38, 0.25);">
-                      ✕ Bỏ lưu
-                    </button>
+                  <div style="padding: 16px; flex: 1; display: flex; flex-direction: column;">
+                    <h3 style="font-family: var(--font-serif); font-size: 1.05rem; color: var(--text-plum); margin: 0 0 4px 0; font-weight: 600;">
+                      <a href="/artworks/{{ fav.artwork.slug }}/" style="color: inherit; text-decoration: none;">{{ fav.artwork.title }}</a>
+                    </h3>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+                      Nghệ sĩ: <a href="/artists/{{ fav.artwork.creator.username }}/" style="color: var(--primary-berry); text-decoration: none; font-weight: 600;">@{{ fav.artwork.creator.username }}</a>
+                    </div>
+
+                    <div style="margin-top: auto; display: flex; gap: 8px;">
+                      <a href="/artworks/{{ fav.artwork.slug }}/" class="btn btn-primary btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.82rem;">
+                        Xem chi tiết & Mua
+                      </a>
+                      <button type="button" class="btn btn-secondary btn-sm btn-remove-favorite" data-artwork-id="{{ fav.artwork.id }}" title="Xóa khỏi danh sách yêu thích" style="color: #DC2626; border-color: rgba(220, 38, 38, 0.25);">
+                        ✕ Bỏ lưu
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
-            <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: #FFF0F6; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #E11D48;">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              {% endfor %}
             </div>
-            <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Bạn chưa lưu tác phẩm yêu thích nào</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
-              Khám phá các tác phẩm trên sàn và bấm vào biểu tượng trái tim để lưu lại vào danh sách yêu thích của bạn.
-            </p>
-            <a href="/#gallerySection" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá tranh ngay</a>
-          </div>
-        {% endif %}
+          {% else %}
+            <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+              <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: #FFF0F6; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: #E11D48;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              </div>
+              <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Bạn chưa lưu tác phẩm yêu thích nào</h3>
+              <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                Khám phá các tác phẩm trên sàn và bấm vào biểu tượng trái tim để lưu lại vào danh sách yêu thích của bạn.
+              </p>
+              <a href="/#gallerySection" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá tranh ngay</a>
+            </div>
+          {% endif %}
+        </div>
       </section>
 
       <!-- ================= TAB: THÔNG BÁO (NOTIFICATIONS) ================= -->
@@ -286,46 +291,48 @@
           {% endif %}
         </div>
 
-        {% if user_notifications %}
-          <div class="notifications-dashboard-list" style="display: flex; flex-direction: column; gap: 12px;">
-            {% for n in user_notifications %}
-              <div class="notification-card-item {% if not n.is_read %}unread{% endif %}" id="dashNotif_{{ n.id }}" style="background: {% if not n.is_read %}#FFF9FB{% else %}#FFFFFF{% endif %}; border: 1px solid {% if not n.is_read %}rgba(197, 42, 112, 0.25){% else %}var(--border-subtle){% endif %}; border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
-                <div style="flex: 1; min-width: 260px;">
-                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                    {% if not n.is_read %}
-                      <span style="width: 8px; height: 8px; border-radius: 50%; background: #E11D48; display: inline-block;"></span>
-                    {% endif %}
-                    <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum); margin: 0;">{{ n.title }}</h4>
-                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ n.created_at|date:"d/m/Y H:i" }}</span>
+        <div id="dashNotificationsContainer">
+          {% if user_notifications %}
+            <div class="notifications-dashboard-list" style="display: flex; flex-direction: column; gap: 12px;">
+              {% for n in user_notifications %}
+                <div class="notification-card-item {% if not n.is_read %}unread{% endif %}" id="dashNotif_{{ n.id }}" style="background: {% if not n.is_read %}#FFF9FB{% else %}#FFFFFF{% endif %}; border: 1px solid {% if not n.is_read %}rgba(197, 42, 112, 0.25){% else %}var(--border-subtle){% endif %}; border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                  <div style="flex: 1; min-width: 260px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                      {% if not n.is_read %}
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: #E11D48; display: inline-block;"></span>
+                      {% endif %}
+                      <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum); margin: 0;">{{ n.title }}</h4>
+                      <span style="font-size: 0.75rem; color: var(--text-muted);">{{ n.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <p style="margin: 0; font-size: 0.88rem; color: var(--text-plum); line-height: 1.5;">{{ n.message }}</p>
                   </div>
-                  <p style="margin: 0; font-size: 0.88rem; color: var(--text-plum); line-height: 1.5;">{{ n.message }}</p>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    {% if n.link_url %}
+                      <a href="{{ n.link_url }}" class="btn btn-primary btn-sm" style="text-decoration: none; font-size: 0.8rem;">
+                        Xem chi tiết &rarr;
+                      </a>
+                    {% endif %}
+                    {% if not n.is_read %}
+                      <button type="button" class="btn btn-ghost btn-sm btn-mark-notif-read" data-notif-id="{{ n.id }}" style="font-size: 0.78rem;">
+                        Đã đọc
+                      </button>
+                    {% endif %}
+                  </div>
                 </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                  {% if n.link_url %}
-                    <a href="{{ n.link_url }}" class="btn btn-primary btn-sm" style="text-decoration: none; font-size: 0.8rem;">
-                      Xem chi tiết &rarr;
-                    </a>
-                  {% endif %}
-                  {% if not n.is_read %}
-                    <button type="button" class="btn btn-ghost btn-sm btn-mark-notif-read" data-notif-id="{{ n.id }}" style="font-size: 0.78rem;">
-                      Đã đọc
-                    </button>
-                  {% endif %}
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
-            <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              {% endfor %}
             </div>
-            <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Bạn không có thông báo mới</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
-              Mọi cập nhật về trạng thái đơn hàng, thanh toán và đặt vẽ sẽ hiển thị tại đây.
-            </p>
-          </div>
-        {% endif %}
+          {% else %}
+            <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+              <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+              </div>
+              <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Bạn không có thông báo mới</h3>
+              <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                Mọi cập nhật về trạng thái đơn hàng, thanh toán và đặt vẽ sẽ hiển thị tại đây.
+              </p>
+            </div>
+          {% endif %}
+        </div>
       </section>
 
       <!-- ================= TAB 2: ĐƠN HÀNG CỦA TÔI (ORDERS) ================= -->
@@ -335,125 +342,127 @@
             <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 4px 0;">Đơn hàng của tôi</h2>
             <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">Theo dõi tình trạng đơn mua quyền, tiến độ giao dịch và thanh toán mô phỏng.</p>
           </div>
-          <span style="font-size: 0.88rem; color: var(--text-plum); font-weight: 600;">Tổng: {{ my_orders.count }} đơn</span>
+          <span style="font-size: 0.88rem; color: var(--text-plum); font-weight: 600;" id="ordersCountHeader">Tổng: {{ my_orders.count }} đơn</span>
         </div>
 
-        {% if my_orders %}
-          <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
-            {% for order in my_orders %}
-              <div class="order-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-card);">
-                <!-- Header of Order -->
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px;">
-                  <div>
-                    <span style="font-size: 0.8rem; color: var(--text-muted);">Mã đơn hàng:</span>
-                    <strong style="font-size: 0.95rem; color: var(--text-plum); margin-left: 6px;">{{ order.order_code }}</strong>
-                    <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 12px;">Ngày tạo: {{ order.created_at|date:"d/m/Y H:i" }}</span>
+        <div id="dashOrdersContainer">
+          {% if my_orders %}
+            <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
+              {% for order in my_orders %}
+                <div class="order-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-card);">
+                  <!-- Header of Order -->
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px;">
+                    <div>
+                      <span style="font-size: 0.8rem; color: var(--text-muted);">Mã đơn hàng:</span>
+                      <strong style="font-size: 0.95rem; color: var(--text-plum); margin-left: 6px;">{{ order.order_code }}</strong>
+                      <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 12px;">Ngày tạo: {{ order.created_at|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div>
+                      {% if order.status == 'COMPLETED' %}
+                        <span style="background: #F6FFED; color: #389E0D; border: 1px solid #B7EB8F; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">
+                          Hoàn tất thanh toán
+                        </span>
+                      {% elif order.status == 'PENDING' %}
+                        <span style="background: #FFF7E6; color: #D46B08; border: 1px solid #FFD591; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">
+                          Chờ thanh toán
+                        </span>
+                      {% elif order.status == 'FAILED' %}
+                        <span style="background: #FFF1F0; color: #CF1322; border: 1px solid #FFA39E; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">
+                          Thanh toán thất bại
+                        </span>
+                      {% else %}
+                        <span style="background: #F5F5F5; color: #595959; border: 1px solid #D9D999; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">
+                          Đã hủy
+                        </span>
+                      {% endif %}
+                    </div>
                   </div>
-                  <div>
-                    {% if order.status == 'COMPLETED' %}
-                      <span style="background: #F6FFED; color: #389E0D; border: 1px solid #B7EB8F; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">
-                        Hoàn tất thanh toán
-                      </span>
-                    {% elif order.status == 'PENDING' %}
-                      <span style="background: #FFF7E6; color: #D46B08; border: 1px solid #FFD591; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">
-                        Chờ thanh toán
-                      </span>
-                    {% elif order.status == 'FAILED' %}
-                      <span style="background: #FFF1F0; color: #CF1322; border: 1px solid #FFA39E; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">
-                        Thanh toán thất bại
-                      </span>
-                    {% else %}
-                      <span style="background: #F5F5F5; color: #595959; border: 1px solid #D9D999; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">
-                        Đã hủy
-                      </span>
-                    {% endif %}
+
+                  <!-- Order Body -->
+                  <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                    <div style="width: 72px; height: 72px; border-radius: var(--radius-sm); overflow: hidden; background: #FAF5FF; flex-shrink: 0;">
+                      {% if order.artwork.preview_image %}
+                        <img src="{{ order.artwork.preview_image.url }}" alt="{{ order.artwork.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                      {% endif %}
+                    </div>
+                    <div style="flex: 1; min-width: 220px;">
+                      <h4 style="font-family: var(--font-serif); font-size: 1.05rem; color: var(--text-plum); margin: 0 0 4px 0;">
+                        <a href="/artworks/{{ order.artwork.slug }}/" style="color: inherit; text-decoration: none;">{{ order.artwork.title }}</a>
+                      </h4>
+                      <div style="font-size: 0.85rem; color: var(--text-muted);">
+                        Gói quyền: <strong style="color: var(--primary-berry);">{{ order.get_license_type_display }}</strong> &bull; Tác giả: @{{ order.artwork.creator.username }}
+                      </div>
+                    </div>
+                    <div style="text-align: right; min-width: 140px;">
+                      <div style="font-size: 0.8rem; color: var(--text-muted);">Số tiền:</div>
+                      <div style="font-family: var(--font-serif); font-size: 1.15rem; font-weight: 700; color: var(--primary-berry);">
+                        {{ order.price_paid|floatformat:0 }} ₫
+                      </div>
+                    </div>
                   </div>
+
+                  <!-- Progress Stepper: Tạo đơn -> Thanh toán -> Cấp quyền -->
+                  <div class="order-progress-stepper" style="display: flex; margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border-subtle); align-items: center; justify-content: space-between; position: relative;">
+                    <div class="step-item active" style="display: flex; align-items: center; gap: 8px;">
+                      <div class="step-circle" style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-berry); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: bold;">✓</div>
+                      <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-plum);">1. Tạo đơn</span>
+                    </div>
+
+                    <div style="flex: 1; height: 2px; background: {% if order.status == 'COMPLETED' %}var(--primary-berry){% else %}#E5E7EB{% endif %}; margin: 0 10px;"></div>
+
+                    <div class="step-item {% if order.status == 'COMPLETED' %}active{% endif %}" style="display: flex; align-items: center; gap: 8px;">
+                      <div class="step-circle" style="width: 24px; height: 24px; border-radius: 50%; background: {% if order.status == 'COMPLETED' %}var(--primary-berry){% elif order.status == 'PENDING' %}#F59E0B{% else %}#DC2626{% endif %}; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: bold;">
+                        {% if order.status == 'COMPLETED' %}✓{% elif order.status == 'PENDING' %}2{% else %}✕{% endif %}
+                      </div>
+                      <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-plum);">2. Thanh toán</span>
+                    </div>
+
+                    <div style="flex: 1; height: 2px; background: {% if order.status == 'COMPLETED' %}var(--primary-berry){% else %}#E5E7EB{% endif %}; margin: 0 10px;"></div>
+
+                    <div class="step-item {% if order.status == 'COMPLETED' %}active{% endif %}" style="display: flex; align-items: center; gap: 8px;">
+                      <div class="step-circle" style="width: 24px; height: 24px; border-radius: 50%; background: {% if order.status == 'COMPLETED' %}var(--primary-berry){% else %}#E5E7EB{% endif %}; color: {% if order.status == 'COMPLETED' %}white{% else %}#9CA3AF{% endif %}; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: bold;">
+                        {% if order.status == 'COMPLETED' %}✓{% else %}3{% endif %}
+                      </div>
+                      <span style="font-size: 0.8rem; font-weight: 600; color: {% if order.status == 'COMPLETED' %}var(--text-plum){% else %}var(--text-muted){% endif %};">3. Cấp quyền</span>
+                    </div>
+                  </div>
+
+                  <!-- Action row if pending / failed -->
+                  {% if order.status == 'PENDING' or order.status == 'FAILED' %}
+                    <div style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
+                      <button class="btn btn-primary btn-sm" onclick="window.ArtFairDashboard.openPaymentRetry('{{ order.order_code }}', '{{ order.artwork.title|escapejs }}', '{{ order.get_license_type_display|escapejs }}', {{ order.price_paid|floatformat:0 }})">
+                        Thanh toán mô phỏng ngay
+                      </button>
+                    </div>
+                  {% elif order.status == 'COMPLETED' %}
+                    <div style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+                      <a href="/artists/{{ order.artwork.creator.username }}/#reviewsSection" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="Đánh giá nghệ sĩ">
+                        ⭐ Đánh giá nghệ sĩ
+                      </a>
+                      <a href="/api/artworks/{{ order.artwork.id }}/download-file/" class="btn btn-secondary btn-sm" download>
+                        Tải tệp gốc
+                      </a>
+                      <a href="/api/artworks/orders/{{ order.order_code }}/certificate/" class="btn btn-ghost btn-sm" target="_blank">
+                        Xuất chứng nhận PDF
+                      </a>
+                    </div>
+                  {% endif %}
                 </div>
-
-                <!-- Order Body -->
-                <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
-                  <div style="width: 72px; height: 72px; border-radius: var(--radius-sm); overflow: hidden; background: #FAF5FF; flex-shrink: 0;">
-                    {% if order.artwork.preview_image %}
-                      <img src="{{ order.artwork.preview_image.url }}" alt="{{ order.artwork.title }}" style="width: 100%; height: 100%; object-fit: cover;">
-                    {% endif %}
-                  </div>
-                  <div style="flex: 1; min-width: 220px;">
-                    <h4 style="font-family: var(--font-serif); font-size: 1.05rem; color: var(--text-plum); margin: 0 0 4px 0;">
-                      <a href="/artworks/{{ order.artwork.slug }}/" style="color: inherit; text-decoration: none;">{{ order.artwork.title }}</a>
-                    </h4>
-                    <div style="font-size: 0.85rem; color: var(--text-muted);">
-                      Gói quyền: <strong style="color: var(--primary-berry);">{{ order.get_license_type_display }}</strong> &bull; Tác giả: @{{ order.artwork.creator.username }}
-                    </div>
-                  </div>
-                  <div style="text-align: right; min-width: 140px;">
-                    <div style="font-size: 0.8rem; color: var(--text-muted);">Số tiền:</div>
-                    <div style="font-family: var(--font-serif); font-size: 1.15rem; font-weight: 700; color: var(--primary-berry);">
-                      {{ order.price_paid|floatformat:0 }} ₫
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Progress Stepper: Tạo đơn -> Thanh toán -> Cấp quyền -->
-                <div class="order-progress-stepper" style="display: flex; margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border-subtle); align-items: center; justify-content: space-between; position: relative;">
-                  <div class="step-item active" style="display: flex; align-items: center; gap: 8px;">
-                    <div class="step-circle" style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-berry); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: bold;">✓</div>
-                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-plum);">1. Tạo đơn</span>
-                  </div>
-
-                  <div style="flex: 1; height: 2px; background: {% if order.status == 'COMPLETED' %}var(--primary-berry){% else %}#E5E7EB{% endif %}; margin: 0 10px;"></div>
-
-                  <div class="step-item {% if order.status == 'COMPLETED' %}active{% endif %}" style="display: flex; align-items: center; gap: 8px;">
-                    <div class="step-circle" style="width: 24px; height: 24px; border-radius: 50%; background: {% if order.status == 'COMPLETED' %}var(--primary-berry){% elif order.status == 'PENDING' %}#F59E0B{% else %}#DC2626{% endif %}; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: bold;">
-                      {% if order.status == 'COMPLETED' %}✓{% elif order.status == 'PENDING' %}2{% else %}✕{% endif %}
-                    </div>
-                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-plum);">2. Thanh toán</span>
-                  </div>
-
-                  <div style="flex: 1; height: 2px; background: {% if order.status == 'COMPLETED' %}var(--primary-berry){% else %}#E5E7EB{% endif %}; margin: 0 10px;"></div>
-
-                  <div class="step-item {% if order.status == 'COMPLETED' %}active{% endif %}" style="display: flex; align-items: center; gap: 8px;">
-                    <div class="step-circle" style="width: 24px; height: 24px; border-radius: 50%; background: {% if order.status == 'COMPLETED' %}var(--primary-berry){% else %}#E5E7EB{% endif %}; color: {% if order.status == 'COMPLETED' %}white{% else %}#9CA3AF{% endif %}; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: bold;">
-                      {% if order.status == 'COMPLETED' %}✓{% else %}3{% endif %}
-                    </div>
-                    <span style="font-size: 0.8rem; font-weight: 600; color: {% if order.status == 'COMPLETED' %}var(--text-plum){% else %}var(--text-muted){% endif %};">3. Cấp quyền</span>
-                  </div>
-                </div>
-
-                <!-- Action row if pending / failed -->
-                {% if order.status == 'PENDING' or order.status == 'FAILED' %}
-                  <div style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
-                    <button class="btn btn-primary btn-sm" onclick="window.ArtFairDashboard.openPaymentRetry('{{ order.order_code }}', '{{ order.artwork.title|escapejs }}', '{{ order.get_license_type_display|escapejs }}', {{ order.price_paid|floatformat:0 }})">
-                      Thanh toán mô phỏng ngay
-                    </button>
-                  </div>
-                {% elif order.status == 'COMPLETED' %}
-                  <div style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
-                    <a href="/artists/{{ order.artwork.creator.username }}/#reviewsSection" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 4px; text-decoration: none;" title="Đánh giá nghệ sĩ">
-                      ⭐ Đánh giá nghệ sĩ
-                    </a>
-                    <a href="/api/artworks/{{ order.artwork.id }}/download-file/" class="btn btn-secondary btn-sm" download>
-                      Tải tệp gốc
-                    </a>
-                    <a href="/api/artworks/orders/{{ order.order_code }}/certificate/" class="btn btn-ghost btn-sm" target="_blank">
-                      Xuất chứng nhận PDF
-                    </a>
-                  </div>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
-            <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              {% endfor %}
             </div>
-            <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Bạn chưa có đơn hàng nào</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
-              Mọi giao dịch mua bản quyền sẽ được ghi nhận tại đây kèm thông số chi tiết và tiến độ thanh toán.
-            </p>
-            <a href="/" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá tranh</a>
-          </div>
-        {% endif %}
+          {% else %}
+            <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+              <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              </div>
+              <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Bạn chưa có đơn hàng nào</h3>
+              <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                Mọi giao dịch mua bản quyền sẽ được ghi nhận tại đây kèm thông số chi tiết và tiến độ thanh toán.
+              </p>
+              <a href="/" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá tranh</a>
+            </div>
+          {% endif %}
+        </div>
       </section>
 
       <!-- ================= TAB: ĐƠN ĐẶT VẼ CỦA TÔI (BUYER COMMISSIONS) ================= -->
@@ -463,73 +472,75 @@
             <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 4px 0;">Đơn đặt vẽ của tôi (Commission)</h2>
             <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">Theo dõi tiến độ, thỏa thuận báo giá, thanh toán ký quỹ mô phỏng và nghiệm thu tác phẩm vẽ riêng.</p>
           </div>
-          <span style="font-size: 0.88rem; color: var(--text-plum); font-weight: 600;">Tổng cộng: {{ buyer_commissions.count }} đơn</span>
+          <span style="font-size: 0.88rem; color: var(--text-plum); font-weight: 600;" id="commissionsCountHeader">Tổng cộng: {{ buyer_commissions.count }} đơn</span>
         </div>
 
-        {% if buyer_commissions %}
-          <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
-            {% for comm in buyer_commissions %}
-              <div class="order-item-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px 24px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-                <div style="flex: 1; min-width: 260px;">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
-                    <span style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: var(--text-berry); background: var(--bg-lavender-subtle); padding: 2px 8px; border-radius: var(--radius-sm);">
-                      {{ comm.commission_code }}
-                    </span>
-                    <span class="commission-badge status-{{ comm.status|lower }}" style="font-size: 0.76rem; font-weight: 700; padding: 2px 10px; border-radius: var(--radius-full);">
-                      {{ comm.get_status_display }}
-                    </span>
-                    <span style="font-size: 0.76rem; color: var(--text-muted);">
-                      {{ comm.created_at|date:"d/m/Y H:i" }}
-                    </span>
-                  </div>
+        <div id="dashCommissionsContainer">
+          {% if buyer_commissions %}
+            <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
+              {% for comm in buyer_commissions %}
+                <div class="order-item-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px 24px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                  <div style="flex: 1; min-width: 260px;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
+                      <span style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: var(--text-berry); background: var(--bg-lavender-subtle); padding: 2px 8px; border-radius: var(--radius-sm);">
+                        {{ comm.commission_code }}
+                      </span>
+                      <span class="commission-badge status-{{ comm.status|lower }}" style="font-size: 0.76rem; font-weight: 700; padding: 2px 10px; border-radius: var(--radius-full);">
+                        {{ comm.get_status_display }}
+                      </span>
+                      <span style="font-size: 0.76rem; color: var(--text-muted);">
+                        {{ comm.created_at|date:"d/m/Y H:i" }}
+                      </span>
+                    </div>
 
-                  <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
-                    <a href="/commissions/{{ comm.id }}/" style="color: inherit; text-decoration: none;">
-                      {{ comm.title }}
-                    </a>
-                  </h3>
-
-                  <div style="font-size: 0.84rem; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap;">
-                    <span>Nghệ sĩ: <a href="{% url 'artist_profile' comm.creator.username %}" style="color: var(--text-berry); font-weight: 600; text-decoration: none;">@{{ comm.creator.username }}</a></span>
-                    <span>Quyền: <strong>{{ comm.get_license_type_display }}</strong></span>
-                    <span>Hạn bàn giao: <strong>{{ comm.agreed_delivery_date|default:comm.deadline|date:"d/m/Y" }}</strong></span>
-                  </div>
-                </div>
-
-                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-                  <div>
-                    <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Giá / Ngân sách:</span>
-                    <strong style="font-size: 1.15rem; color: var(--text-berry); font-family: var(--font-serif);">
-                      {{ comm.agreed_price|default:comm.budget|floatformat:0 }} ₫
-                    </strong>
-                  </div>
-
-                  <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <a href="/commissions/{{ comm.id }}/" class="btn btn-secondary btn-sm" style="text-decoration: none;">
-                      Chi tiết & Tiến độ &rarr;
-                    </a>
-                    {% if comm.status == 'COMPLETED' %}
-                      <a href="{% url 'commissions:certificate' comm.id %}" target="_blank" class="btn btn-ghost btn-sm" style="color: #389E0D; border-color: #B7EB8F; text-decoration: none;">
-                        📄 PDF
+                    <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
+                      <a href="/commissions/{{ comm.id }}/" style="color: inherit; text-decoration: none;">
+                        {{ comm.title }}
                       </a>
-                    {% endif %}
+                    </h3>
+
+                    <div style="font-size: 0.84rem; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap;">
+                      <span>Nghệ sĩ: <a href="{% url 'artist_profile' comm.creator.username %}" style="color: var(--text-berry); font-weight: 600; text-decoration: none;">@{{ comm.creator.username }}</a></span>
+                      <span>Quyền: <strong>{{ comm.get_license_type_display }}</strong></span>
+                      <span>Hạn bàn giao: <strong>{{ comm.agreed_delivery_date|default:comm.deadline|date:"d/m/Y" }}</strong></span>
+                    </div>
+                  </div>
+
+                  <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                    <div>
+                      <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Giá / Ngân sách:</span>
+                      <strong style="font-size: 1.15rem; color: var(--text-berry); font-family: var(--font-serif);">
+                        {{ comm.agreed_price|default:comm.budget|floatformat:0 }} ₫
+                      </strong>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                      <a href="/commissions/{{ comm.id }}/" class="btn btn-secondary btn-sm" style="text-decoration: none;">
+                        Chi tiết & Tiến độ &rarr;
+                      </a>
+                      {% if comm.status == 'COMPLETED' %}
+                        <a href="{% url 'commissions:certificate' comm.id %}" target="_blank" class="btn btn-ghost btn-sm" style="color: #389E0D; border-color: #B7EB8F; text-decoration: none;">
+                          📄 PDF
+                        </a>
+                      {% endif %}
+                    </div>
                   </div>
                 </div>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
-            <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              {% endfor %}
             </div>
-            <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Bạn chưa gửi yêu cầu đặt vẽ nào</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
-              Khám phá hồ sơ các nghệ sĩ và gửi yêu cầu sáng tạo tác phẩm độc bản theo ý tưởng của bạn.
-            </p>
-            <a href="/#gallerySection" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá nghệ sĩ</a>
-          </div>
-        {% endif %}
+          {% else %}
+            <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+              <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+              </div>
+              <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Bạn chưa gửi yêu cầu đặt vẽ nào</h3>
+              <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                Khám phá hồ sơ các nghệ sĩ và gửi yêu cầu sáng tạo tác phẩm độc bản theo ý tưởng của bạn.
+              </p>
+              <a href="/#gallerySection" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá nghệ sĩ</a>
+            </div>
+          {% endif %}
+        </div>
       </section>
 
       <!-- ================= TAB 3: HỒ SƠ CÁ NHÂN (PROFILE) ================= -->
@@ -545,13 +556,13 @@
           <form id="formUserProfile" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
             <div>
               <label class="form-label">Tên đăng nhập</label>
-              <input type="text" class="form-control" value="{{ user.username }}" disabled style="background: #F9FAFB; cursor: not-allowed;">
+              <input type="text" class="form-control" id="profileUsername" value="{{ user.username }}" disabled style="background: #F9FAFB; cursor: not-allowed;">
               <small style="color: var(--text-muted); font-size: 0.78rem;">Tên đăng nhập không thể thay đổi.</small>
             </div>
 
             <div>
               <label class="form-label">Vai trò tài khoản</label>
-              <input type="text" class="form-control" value="{% if user.is_creator %}Nghệ sĩ sáng tạo (Creator){% else %}Người mua (Buyer){% endif %}" disabled style="background: #F9FAFB; cursor: not-allowed;">
+              <input type="text" class="form-control" id="profileRoleDisplay" value="{% if user.is_creator %}Nghệ sĩ sáng tạo (Creator){% else %}Người mua (Buyer){% endif %}" disabled style="background: #F9FAFB; cursor: not-allowed;">
             </div>
 
             <div>
@@ -575,53 +586,50 @@
           </form>
         </div>
 
-        {% if user.is_creator %}
-          <!-- Creator Artist Profile Editor -->
-          <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 28px; box-shadow: var(--shadow-card);">
-            <h3 style="font-size: 1.1rem; color: var(--text-plum); margin: 0 0 16px 0; font-family: var(--font-serif);">Hồ sơ nghệ sĩ (Creator)</h3>
-            
-            <form id="formArtistProfile" style="display: flex; flex-direction: column; gap: 16px;">
+        <!-- Creator Artist Profile Editor -->
+        <div id="dashArtistProfileBox" class="creator-only-feature" style="display: none; background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 28px; box-shadow: var(--shadow-card);">
+          <h3 style="font-size: 1.1rem; color: var(--text-plum); margin: 0 0 16px 0; font-family: var(--font-serif);">Hồ sơ nghệ sĩ (Creator)</h3>
+          
+          <form id="formArtistProfile" style="display: flex; flex-direction: column; gap: 16px;">
+            <div>
+              <label class="form-label">Bút danh / Tên hiển thị công khai</label>
+              <input type="text" class="form-control" id="artistDisplayName" name="display_name" value="{% if artist_profile and artist_profile.display_name %}{{ artist_profile.display_name }}{% elif user %}{{ user.username }}{% endif %}" placeholder="Tên nghệ sĩ xuất hiện trên các tác phẩm" required>
+            </div>
+
+            <div>
+              <label class="form-label">Tiểu sử nghệ sĩ (Bio)</label>
+              <textarea class="form-control" id="artistBio" name="bio" rows="4" placeholder="Giới thiệu phong cách nghệ thuật, cảm hứng và quá trình sáng tác của bạn...">{{ artist_profile.bio }}</textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
               <div>
-                <label class="form-label">Bút danh / Tên hiển thị công khai</label>
-                <input type="text" class="form-control" id="artistDisplayName" name="display_name" value="{{ artist_profile.display_name|default:user.username }}" placeholder="Tên nghệ sĩ xuất hiện trên các tác phẩm" required>
+                <label class="form-label">Ảnh đại diện (Avatar)</label>
+                <input type="file" class="form-control" id="artistAvatarFile" accept="image/*">
+                <small style="color: var(--text-muted); font-size: 0.78rem;">PNG, JPG, WEBP. Tối đa 5MB.</small>
               </div>
-
               <div>
-                <label class="form-label">Tiểu sử nghệ sĩ (Bio)</label>
-                <textarea class="form-control" id="artistBio" name="bio" rows="4" placeholder="Giới thiệu phong cách nghệ thuật, cảm hứng và quá trình sáng tác của bạn...">{{ artist_profile.bio }}</textarea>
+                <label class="form-label">Ảnh bìa hồ sơ (Cover Image)</label>
+                <input type="file" class="form-control" id="artistCoverFile" accept="image/*">
+                <small style="color: var(--text-muted); font-size: 0.78rem;">Khuyên dùng tỷ lệ 16:9 hoặc 3:1.</small>
               </div>
+            </div>
 
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div>
-                  <label class="form-label">Ảnh đại diện (Avatar)</label>
-                  <input type="file" class="form-control" id="artistAvatarFile" accept="image/*">
-                  <small style="color: var(--text-muted); font-size: 0.78rem;">PNG, JPG, WEBP. Tối đa 5MB.</small>
-                </div>
-                <div>
-                  <label class="form-label">Ảnh bìa hồ sơ (Cover Image)</label>
-                  <input type="file" class="form-control" id="artistCoverFile" accept="image/*">
-                  <small style="color: var(--text-muted); font-size: 0.78rem;">Khuyên dùng tỷ lệ 16:9 hoặc 3:1.</small>
-                </div>
-              </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
+              <input type="checkbox" id="artistAcceptCommission" name="is_accepting_commissions" {% if artist_profile.is_accepting_commissions %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary-berry);">
+              <label for="artistAcceptCommission" style="font-size: 0.9rem; color: var(--text-plum); font-weight: 500; cursor: pointer;">
+                Đang nhận vẽ Commission (Sẵn sàng nhận yêu cầu sáng tác riêng từ khách hàng)
+              </label>
+            </div>
 
-              <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
-                <input type="checkbox" id="artistAcceptCommission" name="is_accepting_commissions" {% if artist_profile.is_accepting_commissions %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary-berry);">
-                <label for="artistAcceptCommission" style="font-size: 0.9rem; color: var(--text-plum); font-weight: 500; cursor: pointer;">
-                  Đang nhận vẽ Commission (Sẵn sàng nhận yêu cầu sáng tác riêng từ khách hàng)
-                </label>
-              </div>
-
-              <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
-                <button type="submit" class="btn btn-primary" id="btnSaveArtist">Cập nhật hồ sơ nghệ sĩ</button>
-              </div>
-            </form>
-          </div>
-        {% endif %}
+            <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+              <button type="submit" class="btn btn-primary" id="btnSaveArtist">Cập nhật hồ sơ nghệ sĩ</button>
+            </div>
+          </form>
+        </div>
       </section>
 
-      {% if user.is_creator %}
-        <!-- ================= TAB 4: TỔNG QUAN DOANH THU (REVENUE) ================= -->
-        <section class="tab-pane" id="tab-revenue">
+      <!-- ================= TAB 4: TỔNG QUAN DOANH THU (REVENUE) ================= -->
+      <section class="tab-pane creator-only-feature" id="tab-revenue" style="display: none;">
           <div class="section-header-row" style="margin-bottom: 24px;">
             <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 4px 0;">Tổng quan doanh thu nghệ sĩ</h2>
             <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">Số liệu thực tế từ các đơn hàng bán quyền sử dụng tác phẩm. (Phí nền tảng giai đoạn này là 0%).</p>
@@ -724,7 +732,7 @@
         </section>
 
         <!-- ================= TAB 5: RÚT DOANH THU MÔ PHỎNG (WITHDRAW) ================= -->
-        <section class="tab-pane" id="tab-withdraw">
+        <section class="tab-pane creator-only-feature" id="tab-withdraw" style="display: none;">
           <div class="section-header-row" style="margin-bottom: 24px;">
             <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 4px 0;">Rút doanh thu mô phỏng</h2>
             <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">Tạo yêu cầu giải ngân doanh thu bán tác phẩm vào tài khoản của bạn (Mô phỏng Sandbox).</p>
@@ -820,73 +828,74 @@
         </section>
 
         <!-- ================= TAB: YÊU CẦU ĐẶT VẼ NHẬN ĐƯỢC (CREATOR COMMISSIONS) ================= -->
-        <section class="tab-pane" id="tab-creator-commissions">
+        <section class="tab-pane creator-only-feature" id="tab-creator-commissions" style="display: none;">
           <div class="section-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <div>
               <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 4px 0;">Yêu cầu đặt vẽ nhận được</h2>
               <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">Quản lý yêu cầu từ người mua, gửi báo giá, cập nhật tiến độ vẽ và bàn giao tác phẩm.</p>
             </div>
-            <span style="font-size: 0.88rem; color: var(--text-plum); font-weight: 600;">Tổng cộng: {{ creator_commissions.count }} yêu cầu</span>
+            <span style="font-size: 0.88rem; color: var(--text-plum); font-weight: 600;" id="creatorCommissionsCountHeader">Tổng cộng: {{ creator_commissions.count }} yêu cầu</span>
           </div>
 
-          {% if creator_commissions %}
-            <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
-              {% for comm in creator_commissions %}
-                <div class="order-item-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px 24px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-                  <div style="flex: 1; min-width: 260px;">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
-                      <span style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: var(--text-berry); background: var(--bg-lavender-subtle); padding: 2px 8px; border-radius: var(--radius-sm);">
-                        {{ comm.commission_code }}
-                      </span>
-                      <span class="commission-badge status-{{ comm.status|lower }}" style="font-size: 0.76rem; font-weight: 700; padding: 2px 10px; border-radius: var(--radius-full);">
-                        {{ comm.get_status_display }}
-                      </span>
-                      <span style="font-size: 0.76rem; color: var(--text-muted);">
-                        {{ comm.created_at|date:"d/m/Y H:i" }}
-                      </span>
+          <div id="dashCreatorCommissionsContainer">
+            {% if creator_commissions %}
+              <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
+                {% for comm in creator_commissions %}
+                  <div class="order-item-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px 24px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                    <div style="flex: 1; min-width: 260px;">
+                      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
+                        <span style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: var(--text-berry); background: var(--bg-lavender-subtle); padding: 2px 8px; border-radius: var(--radius-sm);">
+                          {{ comm.commission_code }}
+                        </span>
+                        <span class="commission-badge status-{{ comm.status|lower }}" style="font-size: 0.76rem; font-weight: 700; padding: 2px 10px; border-radius: var(--radius-full);">
+                          {{ comm.get_status_display }}
+                        </span>
+                        <span style="font-size: 0.76rem; color: var(--text-muted);">
+                          {{ comm.created_at|date:"d/m/Y H:i" }}
+                        </span>
+                      </div>
+
+                      <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
+                        <a href="/commissions/{{ comm.id }}/" style="color: inherit; text-decoration: none;">
+                          {{ comm.title }}
+                        </a>
+                      </h3>
+
+                      <div style="font-size: 0.84rem; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap;">
+                        <span>Người đặt: <strong style="color: var(--text-plum);">@{{ comm.buyer.username }}</strong></span>
+                        <span>Quyền: <strong>{{ comm.get_license_type_display }}</strong></span>
+                        <span>Hạn mong muốn: <strong>{{ comm.agreed_delivery_date|default:comm.deadline|date:"d/m/Y" }}</strong></span>
+                      </div>
                     </div>
 
-                    <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
-                      <a href="/commissions/{{ comm.id }}/" style="color: inherit; text-decoration: none;">
-                        {{ comm.title }}
+                    <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                      <div>
+                        <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Giá / Ngân sách:</span>
+                        <strong style="font-size: 1.15rem; color: var(--text-berry); font-family: var(--font-serif);">
+                          {{ comm.agreed_price|default:comm.budget|floatformat:0 }} VND
+                        </strong>
+                      </div>
+
+                      <a href="/commissions/{{ comm.id }}/" class="btn btn-primary btn-sm" style="text-decoration: none;">
+                        Xử lý yêu cầu &rarr;
                       </a>
-                    </h3>
-
-                    <div style="font-size: 0.84rem; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap;">
-                      <span>Người đặt: <strong style="color: var(--text-plum);">@{{ comm.buyer.username }}</strong></span>
-                      <span>Quyền: <strong>{{ comm.get_license_type_display }}</strong></span>
-                      <span>Hạn mong muốn: <strong>{{ comm.agreed_delivery_date|default:comm.deadline|date:"d/m/Y" }}</strong></span>
                     </div>
                   </div>
-
-                  <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-                    <div>
-                      <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Giá / Ngân sách:</span>
-                      <strong style="font-size: 1.15rem; color: var(--text-berry); font-family: var(--font-serif);">
-                        {{ comm.agreed_price|default:comm.budget|floatformat:0 }} VND
-                      </strong>
-                    </div>
-
-                    <a href="/commissions/{{ comm.id }}/" class="btn btn-primary btn-sm" style="text-decoration: none;">
-                      Xử lý yêu cầu &rarr;
-                    </a>
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
-              <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                {% endfor %}
               </div>
-              <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Chưa có yêu cầu đặt vẽ nào</h3>
-              <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
-                Bật trạng thái "Đang nhận đặt vẽ" trong phần cài đặt hồ sơ để người mua có thể gửi brief trực tiếp cho bạn.
-              </p>
-            </div>
-          {% endif %}
+            {% else %}
+              <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+                <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                </div>
+                <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Chưa có yêu cầu đặt vẽ nào</h3>
+                <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                  Bật trạng thái "Đang nhận đặt vẽ" trong phần cài đặt hồ sơ để người mua có thể gửi brief trực tiếp cho bạn.
+                </p>
+              </div>
+            {% endif %}
+          </div>
         </section>
-      {% endif %}
 
     </main>
   </div>

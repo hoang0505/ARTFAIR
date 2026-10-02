@@ -42,3 +42,38 @@
 
 </div>
 {% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (async function() {
+    const path = window.location.pathname;
+    const match = path.match(/(?:\/ARTFAIR)?\/artists\/([a-zA-Z0-9_.-]+)\/?$/);
+    if (match && match[1]) {
+      const username = match[1];
+      const h1 = document.querySelector('h1');
+      const p = document.querySelector('p');
+      if (h1) h1.textContent = 'Đang kiểm tra hồ sơ...';
+      if (p) p.textContent = `Hệ thống đang kết nối dữ liệu hồ sơ @${username}...`;
+
+      try {
+        const apiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+          ? window.ArtFairConfig.apiUrl(`/api/accounts/artists/${encodeURIComponent(username)}/`)
+          : `/api/accounts/artists/${encodeURIComponent(username)}/`;
+        const res = await fetch(apiUrl);
+        if (res.ok) {
+          const data = await res.json();
+          const canonicalUsername = data.username;
+          if (canonicalUsername && canonicalUsername !== username) {
+            const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
+            window.location.replace(pUrl(`/artists/${encodeURIComponent(canonicalUsername)}/`));
+            return;
+          }
+        }
+      } catch (_) {}
+
+      if (h1) h1.textContent = 'Không tìm thấy hồ sơ';
+      if (p) p.innerHTML = `Không tìm thấy hồ sơ nghệ sĩ hoặc người dùng <strong>@${username}</strong> trên ARTFAIR.<br>Vui lòng kiểm tra lại tên đăng nhập hoặc khám phá các nghệ sĩ nổi bật khác.`;
+    }
+  })();
+</script>
+{% endblock %}

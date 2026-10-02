@@ -55,10 +55,15 @@ class CommissionViewSet(viewsets.ModelViewSet):
             'events'
         )
 
-        if user.is_staff:
-            return qs
+        role = self.request.query_params.get('role')
+        if role == 'buyer':
+            qs = qs.filter(buyer=user)
+        elif role == 'creator':
+            qs = qs.filter(creator=user)
+        elif not user.is_staff:
+            qs = qs.filter(Q(buyer=user) | Q(creator=user))
 
-        return qs.filter(Q(buyer=user) | Q(creator=user))
+        return qs.order_by('-created_at')
 
     def get_serializer_class(self):
         if self.action == 'create':

@@ -172,3 +172,41 @@ class AccountsAuthTests(TestCase):
         response = self.client.get('/api/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()['project'], 'ARTFAIR Backend API')
+
+    def test_change_password_endpoint(self):
+        """
+        Verify change-password endpoint requires correct old password and updates password.
+        """
+        user = User.objects.create_user(
+            username='test_pwd_user',
+            email='test_pwd@artfair.local',
+            password='OldPassword123!'
+        )
+        self.client.force_authenticate(user=user)
+
+        # Wrong old password
+        res = self.client.post(reverse('accounts:change_password'), {
+            'old_password': 'WrongPassword!',
+            'new_password': 'NewPassword123!',
+            'confirm_password': 'NewPassword123!'
+        })
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Mismatched confirm password
+        res = self.client.post(reverse('accounts:change_password'), {
+            'old_password': 'OldPassword123!',
+            'new_password': 'NewPassword123!',
+            'confirm_password': 'DifferentPassword123!'
+        })
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Success
+        res = self.client.post(reverse('accounts:change_password'), {
+            'old_password': 'OldPassword123!',
+            'new_password': 'NewPassword123!',
+            'confirm_password': 'NewPassword123!'
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        user.refresh_from_db()
+        self.assertTrue(user.check_password('NewPassword123!'))
+

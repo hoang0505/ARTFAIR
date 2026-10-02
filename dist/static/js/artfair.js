@@ -181,6 +181,7 @@
 
   // Public helper to show notice about upcoming features & global helpers
   window.ArtFair = {
+    state: state,
     getCsrfToken: getCsrfToken,
     syncCsrfToken: syncCsrfToken,
     fetchCsrfToken: fetchCsrfToken,
@@ -964,7 +965,11 @@
     } catch (err) {}
     setAuthToken(null);
     state.currentUser = null;
+    state.favoriteIds = new Set();
+    state.notifications = [];
+    state.unreadNotificationCount = 0;
     renderNavbarAuth();
+    window.dispatchEvent(new CustomEvent('artfair:user_loaded', { detail: null }));
     showToast('Đã đăng xuất khỏi tài khoản.', 'info');
 
     // If user was on protected pages, redirect to home page
@@ -1921,7 +1926,8 @@
           if (res.ok) {
             showToast('Cập nhật thông tin cá nhân thành công!', 'success');
             if (data.username) {
-              state.currentUser = data;
+              state.currentUser = Object.assign({}, state.currentUser, data);
+              hydrateDashboard(state.currentUser);
             }
           } else {
             const errStr = data.detail || (data.email ? data.email[0] : 'Không thể cập nhật thông tin.');
@@ -1967,6 +1973,9 @@
           const data = await res.json();
           if (res.ok) {
             showToast('Cập nhật hồ sơ nghệ sĩ thành công!', 'success');
+            if (state.currentUser) {
+              checkCurrentUser();
+            }
           } else {
             const errStr = data.detail || 'Không thể cập nhật hồ sơ nghệ sĩ.';
             showToast(errStr, 'error');
@@ -1979,6 +1988,638 @@
         }
       });
     }
+
+    // 3b. Dynamic Hydration for Personal Dashboard
+    const mUrl = (window.ArtFairConfig && window.ArtFairConfig.mediaUrl) ? window.ArtFairConfig.mediaUrl : (p) => p;
+    const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
+
+    async function hydrateDashboard(user) {
+      const creatorFeatures = document.querySelectorAll('.creator-only-feature');
+
+      if (!user) {
+        // Guest state: Show clear message and hide creator tools
+        creatorFeatures.forEach(el => el.style.display = 'none');
+        const headerDisplayName = document.getElementById('dashHeaderDisplayName');
+        if (headerDisplayName) headerDisplayName.textContent = 'Khách';
+        const headerRolePill = document.getElementById('dashHeaderRolePill');
+        if (headerRolePill) headerRolePill.innerHTML = '<span class="role-pill" style="background:#F0F0F0;color:#666;">Chưa đăng nhập</span>';
+        const headerMeta = document.getElementById('dashHeaderMeta');
+        if (headerMeta) headerMeta.textContent = 'Vui lòng đăng nhập để truy cập dữ liệu cá nhân';
+        const headerAvatar = document.getElementById('dashHeaderAvatar');
+        if (headerAvatar) headerAvatar.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-lavender);color:var(--text-muted);font-weight:700;">?</div>';
+
+        const libCont = document.getElementById('dashLibraryContainer');
+        if (libCont) {
+          libCont.innerHTML = `
+            <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+              <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              </div>
+              <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Vui lòng đăng nhập</h3>
+              <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                Bạn cần đăng nhập để xem thư viện tác phẩm đã mua, đơn hàng và quản lý tài khoản cá nhân.
+              </p>
+              <button type="button" class="btn btn-primary" onclick="window.ArtFair && window.ArtFair.openAuthModal ? window.ArtFair.openAuthModal('login') : null" style="padding: 10px 24px;">Đăng nhập ngay</button>
+            </div>
+          `;
+        }
+        return;
+      }
+
+      // User is authenticated: populate exact user information
+      const isCreator = !!(user.is_creator || user.role === 'CREATOR');
+      const displayName = user.display_name || [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username;
+
+      // Update Header
+      const headerDisplayName = document.getElementById('dashHeaderDisplayName');
+      if (headerDisplayName) headerDisplayName.textContent = displayName;
+
+      const headerRolePill = document.getElementById('dashHeaderRolePill');
+      if (headerRolePill) {
+        headerRolePill.innerHTML = isCreator
+          ? '<span class="role-pill creator">Nghệ sĩ (Creator)</span>'
+          : '<span class="role-pill buyer">Người mua (Buyer)</span>';
+      }
+
+      const headerVerifiedBadge = document.getElementById('dashHeaderVerifiedBadge');
+      if (headerVerifiedBadge) {
+        headerVerifiedBadge.style.display = isCreator ? 'inline-flex' : 'none';
+      }
+
+      const headerMeta = document.getElementById('dashHeaderMeta');
+      if (headerMeta) {
+        headerMeta.innerHTML = `@${user.username} &bull; ${user.email || ''}`;
+      }
+
+      const headerAvatar = document.getElementById('dashHeaderAvatar');
+      if (headerAvatar) {
+        if (user.avatar) {
+          headerAvatar.innerHTML = `<img src="${mUrl(user.avatar)}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        } else {
+          const initial = (user.username || 'U').charAt(0).toUpperCase();
+          headerAvatar.innerHTML = `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--primary-berry-light); color: var(--primary-berry); font-weight: 700; font-size: 1.4rem;">${initial}</div>`;
+        }
+      }
+
+      // Update Profile Inputs
+      const pLastName = document.getElementById('profileLastName');
+      if (pLastName) pLastName.value = user.last_name || '';
+      const pFirstName = document.getElementById('profileFirstName');
+      if (pFirstName) pFirstName.value = user.first_name || '';
+      const pEmail = document.getElementById('profileEmail');
+      if (pEmail) pEmail.value = user.email || '';
+      const pUsername = document.getElementById('profileUsername');
+      if (pUsername) pUsername.textContent = `@${user.username}`;
+      const pRoleDisplay = document.getElementById('profileRoleDisplay');
+      if (pRoleDisplay) pRoleDisplay.textContent = isCreator ? 'Nghệ sĩ (Creator)' : 'Người mua (Buyer)';
+
+      // Creator vs Buyer UI toggling
+      creatorFeatures.forEach(el => {
+        el.style.display = isCreator ? '' : 'none';
+      });
+
+      // Hydrate Creator-specific features
+      if (isCreator) {
+        // 1. Fetch artist profile
+        try {
+          const resProfile = await apiFetch('/api/accounts/artist-profile/');
+          if (resProfile.ok) {
+            const prof = await resProfile.json();
+            const aName = document.getElementById('artistDisplayName');
+            if (aName) aName.value = prof.display_name || '';
+            const aBio = document.getElementById('artistBio');
+            if (aBio) aBio.value = prof.bio || '';
+            const aComm = document.getElementById('artistAcceptCommission');
+            if (aComm) aComm.checked = !!prof.is_accepting_commissions;
+          }
+        } catch (_) {}
+
+        // 2. Fetch Creator Financials & Dashboard Metrics
+        try {
+          const resMetrics = await apiFetch('/api/artworks/creator/dashboard-metrics/');
+          if (resMetrics.ok) {
+            const metrics = await resMetrics.json();
+            const availBal = metrics.available_balance || 0;
+            currentAvailableBalance = availBal;
+
+            const balDisplay = document.getElementById('withdrawAvailableDisplay');
+            if (balDisplay) balDisplay.textContent = availBal.toLocaleString('vi-VN') + ' VND';
+
+            const revBal = document.getElementById('revenueAvailableBalance');
+            if (revBal) revBal.textContent = availBal.toLocaleString('vi-VN') + ' ₫';
+
+            const totalWithdrawn = document.getElementById('withdrawTotalWithdrawnDisplay');
+            if (totalWithdrawn) totalWithdrawn.textContent = (metrics.total_withdrawn || 0).toLocaleString('vi-VN') + ' VND';
+
+            const withdrawInputEl = document.getElementById('withdrawAmountInput');
+            if (withdrawInputEl) withdrawInputEl.max = availBal;
+
+            // Render withdrawals history
+            if (metrics.withdrawals && metrics.withdrawals.length > 0) {
+              const tbody = document.getElementById('withdrawalTableBody');
+              if (tbody) {
+                tbody.innerHTML = metrics.withdrawals.map(wd => `
+                  <tr style="border-bottom: 1px solid var(--border-subtle);">
+                    <td style="padding: 12px 10px; font-weight: 600; color: var(--text-plum);">${wd.withdrawal_code}</td>
+                    <td style="padding: 12px 10px; color: var(--text-muted);">${wd.created_at ? new Date(wd.created_at).toLocaleString('vi-VN') : ''}</td>
+                    <td style="padding: 12px 10px; font-weight: 700; color: var(--primary-berry);">${parseInt(wd.amount).toLocaleString('vi-VN')} VND</td>
+                    <td style="padding: 12px 10px;">
+                      <span style="background: #F6FFED; color: #389E0D; border: 1px solid #B7EB8F; padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.78rem; font-weight: 600;">
+                        ${wd.status_display || 'Đã giải ngân (Mô phỏng)'}
+                      </span>
+                    </td>
+                    <td style="padding: 12px 10px; color: var(--text-muted); font-size: 0.82rem;">${wd.note || ''}</td>
+                  </tr>
+                `).join('');
+              }
+            }
+          }
+        } catch (_) {}
+
+        // 3. Fetch Creator Commissions
+        try {
+          const resComm = await apiFetch('/api/commissions/?role=creator');
+          if (resComm.ok) {
+            const dataComm = await resComm.json();
+            const commList = dataComm.results || (Array.isArray(dataComm) ? dataComm : []);
+            const countHeader = document.getElementById('creatorCommissionsCountHeader');
+            if (countHeader) countHeader.textContent = `Tổng cộng: ${commList.length} yêu cầu`;
+            const sideCount = document.getElementById('dashSidebarCreatorCommissionsCount');
+            if (sideCount) sideCount.textContent = commList.length;
+
+            const cCont = document.getElementById('dashCreatorCommissionsContainer');
+            if (cCont) {
+              if (commList.length === 0) {
+                cCont.innerHTML = `
+                  <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+                    <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                    </div>
+                    <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Chưa có yêu cầu đặt vẽ nào</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                      Bật trạng thái "Đang nhận đặt vẽ" trong phần cài đặt hồ sơ để người mua có thể gửi brief trực tiếp cho bạn.
+                    </p>
+                  </div>
+                `;
+              } else {
+                cCont.innerHTML = `
+                  <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
+                    ${commList.map(comm => `
+                      <div class="order-item-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px 24px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div style="flex: 1; min-width: 260px;">
+                          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
+                            <span style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: var(--text-berry); background: var(--bg-lavender-subtle); padding: 2px 8px; border-radius: var(--radius-sm);">
+                              ${comm.commission_code}
+                            </span>
+                            <span class="commission-badge status-${(comm.status || '').toLowerCase()}" style="font-size: 0.76rem; font-weight: 700; padding: 2px 10px; border-radius: var(--radius-full);">
+                              ${comm.status_display || comm.status}
+                            </span>
+                            <span style="font-size: 0.76rem; color: var(--text-muted);">
+                              ${comm.created_at ? new Date(comm.created_at).toLocaleString('vi-VN') : ''}
+                            </span>
+                          </div>
+
+                          <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
+                            <a href="${pUrl(`/commissions/${comm.id}/`)}" style="color: inherit; text-decoration: none;">
+                              ${comm.title}
+                            </a>
+                          </h3>
+
+                          <div style="font-size: 0.84rem; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap;">
+                            <span>Người đặt: <strong style="color: var(--text-plum);">@${comm.buyer ? comm.buyer.username : ''}</strong></span>
+                            <span>Quyền: <strong>${comm.license_type_display || comm.license_type || ''}</strong></span>
+                            <span>Hạn mong muốn: <strong>${comm.deadline ? new Date(comm.deadline).toLocaleDateString('vi-VN') : 'Thỏa thuận'}</strong></span>
+                          </div>
+                        </div>
+
+                        <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                          <div>
+                            <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Giá / Ngân sách:</span>
+                            <strong style="font-size: 1.15rem; color: var(--text-berry); font-family: var(--font-serif);">
+                              ${(comm.agreed_price || comm.budget || 0).toLocaleString('vi-VN')} VND
+                            </strong>
+                          </div>
+
+                          <a href="${pUrl(`/commissions/${comm.id}/`)}" class="btn btn-primary btn-sm" style="text-decoration: none;">
+                            Xử lý yêu cầu &rarr;
+                          </a>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                `;
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Buyer Data (for all authenticated users)
+      // 1. Library
+      try {
+        const resLib = await apiFetch('/api/artworks/library/my-library/');
+        if (resLib.ok) {
+          const dataLib = await resLib.json();
+          const libItems = dataLib.results || (Array.isArray(dataLib) ? dataLib : []);
+          const countLib = document.getElementById('libraryCountHeader');
+          if (countLib) countLib.textContent = `Tổng cộng: ${libItems.length} tác phẩm`;
+          const sideCount = document.getElementById('dashSidebarLibraryCount');
+          if (sideCount) sideCount.textContent = libItems.length;
+
+          const lCont = document.getElementById('dashLibraryContainer');
+          if (lCont) {
+            if (libItems.length === 0) {
+              lCont.innerHTML = `
+                <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+                  <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                  </div>
+                  <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Kho tác phẩm của bạn đang trống</h3>
+                  <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                    Bạn chưa mua quyền sử dụng tác phẩm nào. Hãy khám phá và sở hữu quyền tác phẩm số từ các nghệ sĩ Việt Nam ngay hôm nay!
+                  </p>
+                  <a href="${pUrl('/')}" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá tác phẩm ngay</a>
+                </div>
+              `;
+            } else {
+              lCont.innerHTML = `
+                <div class="library-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                  ${libItems.map(item => `
+                    <div class="library-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
+                      <div style="position: relative; height: 180px; background: #FAF5FF; overflow: hidden;">
+                        ${item.preview_image ? `<img src="${mUrl(item.preview_image)}" alt="${item.artwork_title}" style="width: 100%; height: 100%; object-fit: cover;">` : '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">Chưa có ảnh</div>'}
+                        <span class="license-badge" style="position: absolute; top: 10px; right: 10px; font-size: 0.72rem; font-weight: 700; padding: 4px 8px; border-radius: var(--radius-full); background: rgba(46, 18, 77, 0.85); color: #FFFFFF; backdrop-filter: blur(4px);">
+                          ${item.license_name || item.license_type}
+                        </span>
+                      </div>
+
+                      <div style="padding: 16px; flex: 1; display: flex; flex-direction: column;">
+                        <h3 style="font-family: var(--font-serif); font-size: 1.05rem; color: var(--text-plum); margin: 0 0 4px 0; font-weight: 600;">
+                          ${item.artwork_title}
+                        </h3>
+                        <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+                          Nghệ sĩ: <a href="${pUrl(`/artists/${encodeURIComponent(item.artist_username)}/`)}" style="color: var(--primary-berry); text-decoration: none; font-weight: 600;">@${item.artist_username}</a>
+                        </div>
+
+                        <div style="font-size: 0.78rem; color: var(--text-muted); background: var(--bg-lavender-subtle); padding: 8px 10px; border-radius: var(--radius-sm); margin-bottom: 14px;">
+                          <div>Mã đơn: <strong style="color: var(--text-plum);">${item.order_code}</strong></div>
+                          <div>Ngày mua: ${item.purchase_date ? new Date(item.purchase_date).toLocaleString('vi-VN') : ''}</div>
+                        </div>
+
+                        <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+                          <div style="display: flex; gap: 8px;">
+                            <a href="${pUrl(`/artworks/${item.artwork_slug}/`)}" class="btn btn-secondary btn-sm" style="flex: 1; text-align: center; text-decoration: none; padding: 6px 10px; font-size: 0.8rem;">
+                              Xem trang
+                            </a>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="window.ArtFair && window.ArtFair.downloadOriginalArtworkFile ? window.ArtFair.downloadOriginalArtworkFile(${item.artwork_id}) : null" style="flex: 1; text-align: center; padding: 6px 10px; font-size: 0.8rem;">
+                              Tải tệp gốc
+                            </button>
+                          </div>
+                          <button type="button" class="btn btn-ghost btn-sm" onclick="window.ArtFair && window.ArtFair.downloadOrderCertificate ? window.ArtFair.downloadOrderCertificate('${item.order_code}') : null" style="width: 100%; text-align: center; padding: 6px 10px; font-size: 0.8rem; border: 1px dashed var(--primary-berry); color: var(--primary-berry);">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                            Xuất chứng nhận PDF
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+            }
+          }
+        }
+      } catch (_) {}
+
+      // 2. Favorites
+      try {
+        const resFav = await apiFetch('/api/artworks/favorites/my-favorites/');
+        if (resFav.ok) {
+          const dataFav = await resFav.json();
+          const favItems = dataFav.results || (Array.isArray(dataFav) ? dataFav : []);
+          const countFav = document.getElementById('favoritesCountHeader');
+          if (countFav) countFav.textContent = `Tổng cộng: ${favItems.length} tác phẩm`;
+          const sideCount = document.getElementById('dashSidebarFavoritesCount');
+          if (sideCount) sideCount.textContent = favItems.length;
+
+          const fCont = document.getElementById('dashFavoritesContainer');
+          if (fCont) {
+            if (favItems.length === 0) {
+              fCont.innerHTML = `
+                <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+                  <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                  </div>
+                  <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Chưa có tác phẩm yêu thích</h3>
+                  <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                    Hãy nhấn biểu tượng trái tim trên các tác phẩm trong sàn để lưu lại theo dõi tại đây.
+                  </p>
+                  <a href="${pUrl('/')}" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá tác phẩm</a>
+                </div>
+              `;
+            } else {
+              fCont.innerHTML = `
+                <div class="favorites-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                  ${favItems.map(art => `
+                    <div class="favorite-card" id="favCard_${art.id}" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column;">
+                      <div style="position: relative; height: 190px; background: #FAF5FF; overflow: hidden;">
+                        ${art.preview_image ? `<img src="${mUrl(art.preview_image)}" alt="${art.title}" style="width: 100%; height: 100%; object-fit: cover;">` : '<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">Chưa có ảnh</div>'}
+                        ${art.category ? `<span style="position: absolute; top: 10px; left: 10px; font-size: 0.72rem; font-weight: 700; padding: 4px 8px; border-radius: var(--radius-full); background: rgba(255, 255, 255, 0.9); color: var(--text-plum); backdrop-filter: blur(4px);">${art.category.name}</span>` : ''}
+                      </div>
+
+                      <div style="padding: 16px; flex: 1; display: flex; flex-direction: column;">
+                        <h3 style="font-family: var(--font-serif); font-size: 1.05rem; color: var(--text-plum); margin: 0 0 4px 0; font-weight: 600;">
+                          <a href="${pUrl(`/artworks/${art.slug}/`)}" style="color: inherit; text-decoration: none;">${art.title}</a>
+                        </h3>
+                        <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+                          Nghệ sĩ: <a href="${pUrl(`/artists/${encodeURIComponent(art.creator ? art.creator.username : '')}/`)}" style="color: var(--primary-berry); text-decoration: none; font-weight: 600;">@${art.creator ? art.creator.username : ''}</a>
+                        </div>
+
+                        <div style="margin-top: auto; display: flex; gap: 8px;">
+                          <a href="${pUrl(`/artworks/${art.slug}/`)}" class="btn btn-primary btn-sm" style="flex: 1; text-align: center; text-decoration: none; padding: 8px;">
+                            Xem chi tiết
+                          </a>
+                          <button type="button" class="btn btn-secondary btn-sm btn-remove-fav" data-art-id="${art.id}" style="padding: 8px 12px; color: #E11D48;" title="Xóa khỏi yêu thích">
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+
+              // Bind remove fav buttons
+              fCont.querySelectorAll('.btn-remove-fav').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                  const artId = btn.getAttribute('data-art-id');
+                  try {
+                    const res = await apiFetch(`/api/artworks/${artId}/favorite/`, { method: 'POST' });
+                    if (res.ok) {
+                      document.getElementById(`favCard_${artId}`)?.remove();
+                      state.favoriteIds.delete(parseInt(artId, 10));
+                      showToast('Đã xóa khỏi danh sách yêu thích.', 'info');
+                    }
+                  } catch (_) {}
+                });
+              });
+            }
+          }
+        }
+      } catch (_) {}
+
+      // 3. Orders
+      try {
+        const resOrders = await apiFetch('/api/artworks/orders/my-orders/');
+        if (resOrders.ok) {
+          const dataOrders = await resOrders.json();
+          const orderItems = dataOrders.results || (Array.isArray(dataOrders) ? dataOrders : []);
+          const countOrders = document.getElementById('ordersCountHeader');
+          if (countOrders) countOrders.textContent = `Tổng: ${orderItems.length} đơn`;
+          const sideCount = document.getElementById('dashSidebarOrdersCount');
+          if (sideCount) sideCount.textContent = orderItems.length;
+
+          const oCont = document.getElementById('dashOrdersContainer');
+          if (oCont) {
+            if (orderItems.length === 0) {
+              oCont.innerHTML = `
+                <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+                  <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                  </div>
+                  <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Chưa có đơn hàng nào</h3>
+                  <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                    Các đơn mua bản quyền tác phẩm kỹ thuật số sẽ được lưu lại đầy đủ tại đây.
+                  </p>
+                  <a href="${pUrl('/')}" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá ngay</a>
+                </div>
+              `;
+            } else {
+              oCont.innerHTML = `
+                <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
+                  ${orderItems.map(order => {
+                    const isCompleted = order.status === 'COMPLETED';
+                    const isPending = order.status === 'PENDING';
+                    const isFailed = order.status === 'FAILED';
+                    const statusBadge = isCompleted
+                      ? '<span style="background: #F6FFED; color: #389E0D; border: 1px solid #B7EB8F; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">Hoàn tất thanh toán</span>'
+                      : (isPending
+                        ? '<span style="background: #FFF7E6; color: #D46B08; border: 1px solid #FFD591; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">Chờ thanh toán</span>'
+                        : '<span style="background: #FFF1F0; color: #CF1322; border: 1px solid #FFA39E; padding: 4px 10px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">Thanh toán thất bại</span>');
+
+                    return `
+                      <div class="order-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-card);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px;">
+                          <div>
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Mã đơn hàng:</span>
+                            <strong style="font-size: 0.95rem; color: var(--text-plum); margin-left: 6px;">${order.order_code}</strong>
+                            <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 12px;">Ngày tạo: ${order.created_at ? new Date(order.created_at).toLocaleString('vi-VN') : ''}</span>
+                          </div>
+                          <div>${statusBadge}</div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                          <div style="width: 72px; height: 72px; border-radius: var(--radius-sm); overflow: hidden; background: #FAF5FF; flex-shrink: 0;">
+                            ${order.artwork && order.artwork.preview_image ? `<img src="${mUrl(order.artwork.preview_image)}" alt="${order.artwork.title}" style="width: 100%; height: 100%; object-fit: cover;">` : ''}
+                          </div>
+                          <div style="flex: 1; min-width: 220px;">
+                            <h4 style="font-family: var(--font-serif); font-size: 1.05rem; color: var(--text-plum); margin: 0 0 4px 0;">
+                              <a href="${pUrl(`/artworks/${order.artwork ? order.artwork.slug : ''}/`)}" style="color: inherit; text-decoration: none;">${order.artwork ? order.artwork.title : ''}</a>
+                            </h4>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">
+                              Gói quyền: <strong style="color: var(--primary-berry);">${order.license_type || ''}</strong> &bull; Tác giả: @${order.artwork ? order.artwork.creator_name : ''}
+                            </div>
+                          </div>
+                          <div style="text-align: right; min-width: 140px;">
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">Số tiền:</div>
+                            <div style="font-family: var(--font-serif); font-size: 1.15rem; font-weight: 700; color: var(--primary-berry);">
+                              ${parseInt(order.price_paid || 0).toLocaleString('vi-VN')} ₫
+                            </div>
+                          </div>
+                        </div>
+
+                        ${isPending || isFailed ? `
+                          <div style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
+                            <button type="button" class="btn btn-primary btn-sm" onclick="window.ArtFairDashboard && window.ArtFairDashboard.openPaymentRetry ? window.ArtFairDashboard.openPaymentRetry('${order.order_code}', '${(order.artwork ? order.artwork.title : '').replace(/'/g, "\\'")}', '${order.license_type}', ${parseInt(order.price_paid || 0)}) : null">
+                              Thanh toán mô phỏng ngay
+                            </button>
+                          </div>
+                        ` : (isCompleted ? `
+                          <div style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="window.ArtFair && window.ArtFair.downloadOriginalArtworkFile ? window.ArtFair.downloadOriginalArtworkFile(${order.artwork ? order.artwork.id : 0}) : null">
+                              Tải tệp gốc
+                            </button>
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="window.ArtFair && window.ArtFair.downloadOrderCertificate ? window.ArtFair.downloadOrderCertificate('${order.order_code}') : null">
+                              Xuất chứng nhận PDF
+                            </button>
+                          </div>
+                        ` : '')}
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              `;
+            }
+          }
+        }
+      } catch (_) {}
+
+      // 4. Buyer Commissions
+      try {
+        const resBComm = await apiFetch('/api/commissions/?role=buyer');
+        if (resBComm.ok) {
+          const dataBComm = await resBComm.json();
+          const bCommList = dataBComm.results || (Array.isArray(dataBComm) ? dataBComm : []);
+          const countBComm = document.getElementById('commissionsCountHeader');
+          if (countBComm) countBComm.textContent = `Tổng cộng: ${bCommList.length} đơn`;
+          const sideCount = document.getElementById('dashSidebarCommissionsCount');
+          if (sideCount) sideCount.textContent = bCommList.length;
+
+          const bcCont = document.getElementById('dashCommissionsContainer');
+          if (bcCont) {
+            if (bCommList.length === 0) {
+              bcCont.innerHTML = `
+                <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+                  <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                  </div>
+                  <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Bạn chưa gửi yêu cầu đặt vẽ nào</h3>
+                  <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                    Khám phá hồ sơ các nghệ sĩ và gửi yêu cầu sáng tạo tác phẩm độc bản theo ý tưởng của bạn.
+                  </p>
+                  <a href="${pUrl('/#gallerySection')}" class="btn btn-primary" style="padding: 10px 24px; text-decoration: none;">Khám phá nghệ sĩ</a>
+                </div>
+              `;
+            } else {
+              bcCont.innerHTML = `
+                <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
+                  ${bCommList.map(comm => `
+                    <div class="order-item-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px 24px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                      <div style="flex: 1; min-width: 260px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
+                          <span style="font-family: monospace; font-size: 0.85rem; font-weight: 700; color: var(--text-berry); background: var(--bg-lavender-subtle); padding: 2px 8px; border-radius: var(--radius-sm);">
+                            ${comm.commission_code}
+                          </span>
+                          <span class="commission-badge status-${(comm.status || '').toLowerCase()}" style="font-size: 0.76rem; font-weight: 700; padding: 2px 10px; border-radius: var(--radius-full);">
+                            ${comm.status_display || comm.status}
+                          </span>
+                          <span style="font-size: 0.76rem; color: var(--text-muted);">
+                            ${comm.created_at ? new Date(comm.created_at).toLocaleString('vi-VN') : ''}
+                          </span>
+                        </div>
+
+                        <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
+                          <a href="${pUrl(`/commissions/${comm.id}/`)}" style="color: inherit; text-decoration: none;">
+                            ${comm.title}
+                          </a>
+                        </h3>
+
+                        <div style="font-size: 0.84rem; color: var(--text-muted); display: flex; gap: 16px; flex-wrap: wrap;">
+                          <span>Nghệ sĩ: <a href="${pUrl(`/artists/${encodeURIComponent(comm.creator ? comm.creator.username : '')}/`)}" style="color: var(--text-berry); font-weight: 600; text-decoration: none;">@${comm.creator ? comm.creator.username : ''}</a></span>
+                          <span>Quyền: <strong>${comm.license_type_display || comm.license_type || ''}</strong></span>
+                          <span>Hạn bàn giao: <strong>${comm.deadline ? new Date(comm.deadline).toLocaleDateString('vi-VN') : 'Thỏa thuận'}</strong></span>
+                        </div>
+                      </div>
+
+                      <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                        <div>
+                          <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">Giá / Ngân sách:</span>
+                          <strong style="font-size: 1.15rem; color: var(--text-berry); font-family: var(--font-serif);">
+                            ${(comm.agreed_price || comm.budget || 0).toLocaleString('vi-VN')} ₫
+                          </strong>
+                        </div>
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                          <a href="${pUrl(`/commissions/${comm.id}/`)}" class="btn btn-secondary btn-sm" style="text-decoration: none;">
+                            Chi tiết & Tiến độ &rarr;
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+            }
+          }
+        }
+      } catch (_) {}
+
+      // 5. Notifications
+      try {
+        const resNotif = await apiFetch('/api/accounts/notifications/');
+        if (resNotif.ok) {
+          const dataNotif = await resNotif.json();
+          const notifs = dataNotif.results || (Array.isArray(dataNotif) ? dataNotif : []);
+          const nCont = document.getElementById('dashNotificationsContainer');
+          if (nCont) {
+            if (notifs.length === 0) {
+              nCont.innerHTML = `
+                <div class="empty-state-box" style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+                  <div style="width: 64px; height: 64px; border-radius: var(--radius-full); background: var(--bg-lavender-subtle); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--primary-berry);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                  </div>
+                  <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Bạn không có thông báo mới</h3>
+                  <p style="font-size: 0.9rem; color: var(--text-muted); max-width: 440px; margin: 0 auto 20px;">
+                    Mọi cập nhật về trạng thái đơn hàng, thanh toán và đặt vẽ sẽ hiển thị tại đây.
+                  </p>
+                </div>
+              `;
+            } else {
+              nCont.innerHTML = `
+                <div class="notifications-dashboard-list" style="display: flex; flex-direction: column; gap: 12px;">
+                  ${notifs.map(n => `
+                    <div class="notification-card-item ${!n.is_read ? 'unread' : ''}" id="dashNotif_${n.id}" style="background: ${!n.is_read ? '#FFF9FB' : '#FFFFFF'}; border: 1px solid ${!n.is_read ? 'rgba(197, 42, 112, 0.25)' : 'var(--border-subtle)'}; border-radius: var(--radius-md); padding: 18px 20px; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                      <div style="flex: 1; min-width: 260px;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                          ${!n.is_read ? '<span style="width: 8px; height: 8px; border-radius: 50%; background: #E11D48; display: inline-block;"></span>' : ''}
+                          <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum); margin: 0;">${n.title}</h4>
+                          <span style="font-size: 0.75rem; color: var(--text-muted);">${n.created_at ? new Date(n.created_at).toLocaleString('vi-VN') : ''}</span>
+                        </div>
+                        <p style="margin: 0; font-size: 0.88rem; color: var(--text-plum); line-height: 1.5;">${n.message}</p>
+                      </div>
+                      <div style="display: flex; gap: 8px; align-items: center;">
+                        ${n.target_url ? `
+                          <a href="${pUrl(n.target_url)}" class="btn btn-primary btn-sm" style="text-decoration: none; font-size: 0.8rem;">
+                            Xem chi tiết &rarr;
+                          </a>
+                        ` : ''}
+                        ${!n.is_read ? `
+                          <button type="button" class="btn btn-ghost btn-sm btn-mark-dash-read" data-notif-id="${n.id}" style="font-size: 0.78rem;">
+                            Đã đọc
+                          </button>
+                        ` : ''}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+
+              nCont.querySelectorAll('.btn-mark-dash-read').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                  const notifId = btn.getAttribute('data-notif-id');
+                  try {
+                    await apiFetch(`/api/accounts/notifications/${notifId}/mark-read/`, { method: 'POST' });
+                    const card = document.getElementById(`dashNotif_${notifId}`);
+                    if (card) {
+                      card.classList.remove('unread');
+                      card.style.background = '#FFFFFF';
+                      card.style.borderColor = 'var(--border-subtle)';
+                      btn.remove();
+                    }
+                  } catch (_) {}
+                });
+              });
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (state.currentUser) {
+      hydrateDashboard(state.currentUser);
+    }
+    window.addEventListener('artfair:user_loaded', (e) => {
+      hydrateDashboard(e.detail);
+    });
 
     // 4. Withdrawal Controller
     let currentAvailableBalance = 0;

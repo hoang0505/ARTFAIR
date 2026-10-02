@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="8pVKlsUvao0SnGEKLp4RI0gUXEeAs53nVIn8FJYYLjhJQOF2vQCWfw1iT9a9QCt4">
+  <meta name="csrf-token" content="aYArUykaqXAamxB0Xz94B9JoHPKslzVvZEdicahRkxPjjeiYddnjLIjjGkC4CuQe">
   
 <style>
   /* ==========================================================================
@@ -755,7 +755,22 @@
   <main>
     
 <div class="studio-page-wrapper">
-  <div class="studio-layout">
+  <!-- Access Forbidden / Guest State -->
+  <div id="studioAccessForbidden" style="display: none; padding: 72px 24px; text-align: center; background: #FFFFFF; border-radius: var(--radius-xl); border: 1px solid var(--border-subtle); max-width: 680px; margin: 40px auto; box-shadow: var(--shadow-card);">
+    <div style="width: 72px; height: 72px; border-radius: var(--radius-full); background: #FFF1F0; color: #CF1322; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px;">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+    </div>
+    <h2 style="font-family: var(--font-serif); font-size: 1.6rem; color: var(--text-plum); margin-bottom: 10px;" id="studioForbiddenTitle">Khu vực dành riêng cho Nghệ sĩ sáng tạo</h2>
+    <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;" id="studioForbiddenMessage">
+      Bạn cần đăng nhập bằng tài khoản Nghệ sĩ (Creator) để truy cập Creator Studio.
+    </p>
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;" id="studioForbiddenActions">
+      <a href="/ARTFAIR/" class="btn btn-secondary" style="text-decoration: none; padding: 10px 24px;">Về Trang chủ</a>
+      <button type="button" class="btn btn-primary" onclick="window.ArtFair && window.ArtFair.openAuthModal ? window.ArtFair.openAuthModal('login') : null" style="padding: 10px 28px;">Đăng nhập tài khoản</button>
+    </div>
+  </div>
+
+  <div class="studio-layout" id="studioMainLayout">
 
     <!-- ======================================================================
          1. SIDEBAR NAVIGATION
@@ -808,7 +823,7 @@
                 </svg>
                 <span>Tác phẩm</span>
               </span>
-              <span class="sidebar-status-tag">5</span>
+              <span class="sidebar-status-tag" id="studioSidebarArtworksCount">0</span>
             </a>
           </li>
 
@@ -896,19 +911,19 @@
       <!-- Sidebar User Footer -->
       <div class="sidebar-footer-card">
         <div class="sidebar-user-row">
-          <div class="sidebar-avatar">
+          <div class="sidebar-avatar" id="studioSidebarAvatar">
             
-              <img src="https://hoang0505.pythonanywhere.com/media/avatars/2026/10/%E1%BA%A2nh_ch%E1%BB%A5p_m%C3%A0n_h%C3%ACnh_2025-01-17_104650.png" alt="">
+              <span>C</span>
             
           </div>
           <div style="overflow: hidden;">
-            <div class="sidebar-user-name">bngoc05</div>
-            <div class="sidebar-user-role">@ • Creator</div>
+            <div class="sidebar-user-name" id="studioSidebarName">Nghệ sĩ</div>
+            <div class="sidebar-user-role" id="studioSidebarRole">Creator</div>
           </div>
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 6px;">
-          <a href="/ARTFAIR/artists//" class="btn-view-profile-ext" style="text-decoration:none; display:flex; align-items:center; justify-content:space-between; width:100%; box-sizing:border-box; color: var(--primary-berry); font-weight: 700;">
+          <a href="#" id="studioSidebarProfileLink" class="btn-view-profile-ext" style="text-decoration:none; display:flex; align-items:center; justify-content:space-between; width:100%; box-sizing:border-box; color: var(--primary-berry); font-weight: 700;">
             <span>Xem hồ sơ công khai</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -967,7 +982,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
               <span>Tổng doanh thu</span>
             </div>
-            <div class="metric-value">0 ₫</div>
+            <div class="metric-value" id="studioMetricRevenue">0 ₫</div>
             <div class="metric-sub">Từ đơn mua quyền hoàn tất</div>
           </div>
           <div class="metric-icon-wrap">
@@ -981,7 +996,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
               <span>Lượt mua quyền</span>
             </div>
-            <div class="metric-value">0</div>
+            <div class="metric-value" id="studioMetricSales">0</div>
             <div class="metric-sub">Giao dịch đã giải ngân</div>
           </div>
           <div class="metric-icon-wrap">
@@ -995,7 +1010,7 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
               <span>Đang bán trên sàn</span>
             </div>
-            <div class="metric-value">3</div>
+            <div class="metric-value" id="studioMetricPublished">0</div>
             <div class="metric-sub">Tác phẩm công khai</div>
           </div>
           <div class="metric-icon-wrap" style="color: #28A745; background: #E8F5E9;">
@@ -1009,8 +1024,8 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
               <span>Tổng tác phẩm</span>
             </div>
-            <div class="metric-value">5</div>
-            <div class="metric-sub">1 bản nháp, 1 lưu trữ</div>
+            <div class="metric-value" id="studioMetricTotal">0</div>
+            <div class="metric-sub" id="studioMetricSub">0 bản nháp, 0 lưu trữ</div>
           </div>
           <div class="metric-icon-wrap">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
@@ -1022,10 +1037,10 @@
       <section class="artworks-manager-card" id="artworksSection">
         <div class="manager-top-bar">
           <div class="studio-tabs">
-            <button type="button" class="studio-tab-btn active" data-tab="ALL">Tất cả (5)</button>
-            <button type="button" class="studio-tab-btn" data-tab="PUBLISHED">Đang bán (3)</button>
-            <button type="button" class="studio-tab-btn" data-tab="DRAFT">Bản nháp (1)</button>
-            <button type="button" class="studio-tab-btn" data-tab="ARCHIVED">Đã lưu trữ (1)</button>
+            <button type="button" class="studio-tab-btn active" data-tab="ALL" id="studioTabAll">Tất cả (0)</button>
+            <button type="button" class="studio-tab-btn" data-tab="PUBLISHED" id="studioTabPublished">Đang bán (0)</button>
+            <button type="button" class="studio-tab-btn" data-tab="DRAFT" id="studioTabDraft">Bản nháp (0)</button>
+            <button type="button" class="studio-tab-btn" data-tab="ARCHIVED" id="studioTabArchived">Đã lưu trữ (0)</button>
           </div>
 
           <div class="studio-search-wrap">
@@ -1050,333 +1065,14 @@
                 <th style="text-align: right;">Hành động</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody id="studioArtworksTableBody">
               
-                <tr class="artwork-table-row" data-status="PUBLISHED" data-title="bức tranh minh họa về web artfair">
-                  <td>
-                    <div class="table-art-cell">
-                      
-                        <img src="https://hoang0505.pythonanywhere.com/media/previews/2026/10/ARTFAIR__giao_di%E1%BB%87n_boutique_ngh%E1%BB%87_thu%E1%BA%ADt_pastel_preview.jpg" alt="Bức tranh minh họa về web ARTFAIR" class="table-art-thumb">
-                      
-                      <div>
-                        
-                          <a href="/ARTFAIR/artworks/buc-tranh-minh-hoa-ve-web-artfair/" target="_blank" style="text-decoration:none; color:inherit;" class="table-art-title" title="Mở trang chi tiết">Bức tranh minh họa về web ARTFAIR</a>
-                        
-                        <div class="table-art-cat">3D Art</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    
-                      <span class="status-badge published">● Đang bán</span>
-                    
-                  </td>
-
-                  <td>
-                    <div class="table-price-cell">
-                      
-                        
-                      
-                        600000 ₫
-                      
-                      /
-                      
-                        600 ₫
-                      
-                        
-                      
-                    </div>
-                    <div class="table-price-sub">Cá nhân / Thương mại</div>
-                  </td>
-
-                  <td>
-                    <strong></strong> lượt
-                  </td>
-
-                  <td style="color: var(--text-muted); font-size: 0.85rem;">
-                    02/10/2026
-                  </td>
-
-                  <td style="text-align: right;">
-                    <div class="table-actions-cell" style="justify-content: flex-end;">
-                      <button type="button" class="btn-table-action btn-edit-art" data-art-id="5" title="Chỉnh sửa thông tin">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        <span>Sửa</span>
-                      </button>
-
-                      
-                        <button type="button" class="btn-table-action btn-archive-art" data-art-id="5" title="Lưu trữ tác phẩm">
-                          <span>Lưu trữ</span>
-                        </button>
-                      
-
-                      
-                        <a href="/ARTFAIR/artworks/buc-tranh-minh-hoa-ve-web-artfair/" target="_blank" class="btn-table-action" title="Xem trên trang công khai">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                        </a>
-                      
-                    </div>
-                  </td>
-                </tr>
-              
-                <tr class="artwork-table-row" data-status="ARCHIVED" data-title="phác thảo quái vật biển đông">
-                  <td>
-                    <div class="table-art-cell">
-                      
-                        <img src="https://hoang0505.pythonanywhere.com/media/previews/2026/10/quai_vat_bien_dong_preview.jpg" alt="Phác Thảo Quái Vật Biển Đông" class="table-art-thumb">
-                      
-                      <div>
-                        
-                          <div class="table-art-title">Phác Thảo Quái Vật Biển Đông</div>
-                        
-                        <div class="table-art-cat">Concept Art</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    
-                      <span class="status-badge archived">● Đã lưu trữ</span>
-                    
-                  </td>
-
-                  <td>
-                    <div class="table-price-cell">
-                      
-                        
-                      
-                        150000 ₫
-                      
-                      /
-                      
-                        1000000 ₫
-                      
-                        
-                      
-                    </div>
-                    <div class="table-price-sub">Cá nhân / Thương mại</div>
-                  </td>
-
-                  <td>
-                    <strong></strong> lượt
-                  </td>
-
-                  <td style="color: var(--text-muted); font-size: 0.85rem;">
-                    02/10/2026
-                  </td>
-
-                  <td style="text-align: right;">
-                    <div class="table-actions-cell" style="justify-content: flex-end;">
-                      <button type="button" class="btn-table-action btn-edit-art" data-art-id="4" title="Chỉnh sửa thông tin">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        <span>Sửa</span>
-                      </button>
-
-                      
-                        <button type="button" class="btn-table-action primary btn-publish-art" data-art-id="4" title="Phát hành lên sàn">
-                          <span>Phát hành</span>
-                        </button>
-                      
-
-                      
-                    </div>
-                  </td>
-                </tr>
-              
-                <tr class="artwork-table-row" data-status="PUBLISHED" data-title="chiến hạm không gian lạc hồng">
-                  <td>
-                    <div class="table-art-cell">
-                      
-                        <img src="https://hoang0505.pythonanywhere.com/media/previews/2026/10/lac_hong_battleship_master_preview.jpg" alt="Chiến Hạm Không Gian Lạc Hồng" class="table-art-thumb">
-                      
-                      <div>
-                        
-                          <a href="/ARTFAIR/artworks/chien-ham-khong-gian-lac-hong/" target="_blank" style="text-decoration:none; color:inherit;" class="table-art-title" title="Mở trang chi tiết">Chiến Hạm Không Gian Lạc Hồng</a>
-                        
-                        <div class="table-art-cat">3D Art</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    
-                      <span class="status-badge published">● Đang bán</span>
-                    
-                  </td>
-
-                  <td>
-                    <div class="table-price-cell">
-                      
-                        
-                      
-                        450000 ₫
-                      
-                      /
-                      
-                        3200000 ₫
-                      
-                        
-                      
-                    </div>
-                    <div class="table-price-sub">Cá nhân / Thương mại</div>
-                  </td>
-
-                  <td>
-                    <strong></strong> lượt
-                  </td>
-
-                  <td style="color: var(--text-muted); font-size: 0.85rem;">
-                    02/10/2026
-                  </td>
-
-                  <td style="text-align: right;">
-                    <div class="table-actions-cell" style="justify-content: flex-end;">
-                      <button type="button" class="btn-table-action btn-edit-art" data-art-id="3" title="Chỉnh sửa thông tin">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        <span>Sửa</span>
-                      </button>
-
-                      
-                        <button type="button" class="btn-table-action btn-archive-art" data-art-id="3" title="Lưu trữ tác phẩm">
-                          <span>Lưu trữ</span>
-                        </button>
-                      
-
-                      
-                        <a href="/ARTFAIR/artworks/chien-ham-khong-gian-lac-hong/" target="_blank" class="btn-table-action" title="Xem trên trang công khai">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                        </a>
-                      
-                    </div>
-                  </td>
-                </tr>
-              
-                <tr class="artwork-table-row" data-status="DRAFT" data-title="nữ chiến binh hoa sen">
-                  <td>
-                    <div class="table-art-cell">
-                      
-                        <img src="https://hoang0505.pythonanywhere.com/media/previews/2026/10/nu_chien_binh_draft_preview.jpg" alt="Nữ Chiến Binh Hoa Sen" class="table-art-thumb">
-                      
-                      <div>
-                        
-                          <div class="table-art-title">Nữ Chiến Binh Hoa Sen</div>
-                        
-                        <div class="table-art-cat">Concept Art</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    
-                      <span class="status-badge draft">● Bản nháp</span>
-                    
-                  </td>
-
-                  <td>
-                    <div class="table-price-cell">
-                      
-                        300000 ₫
-                      
-                      /
-                      
-                        
-                      
-                    </div>
-                    <div class="table-price-sub">Cá nhân / Thương mại</div>
-                  </td>
-
-                  <td>
-                    <strong></strong> lượt
-                  </td>
-
-                  <td style="color: var(--text-muted); font-size: 0.85rem;">
-                    02/10/2026
-                  </td>
-
-                  <td style="text-align: right;">
-                    <div class="table-actions-cell" style="justify-content: flex-end;">
-                      <button type="button" class="btn-table-action btn-edit-art" data-art-id="2" title="Chỉnh sửa thông tin">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        <span>Sửa</span>
-                      </button>
-
-                      
-                        <button type="button" class="btn-table-action primary btn-publish-art" data-art-id="2" title="Phát hành lên sàn">
-                          <span>Phát hành</span>
-                        </button>
-                      
-
-                      
-                    </div>
-                  </td>
-                </tr>
-              
-                <tr class="artwork-table-row" data-status="PUBLISHED" data-title="sài gòn năm 2077 - đêm mưa neon">
-                  <td>
-                    <div class="table-art-cell">
-                      
-                        <img src="https://hoang0505.pythonanywhere.com/media/previews/2026/10/saigon_2077_master_preview.jpg" alt="Sài Gòn Năm 2077 - Đêm Mưa Neon" class="table-art-thumb">
-                      
-                      <div>
-                        
-                          <a href="/ARTFAIR/artworks/sai-gon-2077-dem-mua-neon/" target="_blank" style="text-decoration:none; color:inherit;" class="table-art-title" title="Mở trang chi tiết">Sài Gòn Năm 2077 - Đêm Mưa Neon</a>
-                        
-                        <div class="table-art-cat">Digital Painting</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    
-                      <span class="status-badge published">● Đang bán</span>
-                    
-                  </td>
-
-                  <td>
-                    <div class="table-price-cell">
-                      
-                        
-                      
-                        250000 ₫
-                      
-                      /
-                      
-                        1500000 ₫
-                      
-                        
-                      
-                    </div>
-                    <div class="table-price-sub">Cá nhân / Thương mại</div>
-                  </td>
-
-                  <td>
-                    <strong></strong> lượt
-                  </td>
-
-                  <td style="color: var(--text-muted); font-size: 0.85rem;">
-                    02/10/2026
-                  </td>
-
-                  <td style="text-align: right;">
-                    <div class="table-actions-cell" style="justify-content: flex-end;">
-                      <button type="button" class="btn-table-action btn-edit-art" data-art-id="1" title="Chỉnh sửa thông tin">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        <span>Sửa</span>
-                      </button>
-
-                      
-                        <button type="button" class="btn-table-action btn-archive-art" data-art-id="1" title="Lưu trữ tác phẩm">
-                          <span>Lưu trữ</span>
-                        </button>
-                      
-
-                      
-                        <a href="/ARTFAIR/artworks/sai-gon-2077-dem-mua-neon/" target="_blank" class="btn-table-action" title="Xem trên trang công khai">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                        </a>
-                      
-                    </div>
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 48px 16px; color: var(--text-muted);">
+                    <div style="margin-bottom: 12px;">Bạn chưa có tác phẩm nào trong Studio.</div>
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('btnOpenPublishModal').click()">
+                      + Đăng tác phẩm đầu tiên
+                    </button>
                   </td>
                 </tr>
               
@@ -2038,12 +1734,12 @@
 
     // 2. Tab Filter & Search in Studio Table
     const tabButtons = document.querySelectorAll('.studio-tab-btn');
-    const tableRows = document.querySelectorAll('.artwork-table-row');
     const searchInput = document.getElementById('studioArtworkSearch');
     let currentTab = 'ALL';
     let searchQuery = '';
 
     function filterTable() {
+      const tableRows = document.querySelectorAll('.artwork-table-row');
       tableRows.forEach(row => {
         const status = row.getAttribute('data-status');
         const title = row.getAttribute('data-title') || '';
@@ -2070,6 +1766,213 @@
     searchInput?.addEventListener('input', (e) => {
       searchQuery = e.target.value.trim();
       filterTable();
+    });
+
+    // Dynamic Hydration & Data Loading for Creator Studio
+    const mUrl = (window.ArtFairConfig && window.ArtFairConfig.mediaUrl) ? window.ArtFairConfig.mediaUrl : (p) => p;
+    const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
+
+    function renderArtworkRow(art) {
+      const licenses = art.license_options || [];
+      const pLic = licenses.find(l => l.license_type === 'PERSONAL');
+      const cLic = licenses.find(l => l.license_type === 'COMMERCIAL');
+      const pPriceStr = pLic ? parseInt(pLic.price).toLocaleString('vi-VN') + ' ₫' : '—';
+      const cPriceStr = cLic ? parseInt(cLic.price).toLocaleString('vi-VN') + ' ₫' : '—';
+
+      const statusBadge = art.status === 'PUBLISHED'
+        ? '<span class="status-badge published">● Đang bán</span>'
+        : (art.status === 'DRAFT'
+          ? '<span class="status-badge draft">● Bản nháp</span>'
+          : '<span class="status-badge archived">● Đã lưu trữ</span>');
+
+      return `
+        <tr class="artwork-table-row" data-status="${art.status}" data-title="${(art.title || '').toLowerCase()}">
+          <td>
+            <div class="table-art-cell">
+              ${art.preview_image ? `<img src="${mUrl(art.preview_image)}" alt="${art.title}" class="table-art-thumb">` : '<div class="table-art-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:0.7rem;">Trống</div>'}
+              <div>
+                ${art.status === 'PUBLISHED' ? `<a href="${pUrl(`/artworks/${art.slug}/`)}" target="_blank" style="text-decoration:none; color:inherit;" class="table-art-title" title="Mở trang chi tiết">${art.title}</a>` : `<div class="table-art-title">${art.title}</div>`}
+                <div class="table-art-cat">${art.category ? art.category.name : 'Chưa phân loại'}</div>
+              </div>
+            </div>
+          </td>
+          <td>${statusBadge}</td>
+          <td>
+            <div class="table-price-cell">${pPriceStr} / ${cPriceStr}</div>
+            <div class="table-price-sub">Cá nhân / Thương mại</div>
+          </td>
+          <td><strong>${art.completed_orders_count || 0}</strong> lượt</td>
+          <td style="color: var(--text-muted); font-size: 0.85rem;">
+            ${art.updated_at ? new Date(art.updated_at).toLocaleDateString('vi-VN') : ''}
+          </td>
+          <td style="text-align: right;">
+            <div class="table-actions-cell" style="justify-content: flex-end;">
+              <button type="button" class="btn-table-action btn-edit-art" data-art-id="${art.id}" title="Chỉnh sửa thông tin">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                <span>Sửa</span>
+              </button>
+              ${(art.status === 'DRAFT' || art.status === 'ARCHIVED') ? `
+                <button type="button" class="btn-table-action primary btn-publish-art" data-art-id="${art.id}" title="Phát hành lên sàn">
+                  <span>Phát hành</span>
+                </button>
+              ` : (art.status === 'PUBLISHED' ? `
+                <button type="button" class="btn-table-action btn-archive-art" data-art-id="${art.id}" title="Lưu trữ tác phẩm">
+                  <span>Lưu trữ</span>
+                </button>
+              ` : '')}
+              ${art.status === 'PUBLISHED' ? `
+                <a href="${pUrl(`/artworks/${art.slug}/`)}" target="_blank" class="btn-table-action" title="Xem trên trang công khai">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
+    async function loadStudioData() {
+      // 1. Load Metrics
+      try {
+        const fetchFn = (window.ArtFair && window.ArtFair.apiFetch) ? window.ArtFair.apiFetch : fetch;
+        const resMetrics = await fetchFn('/api/artworks/creator/dashboard-metrics/');
+        if (resMetrics.ok) {
+          const metrics = await resMetrics.json();
+          const revEl = document.getElementById('studioMetricRevenue');
+          if (revEl) revEl.textContent = (metrics.total_revenue || 0).toLocaleString('vi-VN') + ' ₫';
+          const salesEl = document.getElementById('studioMetricSales');
+          if (salesEl) salesEl.textContent = (metrics.total_completed_sales_count || 0) + ' đơn';
+          const pubEl = document.getElementById('studioMetricPublished');
+          if (pubEl) pubEl.textContent = metrics.published_artworks_count || 0;
+          const totEl = document.getElementById('studioMetricTotal');
+          if (totEl) totEl.textContent = metrics.total_artworks || 0;
+          const sideCount = document.getElementById('studioSidebarArtworksCount');
+          if (sideCount) sideCount.textContent = metrics.total_artworks || 0;
+        }
+      } catch (_) {}
+
+      // 2. Load Creator's Artworks
+      try {
+        const fetchFn = (window.ArtFair && window.ArtFair.apiFetch) ? window.ArtFair.apiFetch : fetch;
+        const resArt = await fetchFn('/api/artworks/my-artworks/');
+        if (resArt.ok) {
+          const dataArt = await resArt.json();
+          const list = dataArt.results || (Array.isArray(dataArt) ? dataArt : []);
+          const tbody = document.getElementById('studioArtworksTableBody');
+
+          const publishedCount = list.filter(a => a.status === 'PUBLISHED').length;
+          const draftCount = list.filter(a => a.status === 'DRAFT').length;
+          const archivedCount = list.filter(a => a.status === 'ARCHIVED').length;
+
+          const tabAll = document.getElementById('studioTabAll');
+          if (tabAll) tabAll.textContent = `Tất cả (${list.length})`;
+          const tabPub = document.getElementById('studioTabPublished');
+          if (tabPub) tabPub.textContent = `Đang bán (${publishedCount})`;
+          const tabDraft = document.getElementById('studioTabDraft');
+          if (tabDraft) tabDraft.textContent = `Bản nháp (${draftCount})`;
+          const tabArch = document.getElementById('studioTabArchived');
+          if (tabArch) tabArch.textContent = `Lưu trữ (${archivedCount})`;
+
+          const metricSub = document.getElementById('studioMetricSub');
+          if (metricSub) metricSub.textContent = `${draftCount} bản nháp, ${archivedCount} lưu trữ`;
+
+          if (tbody) {
+            if (list.length === 0) {
+              tbody.innerHTML = `
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 48px 16px; color: var(--text-muted);">
+                    <div style="margin-bottom: 12px;">Bạn chưa có tác phẩm nào trong Studio.</div>
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('btnOpenPublishModal')?.click()">
+                      + Đăng tác phẩm đầu tiên
+                    </button>
+                  </td>
+                </tr>
+              `;
+            } else {
+              tbody.innerHTML = list.map(art => renderArtworkRow(art)).join('');
+              attachTableEvents();
+              filterTable();
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    function hydrateStudio(user) {
+      const forbidden = document.getElementById('studioAccessForbidden');
+      const mainLayout = document.getElementById('studioMainLayout');
+      if (!forbidden || !mainLayout) return;
+
+      if (!user) {
+        forbidden.style.display = 'block';
+        mainLayout.style.display = 'none';
+        const fTitle = document.getElementById('studioForbiddenTitle');
+        if (fTitle) fTitle.textContent = 'Khu vực dành riêng cho Nghệ sĩ sáng tạo';
+        const fMsg = document.getElementById('studioForbiddenMessage');
+        if (fMsg) fMsg.textContent = 'Bạn cần đăng nhập bằng tài khoản Nghệ sĩ (Creator) để truy cập và quản lý tác phẩm trên Creator Studio.';
+        const fActs = document.getElementById('studioForbiddenActions');
+        if (fActs) {
+          fActs.innerHTML = `
+            <a href="${pUrl('/')}" class="btn btn-secondary" style="text-decoration: none; padding: 10px 24px;">Về Trang chủ</a>
+            <button type="button" class="btn btn-primary" onclick="window.ArtFair && window.ArtFair.openAuthModal ? window.ArtFair.openAuthModal('login') : null" style="padding: 10px 28px;">Đăng nhập tài khoản</button>
+          `;
+        }
+        return;
+      }
+
+      if (!user.is_creator && user.role !== 'CREATOR') {
+        forbidden.style.display = 'block';
+        mainLayout.style.display = 'none';
+        const fTitle = document.getElementById('studioForbiddenTitle');
+        if (fTitle) fTitle.textContent = 'Tài khoản chưa được kích hoạt quyền Nghệ sĩ';
+        const fMsg = document.getElementById('studioForbiddenMessage');
+        if (fMsg) fMsg.innerHTML = `Tài khoản <strong>@${user.username}</strong> của bạn hiện là <strong>Người mua (Buyer)</strong>.<br>Creator Studio chỉ dành cho tài khoản Nghệ sĩ bán tác phẩm.`;
+        const fActs = document.getElementById('studioForbiddenActions');
+        if (fActs) {
+          fActs.innerHTML = `
+            <a href="${pUrl('/')}" class="btn btn-secondary" style="text-decoration: none; padding: 10px 24px;">Về Trang chủ</a>
+            <a href="${pUrl('/dashboard/')}" class="btn btn-primary" style="text-decoration: none; padding: 10px 24px;">Vào Khu vực cá nhân</a>
+          `;
+        }
+        return;
+      }
+
+      forbidden.style.display = 'none';
+      mainLayout.style.display = 'grid';
+
+      // Sidebar user card
+      const sidebarAvatar = document.getElementById('studioSidebarAvatar');
+      if (sidebarAvatar) {
+        if (user.avatar) {
+          sidebarAvatar.innerHTML = `<img src="${mUrl(user.avatar)}" alt="${user.username}" style="width:100%;height:100%;object-fit:cover;">`;
+        } else {
+          sidebarAvatar.innerHTML = `<span>${(user.username || 'C').charAt(0).toUpperCase()}</span>`;
+        }
+      }
+
+      const sidebarName = document.getElementById('studioSidebarName');
+      if (sidebarName) {
+        sidebarName.textContent = user.display_name || user.username;
+      }
+
+      const sidebarRole = document.getElementById('studioSidebarRole');
+      if (sidebarRole) {
+        sidebarRole.textContent = `@${user.username} • Creator`;
+      }
+
+      const sidebarLink = document.getElementById('studioSidebarProfileLink');
+      if (sidebarLink) {
+        sidebarLink.href = pUrl(`/artists/${encodeURIComponent(user.username)}/`);
+      }
+
+      loadStudioData();
+    }
+
+    if (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) {
+      hydrateStudio(window.ArtFair.state.currentUser);
+    }
+    window.addEventListener('artfair:user_loaded', (e) => {
+      hydrateStudio(e.detail);
     });
 
     // 3. Publishing Wizard Modal Stepper Controller
@@ -2388,76 +2291,179 @@
     btnWizardSaveDraft?.addEventListener('click', () => submitWizard('draft'));
     btnWizardSubmitPublish?.addEventListener('click', () => submitWizard('publish'));
 
-    // 6. Publish / Archive Quick Actions from Table
-    document.querySelectorAll('.btn-publish-art').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const artId = btn.getAttribute('data-art-id');
-        const metaCsrf = (window.ArtFair && window.ArtFair.getCsrfToken) 
-          ? window.ArtFair.getCsrfToken() 
-          : (document.querySelector('meta[name="csrf-token"]')?.content || '');
+    // 6. Publish / Archive / Edit Actions from Table
+    function attachTableEvents() {
+      document.querySelectorAll('.btn-publish-art').forEach(btn => {
+        if (btn.__bound) return;
+        btn.__bound = true;
+        btn.addEventListener('click', async () => {
+          const artId = btn.getAttribute('data-art-id');
+          const metaCsrf = (window.ArtFair && window.ArtFair.getCsrfToken) 
+            ? window.ArtFair.getCsrfToken() 
+            : (document.querySelector('meta[name="csrf-token"]')?.content || '');
 
-        btn.disabled = true;
-        btn.textContent = 'Đang kiểm tra...';
+          btn.disabled = true;
+          btn.textContent = 'Đang kiểm tra...';
 
-        try {
-          const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/my-artworks/${artId}/publish/`, {
-            method: 'POST'
-          });
-          const data = await res.json();
-          if (res.ok) {
-            if (window.ArtFair && window.ArtFair.showToast) {
-              window.ArtFair.showToast('Đã phát hành tác phẩm thành công lên ARTFAIR!', 'success');
+          try {
+            const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/my-artworks/${artId}/publish/`, {
+              method: 'POST'
+            });
+            const data = await res.json();
+            if (res.ok) {
+              if (window.ArtFair && window.ArtFair.showToast) {
+                window.ArtFair.showToast('Đã phát hành tác phẩm thành công lên ARTFAIR!', 'success');
+              } else {
+                window.ArtFair.showNotice('Đã phát hành tác phẩm thành công!');
+              }
+              setTimeout(() => {
+                if (window.location.protocol === 'file:' || window.location.host.includes('github.io')) {
+                  loadStudioData();
+                } else {
+                  window.location.reload();
+                }
+              }, 800);
             } else {
-              window.ArtFair.showNotice('Đã phát hành tác phẩm thành công!');
+              const reasons = data.blocking_reasons ? data.blocking_reasons : (data.detail ? [data.detail] : ['Tác phẩm chưa đủ điều kiện.']);
+              const reasonText = reasons.join('\n• ');
+              
+              if (window.ArtFair && window.ArtFair.showToast) {
+                window.ArtFair.showToast(`Chưa thể phát hành:\n• ${reasonText}\n\nĐang mở form chỉnh sửa để bạn hoàn thiện...`, 'error');
+              } else {
+                window.ArtFair.showNotice(`Chưa đủ điều kiện: ${reasonText}`);
+              }
+
+              setTimeout(() => {
+                const editBtn = document.querySelector(`.btn-edit-art[data-art-id="${artId}"]`);
+                if (editBtn) editBtn.click();
+              }, 600);
             }
-            setTimeout(() => window.location.reload(), 800);
-          } else {
-            const reasons = data.blocking_reasons ? data.blocking_reasons : (data.detail ? [data.detail] : ['Tác phẩm chưa đủ điều kiện.']);
-            const reasonText = reasons.join('\n• ');
-            
-            // Automatically open edit modal so creator can fix the missing items right away
+          } catch(e) {
             if (window.ArtFair && window.ArtFair.showToast) {
-              window.ArtFair.showToast(`Chưa thể phát hành:\n• ${reasonText}\n\nĐang mở form chỉnh sửa để bạn hoàn thiện...`, 'error');
+              window.ArtFair.showToast('Lỗi xử lý yêu cầu phát hành.', 'error');
             } else {
-              window.ArtFair.showNotice(`Chưa đủ điều kiện: ${reasonText}`);
+              window.ArtFair.showNotice('Lỗi xử lý yêu cầu phát hành.');
             }
-
-            setTimeout(() => {
-              const editBtn = document.querySelector(`.btn-edit-art[data-art-id="${artId}"]`);
-              if (editBtn) editBtn.click();
-            }, 600);
+          } finally {
+            btn.disabled = false;
+            btn.textContent = 'Phát hành';
           }
-        } catch(e) {
-          if (window.ArtFair && window.ArtFair.showToast) {
-            window.ArtFair.showToast('Lỗi xử lý yêu cầu phát hành.', 'error');
-          } else {
-            window.ArtFair.showNotice('Lỗi xử lý yêu cầu phát hành.');
-          }
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Phát hành';
-        }
+        });
       });
-    });
 
-    document.querySelectorAll('.btn-archive-art').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        if (!confirm('Bạn có chắc chắn muốn chuyển tác phẩm này sang lưu trữ (ẩn khỏi sàn)?')) return;
-        const artId = btn.getAttribute('data-art-id');
+      document.querySelectorAll('.btn-archive-art').forEach(btn => {
+        if (btn.__bound) return;
+        btn.__bound = true;
+        btn.addEventListener('click', async () => {
+          if (!confirm('Bạn có chắc chắn muốn chuyển tác phẩm này sang lưu trữ (ẩn khỏi sàn)?')) return;
+          const artId = btn.getAttribute('data-art-id');
 
-        try {
-          const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/my-artworks/${artId}/archive/`, {
-            method: 'POST'
-          });
-          if (res.ok) {
-            window.ArtFair.showNotice('Tác phẩm đã chuyển sang lưu trữ.');
-            setTimeout(() => window.location.reload(), 800);
+          try {
+            const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/my-artworks/${artId}/archive/`, {
+              method: 'POST'
+            });
+            if (res.ok) {
+              window.ArtFair.showNotice('Tác phẩm đã chuyển sang lưu trữ.');
+              setTimeout(() => {
+                if (window.location.protocol === 'file:' || window.location.host.includes('github.io')) {
+                  loadStudioData();
+                } else {
+                  window.location.reload();
+                }
+              }, 800);
+            }
+          } catch(e) {
+            window.ArtFair.showNotice('Lỗi xử lý yêu cầu lưu trữ.');
           }
-        } catch(e) {
-          window.ArtFair.showNotice('Lỗi xử lý yêu cầu lưu trữ.');
-        }
+        });
       });
-    });
+
+      document.querySelectorAll('.btn-edit-art').forEach(btn => {
+        if (btn.__bound) return;
+        btn.__bound = true;
+        btn.addEventListener('click', async () => {
+          const artId = btn.getAttribute('data-art-id');
+          try {
+            const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/my-artworks/${artId}/`);
+            if (res.ok) {
+              const art = await res.json();
+              document.getElementById('editArtId').value = art.id;
+              document.getElementById('editTitle').value = art.title || '';
+              document.getElementById('editDescription').value = art.description || '';
+              if (art.category) document.getElementById('editCategory').value = art.category.id;
+
+              // Clear previous errors & alerts
+              if (editModalAlert) {
+                editModalAlert.style.display = 'none';
+                editModalAlert.textContent = '';
+                editModalAlert.className = 'form-alert';
+              }
+              document.querySelectorAll('#formEditArtwork .inline-field-error').forEach(el => {
+                el.textContent = '';
+                el.classList.remove('show');
+              });
+              document.querySelectorAll('#formEditArtwork .form-input').forEach(el => el.classList.remove('input-error'));
+
+              // Pre-fill prices
+              const licenses = art.license_options || [];
+              const personal = licenses.find(l => l.license_type === 'PERSONAL');
+              const commercial = licenses.find(l => l.license_type === 'COMMERCIAL');
+              const pPriceInput = document.getElementById('editPersonalPrice');
+              const cPriceInput = document.getElementById('editCommercialPrice');
+
+              pPriceInput.value = personal ? personal.price : '';
+              cPriceInput.value = commercial ? commercial.price : '';
+
+              // Update Status Pill
+              const statusPill = document.getElementById('editStatusPill');
+              if (statusPill) {
+                const st = art.status;
+                statusPill.textContent = st === 'PUBLISHED' ? 'Đã phát hành' : (st === 'ARCHIVED' ? 'Lưu trữ' : 'Bản nháp');
+                statusPill.className = `role-pill ${st === 'PUBLISHED' ? 'creator' : 'buyer'}`;
+              }
+
+              // Update Criteria Checklist
+              const hasOrig = !!art.original_file;
+              const hasPrev = !!art.preview_image;
+              const hasP = personal && Number(personal.price) > 0;
+              const hasC = commercial && Number(commercial.price) > 0;
+
+              const cFile = document.getElementById('critHasFile');
+              const cPrev = document.getElementById('critHasPreview');
+              const cPers = document.getElementById('critHasPersonal');
+              const cComm = document.getElementById('critHasCommercial');
+
+              if (cFile) {
+                cFile.innerHTML = hasOrig ? '<span style="color:#389E0D; font-weight:700;">✓</span> Tệp gốc bàn giao' : '<span style="color:#CF1322; font-weight:700;">✕</span> Chưa có tệp gốc';
+              }
+              if (cPrev) {
+                cPrev.innerHTML = hasPrev ? '<span style="color:#389E0D; font-weight:700;">✓</span> Ảnh xem trước watermark' : '<span style="color:#CF1322; font-weight:700;">✕</span> Chưa có ảnh preview';
+              }
+              if (cPers) {
+                cPers.innerHTML = hasP ? '<span style="color:#389E0D; font-weight:700;">✓</span> Gói Cá nhân (' + Number(personal.price).toLocaleString('vi-VN') + ' đ)' : '<span style="color:#CF1322; font-weight:700;">✕</span> Thiếu giá Cá nhân';
+              }
+              if (cComm) {
+                cComm.innerHTML = hasC ? '<span style="color:#389E0D; font-weight:700;">✓</span> Gói Thương mại (' + Number(commercial.price).toLocaleString('vi-VN') + ' đ)' : '<span style="color:#CF1322; font-weight:700;">✕</span> Thiếu giá Thương mại';
+              }
+
+              // If draft and missing commercial license, display guidance alert
+              if (art.status === 'DRAFT' && !hasC) {
+                if (editModalAlert) {
+                  editModalAlert.className = 'form-alert show error';
+                  editModalAlert.style.display = 'block';
+                  editModalAlert.innerHTML = '<strong>Lưu ý phát hành:</strong> Tác phẩm hiện đang thiếu gói quyền Thương mại (COMMERCIAL). Vui lòng nhập giá thương mại bên dưới để đủ điều kiện phát hành lên sàn.';
+                }
+                cPriceInput.classList.add('input-error');
+              }
+
+              editModal.classList.add('show');
+            }
+          } catch(e) {
+            window.ArtFair.showNotice('Không thể tải thông tin tác phẩm để chỉnh sửa.');
+          }
+        });
+      });
+    }
 
     // 7. Edit Modal Controller
     const editModal = document.getElementById('editModalBackdrop');
@@ -2469,89 +2475,7 @@
 
     btnEditModalClose?.addEventListener('click', () => editModal.classList.remove('show'));
 
-    document.querySelectorAll('.btn-edit-art').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const artId = btn.getAttribute('data-art-id');
-        try {
-          const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/my-artworks/${artId}/`);
-          if (res.ok) {
-            const art = await res.json();
-            document.getElementById('editArtId').value = art.id;
-            document.getElementById('editTitle').value = art.title || '';
-            document.getElementById('editDescription').value = art.description || '';
-            if (art.category) document.getElementById('editCategory').value = art.category.id;
-
-            // Clear previous errors & alerts
-            if (editModalAlert) {
-              editModalAlert.style.display = 'none';
-              editModalAlert.textContent = '';
-              editModalAlert.className = 'form-alert';
-            }
-            document.querySelectorAll('#formEditArtwork .inline-field-error').forEach(el => {
-              el.textContent = '';
-              el.classList.remove('show');
-            });
-            document.querySelectorAll('#formEditArtwork .form-input').forEach(el => el.classList.remove('input-error'));
-
-            // Pre-fill prices
-            const licenses = art.license_options || [];
-            const personal = licenses.find(l => l.license_type === 'PERSONAL');
-            const commercial = licenses.find(l => l.license_type === 'COMMERCIAL');
-            const pPriceInput = document.getElementById('editPersonalPrice');
-            const cPriceInput = document.getElementById('editCommercialPrice');
-
-            pPriceInput.value = personal ? personal.price : '';
-            cPriceInput.value = commercial ? commercial.price : '';
-
-            // Update Status Pill
-            const statusPill = document.getElementById('editStatusPill');
-            if (statusPill) {
-              const st = art.status;
-              statusPill.textContent = st === 'PUBLISHED' ? 'Đã phát hành' : (st === 'ARCHIVED' ? 'Lưu trữ' : 'Bản nháp');
-              statusPill.className = `role-pill ${st === 'PUBLISHED' ? 'creator' : 'buyer'}`;
-            }
-
-            // Update Criteria Checklist
-            const hasOrig = !!art.original_file;
-            const hasPrev = !!art.preview_image;
-            const hasP = personal && Number(personal.price) > 0;
-            const hasC = commercial && Number(commercial.price) > 0;
-
-            const cFile = document.getElementById('critHasFile');
-            const cPrev = document.getElementById('critHasPreview');
-            const cPers = document.getElementById('critHasPersonal');
-            const cComm = document.getElementById('critHasCommercial');
-
-            if (cFile) {
-              cFile.innerHTML = hasOrig ? '<span style="color:#389E0D; font-weight:700;">✓</span> Tệp gốc bàn giao' : '<span style="color:#CF1322; font-weight:700;">✕</span> Chưa có tệp gốc';
-            }
-            if (cPrev) {
-              cPrev.innerHTML = hasPrev ? '<span style="color:#389E0D; font-weight:700;">✓</span> Ảnh xem trước watermark' : '<span style="color:#CF1322; font-weight:700;">✕</span> Chưa có ảnh preview';
-            }
-            if (cPers) {
-              cPers.innerHTML = hasP ? '<span style="color:#389E0D; font-weight:700;">✓</span> Gói Cá nhân (' + Number(personal.price).toLocaleString('vi-VN') + ' đ)' : '<span style="color:#CF1322; font-weight:700;">✕</span> Thiếu giá Cá nhân';
-            }
-            if (cComm) {
-              cComm.innerHTML = hasC ? '<span style="color:#389E0D; font-weight:700;">✓</span> Gói Thương mại (' + Number(commercial.price).toLocaleString('vi-VN') + ' đ)' : '<span style="color:#CF1322; font-weight:700;">✕</span> Thiếu giá Thương mại';
-            }
-
-            // If draft and missing commercial license, display guidance alert
-            if (art.status === 'DRAFT' && !hasC) {
-              if (editModalAlert) {
-                editModalAlert.className = 'form-alert show error';
-                editModalAlert.style.display = 'block';
-                editModalAlert.innerHTML = '<strong>Lưu ý phát hành:</strong> Tác phẩm hiện đang thiếu gói quyền Thương mại (COMMERCIAL). Vui lòng nhập giá thương mại bên dưới để đủ điều kiện phát hành lên sàn.';
-              }
-              cPriceInput.classList.add('input-error');
-            }
-
-            editModal.classList.add('show');
-          }
-        } catch(e) {
-          window.ArtFair.showNotice('Không thể tải thông tin tác phẩm để chỉnh sửa.');
-        }
-      });
-    });
+    attachTableEvents();
 
     // Helper to submit edit modal with specific action ('update' or 'publish')
     async function executeEditSubmit(actionType) {

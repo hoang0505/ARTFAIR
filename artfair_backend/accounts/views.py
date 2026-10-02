@@ -405,3 +405,31 @@ class ArtistReviewCreateUpdateView(APIView):
             'review': ArtistReviewSerializer(review).data
         }, status=status.HTTP_201_CREATED)
 
+
+class ChangePasswordView(APIView):
+    """
+    API endpoint for authenticated users to change their password.
+    Requires old_password, new_password, and confirm_password.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password', '')
+        new_password = request.data.get('new_password', '')
+        confirm_password = request.data.get('confirm_password', '')
+
+        if not old_password:
+            return Response({'detail': 'Vui lòng nhập mật khẩu hiện tại.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not user.check_password(old_password):
+            return Response({'detail': 'Mật khẩu hiện tại không chính xác.'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(new_password) < 6:
+            return Response({'detail': 'Mật khẩu mới phải có tối thiểu 6 ký tự.'}, status=status.HTTP_400_BAD_REQUEST)
+        if new_password != confirm_password:
+            return Response({'detail': 'Xác nhận mật khẩu mới không trùng khớp.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'detail': 'Đổi mật khẩu thành công.'}, status=status.HTTP_200_OK)
+
+

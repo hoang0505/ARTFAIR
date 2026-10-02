@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="f09PkoVl10dxBxuBwIVrWBiCk6dboaFM2jBdEFZOCVuo4FvTg9twt730gB9KMH5t">
+  <meta name="csrf-token" content="Ah5IwbJSxpnp4lfPolxcd8wt6TZ2ITYtpXIzONGzrZCy12WNEZLrnH6o5oREZOTc">
   
 </head>
 <body>
@@ -158,13 +158,32 @@
 
         <!-- Action Buttons -->
         <div class="artist-actions-group" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-          
+          <div id="artistOwnerActions" style="display: none; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <a href="/ARTFAIR/dashboard/#tab-profile" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              <span>Chỉnh sửa hồ sơ</span>
+            </a>
+            <a href="/ARTFAIR/studio/" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>Vào Creator Studio</span>
+            </a>
+          </div>
+
+          <div id="artistVisitorActions" style="display: block;">
             
               <button class="btn btn-secondary" style="opacity: 0.65; cursor: not-allowed;" disabled title="Nghệ sĩ hiện đang tạm ngừng nhận đơn đặt vẽ mới.">
                 <span>Tạm ngừng nhận Commission</span>
               </button>
             
-          
+          </div>
         </div>
 
       </div>
@@ -175,16 +194,20 @@
           <h1 style="font-family: var(--font-serif); font-size: 1.9rem; color: var(--text-plum); margin: 0; font-weight: 700;">
             huy0505
           </h1>
-          <span class="role-pill creator" style="font-size: 0.8rem; padding: 3px 10px;">Nghệ sĩ (Creator)</span>
           
-          <!-- Activity Tier Badge with transparent criteria -->
-          
+            <span class="role-pill creator" style="font-size: 0.8rem; padding: 3px 10px;">Nghệ sĩ (Creator)</span>
           
           
-            <span class="commission-status-pill closed" style="font-size: 0.8rem; background: #FFF1F0; color: #CF1322; border: 1px solid #FFA39E; border-radius: var(--radius-full); padding: 3px 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: #F5222D; display: inline-block;"></span>
-              Tạm ngừng nhận vẽ
-            </span>
+          
+            <!-- Activity Tier Badge with transparent criteria -->
+            
+            
+            
+              <span class="commission-status-pill closed" style="font-size: 0.8rem; background: #FFF1F0; color: #CF1322; border: 1px solid #FFA39E; border-radius: var(--radius-full); padding: 3px 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #F5222D; display: inline-block;"></span>
+                Tạm ngừng nhận vẽ
+              </span>
+            
           
         </div>
 
@@ -391,7 +414,7 @@
     </div>
 
     <form id="commissionRequestForm" enctype="multipart/form-data">
-      <input type="hidden" name="csrfmiddlewaretoken" value="f09PkoVl10dxBxuBwIVrWBiCk6dboaFM2jBdEFZOCVuo4FvTg9twt730gB9KMH5t">
+      <input type="hidden" name="csrfmiddlewaretoken" value="Ah5IwbJSxpnp4lfPolxcd8wt6TZ2ITYtpXIzONGzrZCy12WNEZLrnH6o5oREZOTc">
       <input type="hidden" name="creator_username" value="huy0505">
 
       <!-- Tiêu đề -->
@@ -1041,6 +1064,21 @@
         }
       } catch (_) {}
     })();
+
+    function updateOwnership() {
+      const u = (window.ArtFair && window.ArtFair.getCurrentUser) ? window.ArtFair.getCurrentUser() : (window.ArtFair ? window.ArtFair.currentUser : null);
+      const ownerBox = document.getElementById('artistOwnerActions');
+      const visitorBox = document.getElementById('artistVisitorActions');
+      if (u && u.username === 'huy0505') {
+        if (ownerBox) ownerBox.style.display = 'flex';
+        if (visitorBox) visitorBox.style.display = 'none';
+      } else {
+        if (ownerBox) ownerBox.style.display = 'none';
+        if (visitorBox) visitorBox.style.display = 'block';
+      }
+    }
+    updateOwnership();
+    window.addEventListener('artfair:user_loaded', updateOwnership);
   })();
 </script>
 

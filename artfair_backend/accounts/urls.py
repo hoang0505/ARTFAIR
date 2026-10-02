@@ -13,6 +13,7 @@ from .views import (
     NotificationMarkAllReadView,
     ArtistReviewsByUsernameView,
     ArtistReviewCreateUpdateView,
+    ChangePasswordView,
 )
 
 app_name = 'accounts'
@@ -23,6 +24,7 @@ urlpatterns = [
     path('auth/register/', RegisterView.as_view(), name='register'),
     path('auth/login/', LoginView.as_view(), name='login'),
     path('auth/logout/', LogoutView.as_view(), name='logout'),
+    path('auth/change-password/', ChangePasswordView.as_view(), name='change_password'),
 
     # Profile endpoints
     path('me/', UserMeView.as_view(), name='user_me'),

@@ -65,58 +65,56 @@
           Thông tin hồ sơ
         </h2>
         <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0 0 24px 0;">
-          Tên tài khoản: <strong>@{{ user.username }}</strong> &bull; Vai trò: 
-          {% if user.is_creator %}<span class="role-pill creator">Nghệ sĩ (Creator)</span>{% else %}<span class="role-pill buyer">Người mua (Buyer)</span>{% endif %}
+          Tên tài khoản: <strong id="settingsUsername">@{{ user.username }}</strong> &bull; Vai trò: 
+          <span id="settingsRolePill" class="role-pill {% if user.is_creator %}creator{% else %}buyer{% endif %}">{% if user.is_creator %}Nghệ sĩ (Creator){% else %}Người mua (Buyer){% endif %}</span>
         </p>
 
-        <form method="POST" enctype="multipart/form-data" action="{% url 'settings' %}">
+        <form id="formSettingsProfile" method="POST" enctype="multipart/form-data" action="{% url 'settings' %}">
           {% csrf_token %}
           <input type="hidden" name="action" value="profile">
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
             <div>
               <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Họ đệm</label>
-              <input type="text" name="last_name" value="{{ user.last_name }}" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+              <input type="text" id="settingsLastName" name="last_name" value="{{ user.last_name }}" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
             </div>
             <div>
               <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Tên</label>
-              <input type="text" name="first_name" value="{{ user.first_name }}" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+              <input type="text" id="settingsFirstName" name="first_name" value="{{ user.first_name }}" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
             </div>
           </div>
 
           <div style="margin-bottom: 18px;">
             <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Email</label>
-            <input type="email" name="email" value="{{ user.email }}" required style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+            <input type="email" id="settingsEmail" name="email" value="{{ user.email }}" required style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
           </div>
 
           <!-- Creator Specific Fields -->
-          {% if user.is_creator %}
-            <div style="border-top: 1px solid var(--border-light); padding-top: 20px; margin-top: 24px;">
-              <h3 style="font-size: 1.1rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700;">
-                Hồ sơ nghệ sĩ công khai
-              </h3>
+          <div id="settingsCreatorFields" class="creator-only-feature" style="display: none; border-top: 1px solid var(--border-light); padding-top: 20px; margin-top: 24px;">
+            <h3 style="font-size: 1.1rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700;">
+              Hồ sơ nghệ sĩ công khai
+            </h3>
 
-              <div style="margin-bottom: 18px;">
-                <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Bút danh / Tên hiển thị</label>
-                <input type="text" name="display_name" value="{% if artist_profile %}{{ artist_profile.display_name }}{% else %}{{ user.username }}{% endif %}" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
-              </div>
-
-              <div style="margin-bottom: 18px;">
-                <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Tiểu sử nghệ sĩ</label>
-                <textarea name="bio" rows="4" style="width: 100%; padding: 12px 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box; line-height: 1.5;">{% if artist_profile %}{{ artist_profile.bio }}{% endif %}</textarea>
-              </div>
-
-              <div style="margin-bottom: 20px;">
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
-                  <input type="checkbox" name="is_accepting_commissions" value="1" {% if artist_profile and artist_profile.is_accepting_commissions %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary-berry);">
-                  <span style="font-size: 0.92rem; font-weight: 600; color: var(--text-plum);">Đang mở nhận đơn đặt vẽ theo yêu cầu (Commission)</span>
-                </label>
-              </div>
+            <div style="margin-bottom: 18px;">
+              <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Bút danh / Tên hiển thị</label>
+              <input type="text" id="settingsDisplayName" name="display_name" value="{% if artist_profile %}{{ artist_profile.display_name }}{% else %}{{ user.username }}{% endif %}" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
             </div>
-          {% endif %}
+
+            <div style="margin-bottom: 18px;">
+              <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Tiểu sử nghệ sĩ</label>
+              <textarea id="settingsBio" name="bio" rows="4" style="width: 100%; padding: 12px 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box; line-height: 1.5;">{% if artist_profile %}{{ artist_profile.bio }}{% endif %}</textarea>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+                <input type="checkbox" id="settingsAcceptCommissions" name="is_accepting_commissions" value="1" {% if artist_profile and artist_profile.is_accepting_commissions %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary-berry);">
+                <span style="font-size: 0.92rem; font-weight: 600; color: var(--text-plum);">Đang mở nhận đơn đặt vẽ theo yêu cầu (Commission)</span>
+              </label>
+            </div>
+          </div>
 
           <div style="text-align: right; margin-top: 24px;">
-            <button type="submit" class="btn btn-primary" style="padding: 0 28px;">
+            <button type="submit" class="btn btn-primary" id="btnSaveSettingsProfile" style="padding: 0 28px;">
               Lưu thay đổi
             </button>
           </div>
@@ -132,27 +130,27 @@
           Vui lòng nhập mật khẩu hiện tại để thiết lập mật khẩu mới.
         </p>
 
-        <form method="POST" action="{% url 'settings' %}">
+        <form id="formSettingsPassword" method="POST" action="{% url 'settings' %}">
           {% csrf_token %}
           <input type="hidden" name="action" value="password">
 
           <div style="margin-bottom: 16px;">
             <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Mật khẩu hiện tại</label>
-            <input type="password" name="old_password" required style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+            <input type="password" id="settingsOldPassword" name="old_password" required style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
           </div>
 
           <div style="margin-bottom: 16px;">
             <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Mật khẩu mới (tối thiểu 6 ký tự)</label>
-            <input type="password" name="new_password" required minlength="6" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+            <input type="password" id="settingsNewPassword" name="new_password" required minlength="6" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
           </div>
 
           <div style="margin-bottom: 24px;">
             <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Xác nhận mật khẩu mới</label>
-            <input type="password" name="confirm_password" required minlength="6" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+            <input type="password" id="settingsConfirmPassword" name="confirm_password" required minlength="6" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
           </div>
 
           <div style="text-align: right;">
-            <button type="submit" class="btn btn-secondary" style="padding: 0 28px;">
+            <button type="submit" class="btn btn-secondary" id="btnSaveSettingsPassword" style="padding: 0 28px;">
               Cập nhật mật khẩu
             </button>
           </div>
@@ -164,4 +162,193 @@
   </div>
 
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function() {
+    'use strict';
+
+    function hydrateSettings(user) {
+      if (!user) {
+        const profileSec = document.getElementById('section-profile');
+        if (profileSec) {
+          profileSec.innerHTML = `
+            <div style="text-align: center; padding: 48px 16px;">
+              <h3 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin-bottom: 12px;">Yêu cầu đăng nhập</h3>
+              <p style="color: var(--text-muted); font-size: 0.92rem; margin-bottom: 24px;">Vui lòng đăng nhập để quản lý cài đặt tài khoản của bạn.</p>
+              <button type="button" class="btn btn-primary" onclick="window.ArtFair && window.ArtFair.openAuthModal ? window.ArtFair.openAuthModal('login') : null">Đăng nhập ngay</button>
+            </div>
+          `;
+        }
+        const secSec = document.getElementById('section-security');
+        if (secSec) secSec.style.display = 'none';
+        return;
+      }
+
+      const usernameEl = document.getElementById('settingsUsername');
+      if (usernameEl) usernameEl.textContent = '@' + user.username;
+
+      const rolePill = document.getElementById('settingsRolePill');
+      if (rolePill) {
+        rolePill.className = 'role-pill ' + (user.is_creator ? 'creator' : 'buyer');
+        rolePill.textContent = user.is_creator ? 'Nghệ sĩ (Creator)' : 'Người mua (Buyer)';
+      }
+
+      const lastNameInput = document.getElementById('settingsLastName');
+      if (lastNameInput) lastNameInput.value = user.last_name || '';
+
+      const firstNameInput = document.getElementById('settingsFirstName');
+      if (firstNameInput) firstNameInput.value = user.first_name || '';
+
+      const emailInput = document.getElementById('settingsEmail');
+      if (emailInput) emailInput.value = user.email || '';
+
+      const creatorFields = document.getElementById('settingsCreatorFields');
+      if (creatorFields) {
+        if (user.is_creator) {
+          creatorFields.style.display = 'block';
+          if (user.artist_profile) {
+            const dn = document.getElementById('settingsDisplayName');
+            if (dn) dn.value = user.artist_profile.display_name || user.username;
+            const bio = document.getElementById('settingsBio');
+            if (bio) bio.value = user.artist_profile.bio || '';
+            const acc = document.getElementById('settingsAcceptCommissions');
+            if (acc) acc.checked = !!user.artist_profile.is_accepting_commissions;
+          }
+        } else {
+          creatorFields.style.display = 'none';
+        }
+      }
+    }
+
+    if (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) {
+      hydrateSettings(window.ArtFair.state.currentUser);
+    }
+
+    window.addEventListener('artfair:user_loaded', (e) => {
+      hydrateSettings(e.detail);
+    });
+
+    // Handle Profile Update via AJAX
+    const formProfile = document.getElementById('formSettingsProfile');
+    formProfile?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveSettingsProfile');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Đang lưu...';
+      }
+
+      const firstName = document.getElementById('settingsFirstName')?.value.trim();
+      const lastName = document.getElementById('settingsLastName')?.value.trim();
+      const email = document.getElementById('settingsEmail')?.value.trim();
+
+      try {
+        const resUser = await (window.ArtFair.apiFetch || fetch)('/api/accounts/me/', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ first_name: firstName, last_name: lastName, email: email })
+        });
+        const userData = await resUser.json();
+
+        if (!resUser.ok) {
+          const err = userData.detail || (userData.email ? userData.email[0] : 'Không thể lưu thông tin.');
+          window.ArtFair.showToast(err, 'error');
+          return;
+        }
+
+        // If creator, also save artist profile
+        const user = window.ArtFair.state.currentUser;
+        if (user && user.is_creator) {
+          const displayName = document.getElementById('settingsDisplayName')?.value.trim();
+          const bio = document.getElementById('settingsBio')?.value.trim();
+          const acceptComm = document.getElementById('settingsAcceptCommissions')?.checked;
+
+          const resArtist = await (window.ArtFair.apiFetch || fetch)('/api/accounts/artist-profile/', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              display_name: displayName,
+              bio: bio,
+              is_accepting_commissions: acceptComm
+            })
+          });
+          if (!resArtist.ok) {
+            const artistData = await resArtist.json();
+            window.ArtFair.showToast(artistData.detail || 'Không thể lưu hồ sơ nghệ sĩ.', 'error');
+            return;
+          }
+        }
+
+        window.ArtFair.showToast('Cập nhật cài đặt tài khoản thành công!', 'success');
+        if (userData.username) {
+          window.ArtFair.state.currentUser = Object.assign({}, window.ArtFair.state.currentUser, userData);
+        }
+      } catch(err) {
+        window.ArtFair.showToast('Lỗi kết nối khi cập nhật tài khoản.', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Lưu thay đổi';
+        }
+      }
+    });
+
+    // Handle Password Change via AJAX
+    const formPassword = document.getElementById('formSettingsPassword');
+    formPassword?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveSettingsPassword');
+      const oldPassword = document.getElementById('settingsOldPassword')?.value;
+      const newPassword = document.getElementById('settingsNewPassword')?.value;
+      const confirmPassword = document.getElementById('settingsConfirmPassword')?.value;
+
+      if (!oldPassword || !newPassword || !confirmPassword) {
+        window.ArtFair.showToast('Vui lòng điền đầy đủ các trường mật khẩu.', 'error');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        window.ArtFair.showToast('Mật khẩu xác nhận không khớp.', 'error');
+        return;
+      }
+      if (newPassword.length < 6) {
+        window.ArtFair.showToast('Mật khẩu mới phải có tối thiểu 6 ký tự.', 'error');
+        return;
+      }
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Đang đổi mật khẩu...';
+      }
+
+      try {
+        const res = await (window.ArtFair.apiFetch || fetch)('/api/accounts/auth/change-password/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            old_password: oldPassword,
+            new_password: newPassword,
+            confirm_password: confirmPassword
+          })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          window.ArtFair.showToast(data.detail || 'Đổi mật khẩu thành công!', 'success');
+          formPassword.reset();
+        } else {
+          window.ArtFair.showToast(data.detail || 'Đổi mật khẩu không thành công.', 'error');
+        }
+      } catch(err) {
+        window.ArtFair.showToast('Lỗi kết nối khi đổi mật khẩu.', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Cập nhật mật khẩu';
+        }
+      }
+    });
+
+  })();
+</script>
 {% endblock %}
