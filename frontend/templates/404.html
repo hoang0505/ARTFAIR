@@ -3,11 +3,46 @@
 
 {% block title %}404 — Không tìm thấy trang | ARTFAIR{% endblock %}
 
-{% block content %}
-<div id="notFoundDefaultContainer" class="container" style="padding-top: 64px; padding-bottom: 96px; text-align: center;">
+{% block extra_head %}
+<style>
+  .artwork-detail-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 40px;
+    align-items: start;
+  }
+  @media (max-width: 900px) {
+    .artwork-detail-grid {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+  }
+  .dyn-license-card {
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    background: #FFFFFF;
+    cursor: pointer;
+    transition: all var(--trans-fast);
+    position: relative;
+    user-select: none;
+  }
+  .dyn-license-card:hover {
+    border-color: rgba(197, 42, 112, 0.4);
+    box-shadow: 0 6px 18px rgba(197, 42, 112, 0.08);
+  }
+  .dyn-license-card.active {
+    border-color: var(--primary-berry);
+    background: #FFF7FA;
+    box-shadow: 0 8px 24px rgba(197, 42, 112, 0.12);
+  }
+</style>
+{% endblock %}
 
+{% block content %}
+<!-- 1. Default 404 Container -->
+<div id="notFoundDefaultContainer" class="container" style="padding-top: 64px; padding-bottom: 96px; text-align: center;">
   <div style="max-width: 540px; margin: 0 auto; background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 48px 32px; box-shadow: var(--shadow-card);">
-    
     <!-- Delicate 404 Badge -->
     <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-page); color: var(--primary-berry); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid var(--border-subtle);">
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -37,12 +72,10 @@
         Xem các nghệ sĩ
       </a>
     </div>
-
   </div>
-
 </div>
 
-<!-- Dynamic Artist Profile Container (Rendered dynamically when visiting a newly registered artist) -->
+<!-- 2. Dynamic Artist Profile Container (Rendered dynamically when visiting a newly registered artist) -->
 <div id="dynamicArtistProfileContainer" class="container" style="display: none; padding-top: 28px; padding-bottom: 64px;">
   <!-- Breadcrumb -->
   <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
@@ -99,181 +132,519 @@
     </div>
   </div>
 </div>
+
+<!-- 3. Dynamic Artwork Detail Container (Rendered dynamically when visiting a newly published artwork) -->
+<div id="dynamicArtworkDetailContainer" class="container" style="display: none; padding-top: 28px; padding-bottom: 64px;">
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <a href="/" id="dynArtBcHome" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
+    <span>/</span>
+    <a href="/#gallerySection" id="dynArtBcCategory" style="color: var(--text-plum); text-decoration: none;">Khám phá</a>
+    <span>/</span>
+    <span id="dynArtBcTitle" style="color: var(--text-berry); font-weight: 600;">Chi tiết tác phẩm</span>
+  </nav>
+
+  <div class="artwork-detail-grid">
+    <!-- Left Column: Visuals & Specs -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <div style="background: #FFFFFF; border-radius: var(--radius-xl); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card); overflow: hidden; position: relative;">
+        <div style="position: relative; background: #FCEEF3; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 380px;">
+          <img id="dynArtMainImg" src="" alt="Ảnh tác phẩm" style="width: 100%; max-height: 600px; object-fit: contain; display: block;">
+          <div style="position: absolute; inset: 0; pointer-events: none; background-image: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08) 60px, rgba(197, 42, 112, 0.05) 60px, rgba(197, 42, 112, 0.05) 120px); display: flex; align-items: center; justify-content: center;">
+            <span style="font-family: var(--font-serif); font-size: 2.2rem; font-weight: 800; color: rgba(255, 255, 255, 0.35); transform: rotate(-25deg); user-select: none; letter-spacing: 4px;">ARTFAIR PREVIEW</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- File Specs -->
+      <div style="background: #FFFFFF; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); padding: 24px; box-shadow: var(--shadow-subtle);">
+        <div style="font-size: 1rem; font-weight: 700; color: var(--text-plum); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          <span>Thông số kỹ thuật tệp</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px;">
+          <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-sm); padding: 12px;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Định dạng</div>
+            <div id="dynArtFormat" style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum);">PNG / JPG</div>
+          </div>
+          <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-sm); padding: 12px;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Kích thước</div>
+            <div id="dynArtDimensions" style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum);">Độ phân giải cao</div>
+          </div>
+          <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-sm); padding: 12px;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Độ phân giải</div>
+            <div id="dynArtDPI" style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum);">300 DPI</div>
+          </div>
+          <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-sm); padding: 12px;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Hệ màu</div>
+            <div id="dynArtColorMode" style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum);">sRGB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Info & License Selection -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <!-- Title & Creator Info -->
+      <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-card);">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <span id="dynArtCategoryBadge" class="role-pill creator">Concept Art</span>
+          <div id="dynArtTags" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+        </div>
+
+        <h1 id="dynArtTitle" style="font-family: var(--font-serif); font-size: 1.85rem; font-weight: 700; color: var(--text-plum); margin: 0 0 16px 0; line-height: 1.3;"></h1>
+
+        <!-- Creator Box -->
+        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-light); padding-top: 16px; margin-top: 16px; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div id="dynArtCreatorAvatar" style="width: 44px; height: 44px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--primary-berry), var(--primary-violet)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; overflow: hidden;">
+            </div>
+            <div>
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Nghệ sĩ sáng tác</div>
+              <a id="dynArtCreatorLink" href="#" style="font-size: 1rem; font-weight: 700; color: var(--text-plum); text-decoration: none;"></a>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <a id="dynArtCreatorBtn" href="#" class="btn btn-secondary btn-sm" style="text-decoration: none; padding: 6px 14px;">Xem hồ sơ</a>
+            <a id="dynArtStudioBtn" href="#" class="btn btn-primary btn-sm" style="display: none; text-decoration: none; padding: 6px 14px;">Vào Studio</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-subtle);">
+        <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;">Mô tả tác phẩm</div>
+        <p id="dynArtDescription" style="font-size: 0.95rem; color: var(--text-plum); line-height: 1.68; margin: 0;"></p>
+      </div>
+
+      <!-- License Selection Area -->
+      <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-card);">
+        <div style="margin-bottom: 20px;">
+          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-plum); margin: 0 0 4px 0;">Các gói quyền sử dụng khả dụng</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Mỗi gói quyền có phạm vi sử dụng pháp lý và mức giá riêng biệt.</p>
+        </div>
+
+        <div id="dynArtLicenseStack" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;"></div>
+
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <button type="button" class="btn btn-primary" id="dynArtBuyBtn" style="flex: 1; height: 50px; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            <span>Mua quyền sử dụng</span>
+          </button>
+          <button type="button" class="btn btn-secondary" id="dynArtFavBtn" style="width: 50px; height: 50px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md);" title="Yêu thích">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
   (async function() {
     const path = window.location.pathname;
-    const match = path.match(/(?:\/ARTFAIR)?\/artists\/([a-zA-Z0-9_.-]+)\/?$/);
-    if (!match || !match[1]) return;
+    const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
 
-    const username = match[1];
-    const defaultBox = document.getElementById('notFoundDefaultContainer');
-    const dynamicBox = document.getElementById('dynamicArtistProfileContainer');
-    const h1 = document.querySelector('#notFoundDefaultContainer h1');
-    const p = document.querySelector('#notFoundDefaultContainer p');
+    // A. Route 1: Artist Profile (/artists/<username>/)
+    const matchArtist = path.match(/(?:\/ARTFAIR)?\/artists\/([a-zA-Z0-9_.-]+)\/?$/);
+    if (matchArtist && matchArtist[1]) {
+      const username = matchArtist[1];
+      const defaultBox = document.getElementById('notFoundDefaultContainer');
+      const dynamicBox = document.getElementById('dynamicArtistProfileContainer');
+      const h1 = document.querySelector('#notFoundDefaultContainer h1');
+      const p = document.querySelector('#notFoundDefaultContainer p');
 
-    if (h1) h1.textContent = 'Đang kiểm tra hồ sơ...';
-    if (p) p.textContent = `Hệ thống đang kết nối dữ liệu hồ sơ @${username}...`;
+      if (h1) h1.textContent = 'Đang kiểm tra hồ sơ...';
+      if (p) p.textContent = `Hệ thống đang kết nối dữ liệu hồ sơ @${username}...`;
 
-    try {
-      const apiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
-        ? window.ArtFairConfig.apiUrl(`/api/accounts/artists/${encodeURIComponent(username)}/`)
-        : `/api/accounts/artists/${encodeURIComponent(username)}/`;
-      const res = await fetch(apiUrl);
+      try {
+        const apiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+          ? window.ArtFairConfig.apiUrl(`/api/accounts/artists/${encodeURIComponent(username)}/`)
+          : `/api/accounts/artists/${encodeURIComponent(username)}/`;
+        const res = await fetch(apiUrl);
 
-      if (res.ok) {
-        const data = await res.json();
-        const canonicalUsername = data.username;
-        const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
+        if (res.ok) {
+          const data = await res.json();
+          const canonicalUsername = data.username;
 
-        if (canonicalUsername && canonicalUsername !== username) {
-          window.location.replace(pUrl(`/artists/${encodeURIComponent(canonicalUsername)}/`));
-          return;
-        }
-
-        // Render dynamic profile layout
-        if (defaultBox) defaultBox.style.display = 'none';
-        if (dynamicBox) dynamicBox.style.display = 'block';
-
-        document.title = `Hồ sơ nghệ sĩ ${data.display_name || data.username} | ARTFAIR`;
-
-        const dynBcHome = document.getElementById('dynBcHome');
-        if (dynBcHome) dynBcHome.href = pUrl('/');
-        const dynBcArtists = document.getElementById('dynBcArtists');
-        if (dynBcArtists) dynBcArtists.href = pUrl('/artists/');
-        const dynBcName = document.getElementById('dynBcName');
-        if (dynBcName) dynBcName.textContent = data.display_name || data.username;
-
-        // Cover
-        const coverEl = document.getElementById('dynCoverBanner');
-        if (coverEl && data.cover_image) {
-          const cUrl = window.ArtFairConfig ? window.ArtFairConfig.mediaUrl(data.cover_image) : data.cover_image;
-          coverEl.innerHTML = `<img src="${cUrl}" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">`;
-        }
-
-        // Avatar
-        const avatarEl = document.getElementById('dynAvatarWrapper');
-        if (avatarEl) {
-          if (data.avatar) {
-            const aUrl = window.ArtFairConfig ? window.ArtFairConfig.mediaUrl(data.avatar) : data.avatar;
-            avatarEl.innerHTML = `<img src="${aUrl}" alt="${data.username}" style="width: 100%; height: 100%; object-fit: cover;">`;
-          } else {
-            avatarEl.innerHTML = `<span>${(data.display_name || data.username).charAt(0).toUpperCase()}</span>`;
+          if (canonicalUsername && canonicalUsername !== username) {
+            window.location.replace(pUrl(`/artists/${encodeURIComponent(canonicalUsername)}/`));
+            return;
           }
-        }
 
-        // Display Name & Handle
-        const dispNameEl = document.getElementById('dynDisplayName');
-        if (dispNameEl) dispNameEl.textContent = data.display_name || data.username;
-        const handleEl = document.getElementById('dynUsernameHandle');
-        if (handleEl) handleEl.textContent = `@${data.username}`;
+          // Render dynamic profile layout
+          if (defaultBox) defaultBox.style.display = 'none';
+          if (dynamicBox) dynamicBox.style.display = 'block';
 
-        // Role & Tier
-        const tierEl = document.getElementById('dynTierBadge');
-        if (tierEl && data.activity_tier) {
-          tierEl.className = `tier-badge ${data.activity_tier.badge_class || 'tier-active'}`;
-          tierEl.textContent = data.activity_tier.name || 'Thành viên ARTFAIR';
-        } else if (tierEl) {
-          tierEl.style.display = 'none';
-        }
+          document.title = `Hồ sơ nghệ sĩ ${data.display_name || data.username} | ARTFAIR`;
 
-        // Bio
-        const bioEl = document.getElementById('dynBio');
-        if (bioEl) {
-          bioEl.textContent = data.bio || 'Nghệ sĩ chưa cập nhật phần giới thiệu tiểu sử.';
-        }
+          const dynBcHome = document.getElementById('dynBcHome');
+          if (dynBcHome) dynBcHome.href = pUrl('/');
+          const dynBcArtists = document.getElementById('dynBcArtists');
+          if (dynBcArtists) dynBcArtists.href = pUrl('/artists/');
+          const dynBcName = document.getElementById('dynBcName');
+          if (dynBcName) dynBcName.textContent = data.display_name || data.username;
 
-        // Stats
-        const artCountEl = document.getElementById('dynArtCount');
-        if (artCountEl) artCountEl.textContent = data.published_artworks_count || 0;
-        const reviewEl = document.getElementById('dynReviewRating');
-        if (reviewEl) {
-          reviewEl.textContent = data.average_rating ? `${Number(data.average_rating).toFixed(1)} ★ (${data.review_count || 0})` : 'Chưa có đánh giá';
-        }
-
-        // Action Buttons (Owner vs Visitor)
-        const actionsEl = document.getElementById('dynActionButtons');
-        const currentUser = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
-        const isOwner = currentUser && (currentUser.username === data.username);
-
-        if (actionsEl) {
-          if (isOwner) {
-            actionsEl.innerHTML = `
-              <a href="${pUrl('/dashboard/#tab-profile')}" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                <span>Chỉnh sửa hồ sơ</span>
-              </a>
-              <a href="${pUrl('/studio/')}" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                <span>Vào Creator Studio</span>
-              </a>
-            `;
-          } else {
-            actionsEl.innerHTML = data.is_accepting_commissions
-              ? `<button class="btn btn-primary btn-pulse-glow" id="btnOpenCommissionModal" style="display: flex; align-items: center; gap: 8px; padding: 12px 24px; font-weight: 700;">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                  <span>Đặt vẽ với nghệ sĩ</span>
-                </button>`
-              : `<button class="btn btn-secondary" style="opacity: 0.65; cursor: not-allowed;" disabled title="Nghệ sĩ hiện đang tạm ngừng nhận đơn đặt vẽ mới.">
-                  <span>Tạm ngừng nhận Commission</span>
-                </button>`;
+          // Cover
+          const coverEl = document.getElementById('dynCoverBanner');
+          if (coverEl && data.cover_image) {
+            const cUrl = window.ArtFairConfig ? window.ArtFairConfig.mediaUrl(data.cover_image) : data.cover_image;
+            coverEl.innerHTML = `<img src="${cUrl}" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">`;
           }
-        }
 
-        // Load Artworks for this artist
-        try {
-          const artApiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
-            ? window.ArtFairConfig.apiUrl(`/api/artworks/?artist=${encodeURIComponent(data.username)}`)
-            : `/api/artworks/?artist=${encodeURIComponent(data.username)}`;
-          const artRes = await fetch(artApiUrl);
-          const gridEl = document.getElementById('dynArtworksGrid');
-          if (artRes.ok && gridEl) {
-            const artData = await artRes.json();
-            const artworks = artData.results || (Array.isArray(artData) ? artData : []);
-            if (artworks.length === 0) {
-              gridEl.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
-                  <div style="font-size: 1.1rem; color: var(--text-plum); font-weight: 600; margin-bottom: 8px;">Nghệ sĩ chưa đăng bán tác phẩm nào</div>
-                  <p style="font-size: 0.88rem; color: var(--text-muted); max-width: 440px; margin: 0 auto;">Các tác phẩm mới phát hành của nghệ sĩ sẽ hiển thị tại đây.</p>
-                </div>
+          // Avatar
+          const avatarEl = document.getElementById('dynAvatarWrapper');
+          if (avatarEl) {
+            if (data.avatar) {
+              const aUrl = window.ArtFairConfig ? window.ArtFairConfig.mediaUrl(data.avatar) : data.avatar;
+              avatarEl.innerHTML = `<img src="${aUrl}" alt="${data.username}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            } else {
+              avatarEl.innerHTML = `<span>${(data.display_name || data.username).charAt(0).toUpperCase()}</span>`;
+            }
+          }
+
+          // Display Name & Handle
+          const dispNameEl = document.getElementById('dynDisplayName');
+          if (dispNameEl) dispNameEl.textContent = data.display_name || data.username;
+          const handleEl = document.getElementById('dynUsernameHandle');
+          if (handleEl) handleEl.textContent = `@${data.username}`;
+
+          // Role & Tier
+          const tierEl = document.getElementById('dynTierBadge');
+          if (tierEl && data.activity_tier) {
+            tierEl.className = `tier-badge ${data.activity_tier.badge_class || 'tier-active'}`;
+            tierEl.textContent = data.activity_tier.name || 'Thành viên ARTFAIR';
+          } else if (tierEl) {
+            tierEl.style.display = 'none';
+          }
+
+          // Bio
+          const bioEl = document.getElementById('dynBio');
+          if (bioEl) {
+            bioEl.textContent = data.bio || 'Nghệ sĩ chưa cập nhật phần giới thiệu tiểu sử.';
+          }
+
+          // Stats
+          const artCountEl = document.getElementById('dynArtCount');
+          if (artCountEl) artCountEl.textContent = data.published_artworks_count || 0;
+          const reviewEl = document.getElementById('dynReviewRating');
+          if (reviewEl) {
+            reviewEl.textContent = data.average_rating ? `${Number(data.average_rating).toFixed(1)} ★ (${data.review_count || 0})` : 'Chưa có đánh giá';
+          }
+
+          // Action Buttons (Owner vs Visitor)
+          const actionsEl = document.getElementById('dynActionButtons');
+          const currentUser = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
+          const isOwner = currentUser && (currentUser.username === data.username);
+
+          if (actionsEl) {
+            if (isOwner) {
+              actionsEl.innerHTML = `
+                <a href="${pUrl('/dashboard/#tab-profile')}" class="btn btn-secondary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  <span>Chỉnh sửa hồ sơ</span>
+                </a>
+                <a href="${pUrl('/studio/')}" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                  <span>Vào Creator Studio</span>
+                </a>
               `;
             } else {
-              gridEl.innerHTML = artworks.map(art => {
-                const img = art.watermarked_image || art.preview_image || '';
-                const mUrl = window.ArtFairConfig ? window.ArtFairConfig.mediaUrl(img) : img;
-                const minPrice = art.min_price ? Number(art.min_price).toLocaleString('vi-VN') + ' đ' : 'Thương lượng';
-                return `
-                  <div class="artwork-card" data-artwork-id="${art.id}" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-card);">
-                    <div style="height: 220px; overflow: hidden; position: relative;">
-                      <a href="${pUrl(`/artworks/${art.slug}/`)}">
-                        <img src="${mUrl}" alt="${art.title}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
-                      </a>
-                    </div>
-                    <div style="padding: 16px;">
-                      <div style="font-size: 0.76rem; color: var(--primary-berry); font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">${art.category ? art.category.name : 'Nghệ thuật'}</div>
-                      <h3 style="font-size: 1.05rem; font-family: var(--font-serif); font-weight: 700; color: var(--text-plum); margin: 0 0 8px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        <a href="${pUrl(`/artworks/${art.slug}/`)}" style="text-decoration: none; color: inherit;">${art.title}</a>
-                      </h3>
-                      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 8px;">
-                        <span style="font-size: 0.78rem; color: var(--text-muted);">Từ</span>
-                        <span style="font-size: 1.05rem; font-weight: 800; color: var(--primary-berry);">${minPrice}</span>
+              actionsEl.innerHTML = data.is_accepting_commissions
+                ? `<button class="btn btn-primary btn-pulse-glow" id="btnOpenCommissionModal" style="display: flex; align-items: center; gap: 8px; padding: 12px 24px; font-weight: 700;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <span>Đặt vẽ với nghệ sĩ</span>
+                  </button>`
+                : `<button class="btn btn-secondary" style="opacity: 0.65; cursor: not-allowed;" disabled title="Nghệ sĩ hiện đang tạm ngừng nhận đơn đặt vẽ mới.">
+                    <span>Tạm ngừng nhận Commission</span>
+                  </button>`;
+            }
+          }
+
+          // Load Artworks for this artist
+          try {
+            const artApiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+              ? window.ArtFairConfig.apiUrl(`/api/artworks/?artist=${encodeURIComponent(data.username)}`)
+              : `/api/artworks/?artist=${encodeURIComponent(data.username)}`;
+            const artRes = await fetch(artApiUrl);
+            const gridEl = document.getElementById('dynArtworksGrid');
+            if (artRes.ok && gridEl) {
+              const artData = await artRes.json();
+              const artworks = artData.results || (Array.isArray(artData) ? artData : []);
+              if (artworks.length === 0) {
+                gridEl.innerHTML = `
+                  <div style="grid-column: 1 / -1; text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg);">
+                    <div style="font-size: 1.1rem; color: var(--text-plum); font-weight: 600; margin-bottom: 8px;">Nghệ sĩ chưa đăng bán tác phẩm nào</div>
+                    <p style="font-size: 0.88rem; color: var(--text-muted); max-width: 440px; margin: 0 auto;">Các tác phẩm mới phát hành của nghệ sĩ sẽ hiển thị tại đây.</p>
+                  </div>
+                `;
+              } else {
+                gridEl.innerHTML = artworks.map(art => {
+                  const img = art.watermarked_image || art.preview_image || '';
+                  const mUrl = window.ArtFairConfig ? window.ArtFairConfig.mediaUrl(img) : img;
+                  const minPrice = art.min_price ? Number(art.min_price).toLocaleString('vi-VN') + ' đ' : 'Thương lượng';
+                  return `
+                    <div class="artwork-card" data-artwork-id="${art.id}" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-card);">
+                      <div style="height: 220px; overflow: hidden; position: relative;">
+                        <a href="${pUrl(`/artworks/${art.slug}/`)}">
+                          <img src="${mUrl}" alt="${art.title}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;">
+                        </a>
+                      </div>
+                      <div style="padding: 16px;">
+                        <div style="font-size: 0.76rem; color: var(--primary-berry); font-weight: 700; text-transform: uppercase; margin-bottom: 4px;">${art.category ? art.category.name : 'Nghệ thuật'}</div>
+                        <h3 style="font-size: 1.05rem; font-family: var(--font-serif); font-weight: 700; color: var(--text-plum); margin: 0 0 8px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                          <a href="${pUrl(`/artworks/${art.slug}/`)}" style="text-decoration: none; color: inherit;">${art.title}</a>
+                        </h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 8px;">
+                          <span style="font-size: 0.78rem; color: var(--text-muted);">Từ</span>
+                          <span style="font-size: 1.05rem; font-weight: 800; color: var(--primary-berry);">${minPrice}</span>
+                        </div>
                       </div>
                     </div>
+                  `;
+                }).join('');
+              }
+            }
+          } catch (_) {}
+
+          return;
+        }
+      } catch (_) {}
+
+      if (h1) h1.textContent = 'Không tìm thấy hồ sơ';
+      if (p) p.innerHTML = `Không tìm thấy hồ sơ nghệ sĩ hoặc người dùng <strong>@${username}</strong> trên ARTFAIR.<br>Vui lòng kiểm tra lại tên đăng nhập hoặc khám phá các nghệ sĩ nổi bật khác.`;
+      return;
+    }
+
+    // B. Route 2: Artwork Detail (/artworks/<slug>/)
+    const matchArtwork = path.match(/(?:\/ARTFAIR)?\/artworks\/([a-zA-Z0-9_.-]+)\/?$/);
+    if (matchArtwork && matchArtwork[1]) {
+      const slug = matchArtwork[1];
+      const defaultBox = document.getElementById('notFoundDefaultContainer');
+      const artDetailBox = document.getElementById('dynamicArtworkDetailContainer');
+      const h1 = document.querySelector('#notFoundDefaultContainer h1');
+      const p = document.querySelector('#notFoundDefaultContainer p');
+
+      if (h1) h1.textContent = 'Đang tải tác phẩm...';
+      if (p) p.textContent = `Hệ thống đang kết nối dữ liệu tác phẩm [${slug}]...`;
+
+      try {
+        const apiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+          ? window.ArtFairConfig.apiUrl(`/api/artworks/${encodeURIComponent(slug)}/`)
+          : `/api/artworks/${encodeURIComponent(slug)}/`;
+        const res = await fetch(apiUrl);
+
+        if (res.ok) {
+          const art = await res.json();
+
+          if (defaultBox) defaultBox.style.display = 'none';
+          if (artDetailBox) artDetailBox.style.display = 'block';
+
+          document.title = `${art.title} — Chi tiết tác phẩm | ARTFAIR`;
+
+          // Breadcrumbs
+          const dynArtBcHome = document.getElementById('dynArtBcHome');
+          if (dynArtBcHome) dynArtBcHome.href = pUrl('/');
+          const dynArtBcCat = document.getElementById('dynArtBcCategory');
+          if (dynArtBcCat) {
+            dynArtBcCat.href = pUrl('/#gallerySection');
+            dynArtBcCat.textContent = art.category ? art.category.name : 'Khám phá';
+          }
+          const dynArtBcTitle = document.getElementById('dynArtBcTitle');
+          if (dynArtBcTitle) dynArtBcTitle.textContent = art.title;
+
+          // Main Image
+          const imgUrl = art.preview_image || art.watermarked_image || '';
+          const fullImgUrl = window.ArtFairConfig ? window.ArtFairConfig.mediaUrl(imgUrl) : imgUrl;
+          const mainImgEl = document.getElementById('dynArtMainImg');
+          if (mainImgEl) {
+            mainImgEl.src = fullImgUrl;
+            mainImgEl.alt = art.title;
+          }
+
+          // Metadata specs
+          const meta = art.file_metadata || {};
+          const fmtEl = document.getElementById('dynArtFormat');
+          if (fmtEl) fmtEl.textContent = meta.file_format || 'PNG / JPG';
+          const dimEl = document.getElementById('dynArtDimensions');
+          if (dimEl) dimEl.textContent = (meta.width && meta.height) ? `${meta.width} × ${meta.height} px` : 'Độ phân giải cao';
+          const dpiEl = document.getElementById('dynArtDPI');
+          if (dpiEl) dpiEl.textContent = meta.dpi ? `${meta.dpi} DPI` : '300 DPI';
+          const clrEl = document.getElementById('dynArtColorMode');
+          if (clrEl) clrEl.textContent = meta.color_mode || 'sRGB';
+
+          // Category Badge & Tags
+          const catBadge = document.getElementById('dynArtCategoryBadge');
+          if (catBadge) catBadge.textContent = art.category ? art.category.name : 'Nghệ thuật số';
+          const tagsBox = document.getElementById('dynArtTags');
+          if (tagsBox && art.tags && art.tags.length > 0) {
+            tagsBox.innerHTML = art.tags.map(t => `<span class="badge" style="background:#F0F0F0; font-size:0.74rem; padding:2px 8px; border-radius:12px;">#${t.name || t}</span>`).join('');
+          }
+
+          // Title & Description
+          const titleEl = document.getElementById('dynArtTitle');
+          if (titleEl) titleEl.textContent = art.title;
+          const descEl = document.getElementById('dynArtDescription');
+          if (descEl) descEl.textContent = art.description || 'Tác giả chưa cung cấp mô tả chi tiết.';
+
+          // Creator
+          const creator = art.creator || {};
+          const creatorName = creator.display_name || creator.username || 'Nghệ sĩ ARTFAIR';
+          const creatorLinkEl = document.getElementById('dynArtCreatorLink');
+          if (creatorLinkEl) {
+            creatorLinkEl.textContent = creatorName;
+            creatorLinkEl.href = pUrl(`/artists/${creator.username}/`);
+          }
+          const creatorBtn = document.getElementById('dynArtCreatorBtn');
+          if (creatorBtn) creatorBtn.href = pUrl(`/artists/${creator.username}/`);
+
+          const creatorAvatarEl = document.getElementById('dynArtCreatorAvatar');
+          if (creatorAvatarEl) {
+            creatorAvatarEl.textContent = creatorName.charAt(0).toUpperCase();
+          }
+
+          // Creator Studio link if current logged in user is the owner
+          const currentUser = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
+          const studioBtn = document.getElementById('dynArtStudioBtn');
+          if (studioBtn && currentUser && (currentUser.username === creator.username)) {
+            studioBtn.style.display = 'inline-flex';
+            studioBtn.href = pUrl('/studio/');
+          }
+
+          // Licenses Selection
+          const licenses = art.license_options || [];
+          const licStack = document.getElementById('dynArtLicenseStack');
+          let selectedLicenseId = licenses.length > 0 ? licenses[0].id : null;
+
+          if (licStack) {
+            if (licenses.length === 0) {
+              licStack.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">Hiện chưa có gói quyền mở bán cho tác phẩm này.</div>';
+            } else {
+              licStack.innerHTML = licenses.map((lic, idx) => {
+                const isPersonal = lic.license_type === 'PERSONAL';
+                const typeName = isPersonal ? 'Quyền sử dụng Cá nhân' : 'Quyền sử dụng Thương mại';
+                const badgeClass = isPersonal ? 'personal' : 'commercial';
+                const formattedPrice = Number(lic.price).toLocaleString('vi-VN') + ' đ';
+                const isActive = idx === 0;
+
+                return `
+                  <div class="dyn-license-card ${isActive ? 'active' : ''}" data-license-id="${lic.id}" style="border: 2px solid ${isActive ? 'var(--primary-berry)' : 'var(--border-subtle)'}; border-radius: var(--radius-lg); padding: 18px 20px; background: ${isActive ? '#FFF7FA' : '#FFFFFF'}; cursor: pointer; transition: all 0.2s;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <input type="radio" name="dynLicenseRadio" value="${lic.id}" ${isActive ? 'checked' : ''} style="accent-color: var(--primary-berry);">
+                        <strong style="color: var(--text-plum); font-size: 0.98rem;">${typeName}</strong>
+                      </div>
+                      <span style="font-size: 1.15rem; font-weight: 800; color: var(--primary-berry);">${formattedPrice}</span>
+                    </div>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">${lic.terms || (isPersonal ? 'Sử dụng cá nhân, in ấn trang trí, avatar không sinh lợi nhuận.' : 'Sử dụng thương mại, xuất bản, quảng cáo truyền thông.')}</p>
                   </div>
                 `;
               }).join('');
+
+              // Add card click listeners
+              licStack.querySelectorAll('.dyn-license-card').forEach(card => {
+                card.addEventListener('click', () => {
+                  licStack.querySelectorAll('.dyn-license-card').forEach(c => {
+                    c.style.borderColor = 'var(--border-subtle)';
+                    c.style.background = '#FFFFFF';
+                    const r = c.querySelector('input[type="radio"]');
+                    if (r) r.checked = false;
+                  });
+                  card.style.borderColor = 'var(--primary-berry)';
+                  card.style.background = '#FFF7FA';
+                  const radio = card.querySelector('input[type="radio"]');
+                  if (radio) radio.checked = true;
+                  selectedLicenseId = card.getAttribute('data-license-id');
+                });
+              });
             }
           }
-        } catch (_) {}
 
-        return;
-      }
-    } catch (_) {}
+          // Buy button listener
+          const buyBtn = document.getElementById('dynArtBuyBtn');
+          if (buyBtn) {
+            buyBtn.addEventListener('click', async () => {
+              if (!selectedLicenseId) {
+                if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Vui lòng chọn một gói quyền sử dụng.', 'info');
+                return;
+              }
+              const user = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
+              if (!user) {
+                if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Vui lòng đăng nhập để mua quyền sử dụng tác phẩm.', 'info');
+                if (window.ArtFair && window.ArtFair.openAuthModal) window.ArtFair.openAuthModal('login');
+                return;
+              }
 
-    if (h1) h1.textContent = 'Không tìm thấy hồ sơ';
-    if (p) p.innerHTML = `Không tìm thấy hồ sơ nghệ sĩ hoặc người dùng <strong>@${username}</strong> trên ARTFAIR.<br>Vui lòng kiểm tra lại tên đăng nhập hoặc khám phá các nghệ sĩ nổi bật khác.`;
+              // Create order
+              buyBtn.disabled = true;
+              buyBtn.textContent = 'Đang khởi tạo đơn hàng...';
+              try {
+                const orderRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/artworks/orders/', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ license_id: selectedLicenseId })
+                });
+                const orderData = await orderRes.json();
+                if (orderRes.ok && orderData.order_code) {
+                  window.location.href = pUrl(`/orders/${orderData.order_code}/`);
+                } else {
+                  if (window.ArtFair && window.ArtFair.showToast) {
+                    window.ArtFair.showToast(orderData.detail || 'Không thể tạo đơn hàng.', 'error');
+                  }
+                }
+              } catch (_) {
+                if (window.ArtFair && window.ArtFair.showToast) {
+                  window.ArtFair.showToast('Lỗi kết nối khi khởi tạo đơn hàng.', 'error');
+                }
+              } finally {
+                buyBtn.disabled = false;
+                buyBtn.innerHTML = `
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                  <span>Mua quyền sử dụng</span>
+                `;
+              }
+            });
+          }
+
+          // Favorite button listener
+          const favBtn = document.getElementById('dynArtFavBtn');
+          if (favBtn) {
+            favBtn.addEventListener('click', async () => {
+              const user = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
+              if (!user) {
+                if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Vui lòng đăng nhập để lưu tác phẩm yêu thích.', 'info');
+                if (window.ArtFair && window.ArtFair.openAuthModal) window.ArtFair.openAuthModal('login');
+                return;
+              }
+              try {
+                const favRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/${art.id}/favorite/`, {
+                  method: 'POST'
+                });
+                if (favRes.ok) {
+                  const favData = await favRes.json();
+                  const isFav = favData.is_favorited;
+                  favBtn.style.color = isFav ? '#C52A70' : 'inherit';
+                  favBtn.innerHTML = isFav
+                    ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="#C52A70" stroke="#C52A70" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`
+                    : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+                  if (window.ArtFair && window.ArtFair.showToast) {
+                    window.ArtFair.showToast(isFav ? 'Đã thêm vào mục Yêu thích!' : 'Đã xóa khỏi mục Yêu thích.', 'info');
+                  }
+                }
+              } catch (_) {}
+            });
+          }
+
+          return;
+        }
+      } catch (_) {}
+
+      if (h1) h1.textContent = 'Không tìm thấy tác phẩm';
+      if (p) p.innerHTML = `Không tìm thấy tác phẩm với mã định danh <strong>${slug}</strong> trên ARTFAIR.<br>Vui lòng kiểm tra lại đường dẫn hoặc quay về trang Khám phá.`;
+      return;
+    }
   })();
 </script>
 {% endblock %}
