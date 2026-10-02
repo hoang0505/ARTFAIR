@@ -727,30 +727,38 @@ class SimulatePaymentView(APIView):
             }, status=status.HTTP_200_OK)
 
         if action == 'SUCCESS':
-            order.status = Order.Status.COMPLETED
-            order.completed_at = timezone.now()
-            order.save(update_fields=['status', 'completed_at'])
+            with transaction.atomic():
+                order.status = Order.Status.COMPLETED
+                order.completed_at = timezone.now()
+                order.save(update_fields=['status', 'completed_at'])
 
-            try:
                 from accounts.notifications import create_notification
+                from accounts.models import Notification
+
+                # 1. Thông báo cho người mua (Buyer)
                 create_notification(
                     recipient=order.buyer,
                     title="Mua quyền tác phẩm thành công",
                     message=f"Đơn hàng #{order.order_code} đã thanh toán thành công. Bạn đã sở hữu gói quyền {order.get_license_type_display()} của tác phẩm '{order.artwork.title}'.",
-                    notification_type='ORDER_COMPLETED',
+                    notification_type=Notification.NotificationType.ORDER_COMPLETED,
                     target_url='/dashboard/#tab-orders',
                     reference_id=f"order_buyer_{order.order_code}"
                 )
+
+                # 2. Thông báo cho đúng nghệ sĩ sở hữu tác phẩm (Creator)
+                artist = order.artwork.creator
                 create_notification(
-                    recipient=order.artwork.creator,
-                    title="Lượt mua tác phẩm mới!",
-                    message=f"Người mua @{order.buyer.username} vừa mua gói quyền {order.get_license_type_display()} của tác phẩm '{order.artwork.title}'. Doanh thu: +{int(order.price_paid):,}₫.",
-                    notification_type='CREATOR_SALE',
+                    recipient=artist,
+                    title="Tác phẩm của bạn đã được mua quyền sử dụng",
+                    message=(
+                        f"Tác phẩm '{order.artwork.title}' vừa được mua gói quyền "
+                        f"{order.get_license_type_display()}. Mã đơn hàng: #{order.order_code}. "
+                        f"Giá trị giao dịch: {int(order.price_paid):,} VND."
+                    ),
+                    notification_type=Notification.NotificationType.CREATOR_SALE,
                     target_url='/dashboard/#tab-revenue',
                     reference_id=f"order_creator_{order.order_code}"
                 )
-            except Exception:
-                pass
 
             return Response({
                 'detail': f'Thanh toán mô phỏng thành công! Bạn đã sở hữu gói quyền {order.get_license_type_display()}.',
@@ -758,16 +766,18 @@ class SimulatePaymentView(APIView):
             }, status=status.HTTP_200_OK)
 
         elif action == 'FAILED':
-            order.status = Order.Status.FAILED
-            order.save(update_fields=['status'])
+            with transaction.atomic():
+                order.status = Order.Status.FAILED
+                order.save(update_fields=['status'])
             return Response({
                 'detail': 'Thanh toán mô phỏng thất bại. Quyền sử dụng tác phẩm chưa được cấp.',
                 'order': OrderSerializer(order, context={'request': request}).data
             }, status=status.HTTP_200_OK)
 
         elif action == 'CANCEL':
-            order.status = Order.Status.CANCELLED
-            order.save(update_fields=['status'])
+            with transaction.atomic():
+                order.status = Order.Status.CANCELLED
+                order.save(update_fields=['status'])
             return Response({
                 'detail': 'Giao dịch thanh toán đã được hủy theo yêu cầu.',
                 'order': OrderSerializer(order, context={'request': request}).data

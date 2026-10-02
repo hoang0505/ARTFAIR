@@ -1230,3 +1230,69 @@ class Screen04DashboardAndPersonalHubTests(TestCase):
         self.client.force_login(self.buyer1)
         res_buyer = self.client.post(withdraw_url, {'amount': 10000})
         self.assertEqual(res_buyer.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_simulate_payment_notifications_and_isolation(self):
+        from accounts.models import Notification
+
+        # Create pending order for buyer1 on artwork owned by self.creator
+        order = Order.objects.create(
+            buyer=self.buyer1,
+            artwork=self.artwork,
+            license_type=LicenseOption.LicenseType.COMMERCIAL,
+            license_option=self.lic_comm,
+            price_paid=Decimal('500000'),
+            terms_snapshot='Điều khoản thương mại',
+            status=Order.Status.PENDING
+        )
+
+        pay_url = reverse('artworks:order_simulate_payment', kwargs={'order_code': order.order_code})
+
+        # 1. Action FAILED: Order status changes to FAILED, NO notification created for creator
+        self.client.force_login(self.buyer1)
+        res_failed = self.client.post(pay_url, {'action': 'FAILED'})
+        self.assertEqual(res_failed.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.FAILED)
+        self.assertEqual(Notification.objects.filter(recipient=self.creator).count(), 0)
+
+        # 2. Reset to PENDING and test CANCEL: NO notification created for creator
+        order.status = Order.Status.PENDING
+        order.save(update_fields=['status'])
+        res_cancel = self.client.post(pay_url, {'action': 'CANCEL'})
+        self.assertEqual(res_cancel.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.CANCELLED)
+        self.assertEqual(Notification.objects.filter(recipient=self.creator).count(), 0)
+
+        # 3. Action SUCCESS: Order status changes to COMPLETED, creator receives notification
+        order.status = Order.Status.PENDING
+        order.save(update_fields=['status'])
+        res_success = self.client.post(pay_url, {'action': 'SUCCESS'})
+        self.assertEqual(res_success.status_code, status.HTTP_200_OK)
+        order.refresh_from_db()
+        self.assertEqual(order.status, Order.Status.COMPLETED)
+
+        # Verify Creator notification
+        creator_notifs = Notification.objects.filter(recipient=self.creator)
+        self.assertEqual(creator_notifs.count(), 1)
+        creator_n = creator_notifs.first()
+        self.assertIn(self.artwork.title, creator_n.message)
+        self.assertIn(order.order_code, creator_n.message)
+        self.assertIn('500,000 VND', creator_n.message)
+        self.assertIn(order.get_license_type_display(), creator_n.message)
+        self.assertEqual(creator_n.notification_type, Notification.NotificationType.CREATOR_SALE)
+        self.assertEqual(creator_n.target_url, '/dashboard/#tab-revenue')
+
+        # Verify Buyer also received their notification
+        buyer_notifs = Notification.objects.filter(recipient=self.buyer1)
+        self.assertEqual(buyer_notifs.count(), 1)
+
+        # Verify other users received NO notifications (isolation)
+        self.assertEqual(Notification.objects.filter(recipient=self.buyer2).count(), 0)
+
+        # 4. Idempotency: Repeated request does NOT duplicate notification
+        res_repeat = self.client.post(pay_url, {'action': 'SUCCESS'})
+        self.assertEqual(res_repeat.status_code, status.HTTP_200_OK)
+        self.assertEqual(Notification.objects.filter(recipient=self.creator).count(), 1)
+        self.assertEqual(Notification.objects.filter(recipient=self.buyer1).count(), 1)
+
