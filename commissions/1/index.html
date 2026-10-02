@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="8DOkcWvHtSjPajUDSYvK0DFKQaECEu0gXjrbuysonsyY70BB8CJZacfFPFweVpVZ">
+  <meta name="csrf-token" content="R4qLPN5A2K9MdI7YoPORJdc1EgkkcYCkQO1NS6z5PnGPT4uGCP6MsPegdZHQ1JRh">
   
 </head>
 <body>
@@ -530,7 +530,7 @@
     </div>
 
     <form id="formSubmitProposal" enctype="multipart/form-data">
-      <input type="hidden" name="csrfmiddlewaretoken" value="8DOkcWvHtSjPajUDSYvK0DFKQaECEu0gXjrbuysonsyY70BB8CJZacfFPFweVpVZ">
+      <input type="hidden" name="csrfmiddlewaretoken" value="R4qLPN5A2K9MdI7YoPORJdc1EgkkcYCkQO1NS6z5PnGPT4uGCP6MsPegdZHQ1JRh">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
         <div class="form-group">
           <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
@@ -600,7 +600,7 @@
     </div>
 
     <form id="formDeliver" enctype="multipart/form-data">
-      <input type="hidden" name="csrfmiddlewaretoken" value="8DOkcWvHtSjPajUDSYvK0DFKQaECEu0gXjrbuysonsyY70BB8CJZacfFPFweVpVZ">
+      <input type="hidden" name="csrfmiddlewaretoken" value="R4qLPN5A2K9MdI7YoPORJdc1EgkkcYCkQO1NS6z5PnGPT4uGCP6MsPegdZHQ1JRh">
       <div class="form-group" style="margin-bottom: 16px;">
         <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
           Chọn tệp bàn giao (JPG, PNG, PSD, AI, ZIP...) *
@@ -641,7 +641,7 @@
     </div>
 
     <form id="formRevision">
-      <input type="hidden" name="csrfmiddlewaretoken" value="8DOkcWvHtSjPajUDSYvK0DFKQaECEu0gXjrbuysonsyY70BB8CJZacfFPFweVpVZ">
+      <input type="hidden" name="csrfmiddlewaretoken" value="R4qLPN5A2K9MdI7YoPORJdc1EgkkcYCkQO1NS6z5PnGPT4uGCP6MsPegdZHQ1JRh">
       <div class="form-group" style="margin-bottom: 16px;">
         <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
           Chi tiết nội dung cần chỉnh sửa *
@@ -671,7 +671,7 @@
     </div>
 
     <form id="formSketch" enctype="multipart/form-data">
-      <input type="hidden" name="csrfmiddlewaretoken" value="8DOkcWvHtSjPajUDSYvK0DFKQaECEu0gXjrbuysonsyY70BB8CJZacfFPFweVpVZ">
+      <input type="hidden" name="csrfmiddlewaretoken" value="R4qLPN5A2K9MdI7YoPORJdc1EgkkcYCkQO1NS6z5PnGPT4uGCP6MsPegdZHQ1JRh">
       <div class="form-group" style="margin-bottom: 16px;">
         <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
           Chọn tệp phác thảo (JPG, PNG, PDF) *
@@ -701,7 +701,7 @@
     </div>
 
     <form id="formReason">
-      <input type="hidden" name="csrfmiddlewaretoken" value="8DOkcWvHtSjPajUDSYvK0DFKQaECEu0gXjrbuysonsyY70BB8CJZacfFPFweVpVZ">
+      <input type="hidden" name="csrfmiddlewaretoken" value="R4qLPN5A2K9MdI7YoPORJdc1EgkkcYCkQO1NS6z5PnGPT4uGCP6MsPegdZHQ1JRh">
       <div class="form-group" style="margin-bottom: 16px;">
         <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
           Lý do *
@@ -825,6 +825,7 @@
               </div>
             </div>
 
+            <div class="form-alert form-alert-bottom" id="loginAlertBottom" style="display: none; margin-top: 10px; margin-bottom: 8px;"></div>
             <button type="submit" class="btn btn-primary btn-full" id="btnLoginSubmit" style="margin-top: 10px;">
               Đăng nhập
             </button>
@@ -905,6 +906,7 @@
               </label>
             </div>
 
+            <div class="form-alert form-alert-bottom" id="registerAlertBottom" style="display: none; margin-top: 10px; margin-bottom: 8px;"></div>
             <button type="submit" class="btn btn-primary btn-full" id="btnRegisterSubmit" style="margin-top: 10px;">
               Tạo tài khoản
             </button>

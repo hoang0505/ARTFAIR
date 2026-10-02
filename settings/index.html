@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="rrdgjH2nFP4jM4EM44KDyQLM3AOeXp74g7Q7BjZ4zpjsJLlKkIYSIplH25GQek2N">
+  <meta name="csrf-token" content="4ZJGgWTZARkoLlUsaNkI2eUBbRyA9EFX3JkIjfnunuRrrHhaoNCDLQWQKAV6YpUU">
   
 </head>
 <body>
@@ -172,7 +172,7 @@
         </p>
 
         <form id="formSettingsProfile" method="POST" enctype="multipart/form-data" action="/ARTFAIR/settings/">
-          <input type="hidden" name="csrfmiddlewaretoken" value="rrdgjH2nFP4jM4EM44KDyQLM3AOeXp74g7Q7BjZ4zpjsJLlKkIYSIplH25GQek2N">
+          <input type="hidden" name="csrfmiddlewaretoken" value="4ZJGgWTZARkoLlUsaNkI2eUBbRyA9EFX3JkIjfnunuRrrHhaoNCDLQWQKAV6YpUU">
           <input type="hidden" name="action" value="profile">
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
@@ -233,7 +233,7 @@
         </p>
 
         <form id="formSettingsPassword" method="POST" action="/ARTFAIR/settings/">
-          <input type="hidden" name="csrfmiddlewaretoken" value="rrdgjH2nFP4jM4EM44KDyQLM3AOeXp74g7Q7BjZ4zpjsJLlKkIYSIplH25GQek2N">
+          <input type="hidden" name="csrfmiddlewaretoken" value="4ZJGgWTZARkoLlUsaNkI2eUBbRyA9EFX3JkIjfnunuRrrHhaoNCDLQWQKAV6YpUU">
           <input type="hidden" name="action" value="password">
 
           <div style="margin-bottom: 16px;">
@@ -370,6 +370,7 @@
               </div>
             </div>
 
+            <div class="form-alert form-alert-bottom" id="loginAlertBottom" style="display: none; margin-top: 10px; margin-bottom: 8px;"></div>
             <button type="submit" class="btn btn-primary btn-full" id="btnLoginSubmit" style="margin-top: 10px;">
               Đăng nhập
             </button>
@@ -450,6 +451,7 @@
               </label>
             </div>
 
+            <div class="form-alert form-alert-bottom" id="registerAlertBottom" style="display: none; margin-top: 10px; margin-bottom: 8px;"></div>
             <button type="submit" class="btn btn-primary btn-full" id="btnRegisterSubmit" style="margin-top: 10px;">
               Tạo tài khoản
             </button>

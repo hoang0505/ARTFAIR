@@ -736,31 +736,41 @@
   }
 
   function clearAuthAlerts() {
-    const loginAlert = document.getElementById('loginAlert');
-    const registerAlert = document.getElementById('registerAlert');
-    if (loginAlert) {
-      loginAlert.className = 'form-alert';
-      loginAlert.textContent = '';
-    }
-    if (registerAlert) {
-      registerAlert.className = 'form-alert';
-      registerAlert.textContent = '';
-    }
+    const alerts = document.querySelectorAll('#authModalBackdrop .form-alert');
+    alerts.forEach(el => {
+      el.className = el.classList.contains('form-alert-bottom') ? 'form-alert form-alert-bottom' : 'form-alert';
+      el.textContent = '';
+      el.style.display = 'none';
+    });
+    document.querySelectorAll('#authModalBackdrop .form-input').forEach(input => {
+      input.classList.remove('input-error');
+    });
   }
 
   // 4. Handle Login Form Submit
   async function handleLogin(e) {
     e.preventDefault();
+    clearAuthAlerts();
+
     const btn = document.getElementById('btnLoginSubmit');
     const alertBox = document.getElementById('loginAlert');
     const usernameInput = document.getElementById('loginUsername');
     const passwordInput = document.getElementById('loginPassword');
 
-    const username = usernameInput?.value.trim();
-    const password = passwordInput?.value;
+    const username = (usernameInput?.value || '').trim();
+    const password = passwordInput?.value || '';
 
-    if (!username || !password) {
-      showAlert(alertBox, 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.', 'error');
+    if (!username) {
+      usernameInput?.classList.add('input-error');
+      showAlert(alertBox, 'Vui lòng nhập tên đăng nhập.', 'error');
+      usernameInput?.focus();
+      return;
+    }
+
+    if (!password) {
+      passwordInput?.classList.add('input-error');
+      showAlert(alertBox, 'Vui lòng nhập mật khẩu.', 'error');
+      passwordInput?.focus();
       return;
     }
 
@@ -789,8 +799,14 @@
         } else {
           getCsrfToken();
         }
+
+        if (data.user) {
+          state.currentUser = data.user;
+        }
+        renderNavbarAuth();
         showToast('Đăng nhập thành công!', 'success');
         closeAuthModal();
+
         await checkCurrentUser();
         window.dispatchEvent(new CustomEvent('artfair:login_success', { detail: data }));
 
@@ -804,6 +820,12 @@
           return;
         }
 
+        // Auto-redirect to studio if user is a creator and currently on guest landing
+        if (data.user && data.user.role === 'CREATOR' && (window.location.pathname === '/' || window.location.pathname.endsWith('/ARTFAIR/'))) {
+          setTimeout(() => { window.location.href = pUrl('/studio/'); }, 400);
+          return;
+        }
+
         // Reload if on protected server-rendered views
         if (window.location.pathname.includes('/studio') ||
             window.location.pathname.includes('/dashboard') ||
@@ -812,11 +834,11 @@
           setTimeout(() => { window.location.reload(); }, 350);
         }
       } else {
-        const errorMsg = data.detail || (data.non_field_errors && data.non_field_errors[0]) || 'Đăng nhập không thành công. Vui lòng kiểm tra lại.';
+        const errorMsg = data.detail || (data.non_field_errors && data.non_field_errors[0]) || 'Đăng nhập không thành công. Vui lòng kiểm tra lại tài khoản và mật khẩu.';
         showAlert(alertBox, errorMsg, 'error');
       }
     } catch (err) {
-      showAlert(alertBox, 'Không thể kết nối đến máy chủ. Vui lòng thử lại.', 'error');
+      showAlert(alertBox, 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.', 'error');
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -828,6 +850,8 @@
   // 5. Handle Register Form Submit
   async function handleRegister(e) {
     e.preventDefault();
+    clearAuthAlerts();
+
     const btn = document.getElementById('btnRegisterSubmit');
     const alertBox = document.getElementById('registerAlert');
     const usernameInput = document.getElementById('regUsername');
@@ -837,25 +861,72 @@
     const agreeTermsInput = document.getElementById('regAgreeTerms');
     const roleInput = document.querySelector('input[name="regRole"]:checked');
 
-    const username = usernameInput?.value.trim();
-    const email = emailInput?.value.trim();
-    const password = passwordInput?.value;
-    const confirmPassword = confirmPasswordInput?.value;
+    const username = (usernameInput?.value || '').trim();
+    const email = (emailInput?.value || '').trim();
+    const password = passwordInput?.value || '';
+    const confirmPassword = confirmPasswordInput?.value || '';
     const agreeTerms = agreeTermsInput ? agreeTermsInput.checked : true;
     const role = roleInput ? roleInput.value : 'BUYER';
 
-    if (!username || !email || !password) {
-      showAlert(alertBox, 'Vui lòng điền đầy đủ các thông tin đăng ký.', 'error');
+    // Client-side validations with direct visual feedback
+    if (!username) {
+      usernameInput?.classList.add('input-error');
+      showAlert(alertBox, 'Vui lòng nhập tên đăng nhập.', 'error');
+      usernameInput?.focus();
+      return;
+    }
+
+    if (username.length < 3) {
+      usernameInput?.classList.add('input-error');
+      showAlert(alertBox, 'Tên đăng nhập phải có ít nhất 3 ký tự.', 'error');
+      usernameInput?.focus();
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_.-]+$/.test(username)) {
+      usernameInput?.classList.add('input-error');
+      showAlert(alertBox, 'Tên đăng nhập chỉ được chứa chữ cái, chữ số, dấu gạch dưới (_), gạch ngang (-) hoặc chấm (.).', 'error');
+      usernameInput?.focus();
+      return;
+    }
+
+    if (!email) {
+      emailInput?.classList.add('input-error');
+      showAlert(alertBox, 'Vui lòng nhập địa chỉ email hợp lệ.', 'error');
+      emailInput?.focus();
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      emailInput?.classList.add('input-error');
+      showAlert(alertBox, 'Địa chỉ email không đúng định dạng. Ví dụ: name@example.com', 'error');
+      emailInput?.focus();
+      return;
+    }
+
+    if (!password) {
+      passwordInput?.classList.add('input-error');
+      showAlert(alertBox, 'Vui lòng nhập mật khẩu.', 'error');
+      passwordInput?.focus();
+      return;
+    }
+
+    if (password.length < 8) {
+      passwordInput?.classList.add('input-error');
+      showAlert(alertBox, 'Mật khẩu phải có tối thiểu 8 ký tự để đảm bảo an toàn.', 'error');
+      passwordInput?.focus();
       return;
     }
 
     if (confirmPasswordInput && password !== confirmPassword) {
+      confirmPasswordInput?.classList.add('input-error');
       showAlert(alertBox, 'Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.', 'error');
+      confirmPasswordInput?.focus();
       return;
     }
 
     if (agreeTermsInput && !agreeTerms) {
-      showAlert(alertBox, 'Vui lòng đánh dấu đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.', 'error');
+      showAlert(alertBox, 'Vui lòng đánh dấu đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của ARTFAIR.', 'error');
       return;
     }
 
@@ -884,64 +955,85 @@
         } else {
           getCsrfToken();
         }
-        showToast('Tạo tài khoản thành công! Đang tự động đăng nhập...', 'success');
-        
-        // Auto-login after successful registration
-        try {
-          const loginRes = await apiFetch('/api/accounts/auth/login/', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
-          });
-          if (loginRes.ok) {
-            const loginData = await loginRes.json().catch(() => ({}));
-            if (loginData.token) setAuthToken(loginData.token);
-            if (loginData.csrf_token) syncCsrfToken(loginData.csrf_token);
-            closeAuthModal();
-            await checkCurrentUser();
-            window.dispatchEvent(new CustomEvent('artfair:login_success', { detail: { username } }));
 
-            const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
-            const urlParams = new URLSearchParams(window.location.search);
-            const nextUrl = urlParams.get('next');
-            if (nextUrl && nextUrl.startsWith('/') && !nextUrl.startsWith('//')) {
-              setTimeout(() => { window.location.href = pUrl(nextUrl); }, 350);
-              return;
-            }
+        // Establish user in state immediately
+        state.currentUser = data;
+        renderNavbarAuth();
+        window.dispatchEvent(new CustomEvent('artfair:login_success', { detail: { username, role, user: data } }));
 
-            // If creator registered, redirect to Studio
-            if (role === 'CREATOR') {
-              setTimeout(() => { window.location.href = pUrl('/studio/'); }, 400);
-              return;
-            }
-
-            if (window.location.pathname.includes('/studio') ||
-                window.location.pathname.includes('/dashboard') ||
-                window.location.pathname.includes('/settings')) {
-              setTimeout(() => { window.location.reload(); }, 350);
-            }
-            return;
+        // Attempt silent session login in background (non-blocking)
+        apiFetch('/api/accounts/auth/login/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        }).then(async (lRes) => {
+          if (lRes.ok) {
+            const lData = await lRes.json().catch(() => ({}));
+            if (lData.token) setAuthToken(lData.token);
+            if (lData.csrf_token) syncCsrfToken(lData.csrf_token);
           }
-        } catch (_) {}
+        }).catch(() => {});
 
-        // Fallback: switch to login tab and preserve username
-        switchAuthTab('login');
-        const loginUser = document.getElementById('loginUsername');
-        if (loginUser) loginUser.value = username;
-        showAlert(document.getElementById('loginAlert'), 'Tài khoản đã tạo thành công. Vui lòng đăng nhập.', 'success');
+        closeAuthModal();
+
+        const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
+        const urlParams = new URLSearchParams(window.location.search);
+        const nextUrl = urlParams.get('next');
+
+        if (nextUrl && nextUrl.startsWith('/') && !nextUrl.startsWith('//')) {
+          showToast('Đăng ký thành công! Đang chuyển hướng...', 'success');
+          setTimeout(() => { window.location.href = pUrl(nextUrl); }, 500);
+          return;
+        }
+
+        if (role === 'CREATOR') {
+          showToast('Chào mừng Nghệ sĩ mới! Đang chuyển đến Creator Studio...', 'success');
+          setTimeout(() => { window.location.href = pUrl('/studio/'); }, 500);
+          return;
+        }
+
+        // BUYER registered: redirect directly to Personal Dashboard so they immediately see their live portal!
+        showToast('Chào mừng bạn đến với ARTFAIR! Đang chuyển đến Bảng điều khiển cá nhân...', 'success');
+        setTimeout(() => { window.location.href = pUrl('/dashboard/'); }, 500);
+        return;
 
       } else {
-        let msg = 'Đăng ký không thành công:\n';
-        if (data.username) msg += `• Tên đăng nhập: ${data.username.join(', ')}\n`;
-        if (data.email) msg += `• Email: ${data.email.join(', ')}\n`;
-        if (data.password) msg += `• Mật khẩu: ${data.password.join(', ')}\n`;
-        if (data.detail) msg += `• ${data.detail}\n`;
-        showAlert(alertBox, msg, 'error');
+        // Detailed error parsing
+        let msgLines = [];
+        if (data.username) {
+          usernameInput?.classList.add('input-error');
+          const txt = Array.isArray(data.username) ? data.username.join(' ') : data.username;
+          msgLines.push(`• Tên đăng nhập: ${txt}`);
+        }
+        if (data.email) {
+          emailInput?.classList.add('input-error');
+          const txt = Array.isArray(data.email) ? data.email.join(' ') : data.email;
+          msgLines.push(`• Email: ${txt}`);
+        }
+        if (data.password) {
+          passwordInput?.classList.add('input-error');
+          const txt = Array.isArray(data.password) ? data.password.join(' ') : data.password;
+          msgLines.push(`• Mật khẩu: ${txt}`);
+        }
+        if (data.detail) {
+          msgLines.push(`• ${data.detail}`);
+        }
+        if (data.non_field_errors) {
+          const txt = Array.isArray(data.non_field_errors) ? data.non_field_errors.join(' ') : data.non_field_errors;
+          msgLines.push(`• ${txt}`);
+        }
+        if (msgLines.length === 0) {
+          for (const key of Object.keys(data)) {
+            const val = data[key];
+            const txt = Array.isArray(val) ? val.join(' ') : String(val);
+            msgLines.push(`• ${key}: ${txt}`);
+          }
+        }
+        const fullMsg = msgLines.length > 0 ? ('Đăng ký chưa thành công:\n' + msgLines.join('\n')) : 'Đăng ký không thành công. Vui lòng kiểm tra lại thông tin.';
+        showAlert(alertBox, fullMsg, 'error');
       }
     } catch (err) {
-      showAlert(alertBox, 'Không thể kết nối đến máy chủ. Vui lòng thử lại.', 'error');
+      showAlert(alertBox, 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.', 'error');
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -1059,8 +1151,26 @@
 
   function showAlert(elem, msg, type = 'error') {
     if (!elem) return;
-    elem.className = `form-alert show ${type}`;
+    elem.className = elem.classList.contains('form-alert-bottom') ? `form-alert form-alert-bottom show ${type}` : `form-alert show ${type}`;
     elem.innerText = msg;
+    elem.style.display = 'block';
+
+    // Also mirror to sibling bottom alert if available
+    const pane = elem.closest('.tab-pane') || elem.closest('form');
+    if (pane) {
+      const bottomAlert = pane.querySelector('.form-alert-bottom');
+      if (bottomAlert && bottomAlert !== elem) {
+        bottomAlert.className = `form-alert form-alert-bottom show ${type}`;
+        bottomAlert.innerText = msg;
+        bottomAlert.style.display = 'block';
+      }
+    }
+
+    // Scroll modal-body so the user definitely sees the alert
+    const modalBody = document.querySelector('#authModalBackdrop .modal-body');
+    if (modalBody) {
+      modalBody.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   // 7. Load Categories & Tags
