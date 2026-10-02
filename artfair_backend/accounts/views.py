@@ -49,9 +49,16 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            token, _ = Token.objects.get_or_create(user=user)
+            token_key = None
+            try:
+                token, _ = Token.objects.get_or_create(user=user)
+                token_key = token.key
+            except Exception:
+                token_key = None
+
             data = UserMeSerializer(user).data
-            data['token'] = token.key
+            if token_key:
+                data['token'] = token_key
             data['csrf_token'] = get_token(request)
             return Response(
                 data,
@@ -66,6 +73,7 @@ class LoginView(APIView):
     Session and Token login endpoint.
     Verifies credentials and initiates a Django session with CSRF protection,
     plus issues a REST Token for cross-origin frontend clients (e.g. GitHub Pages).
+    Supports login via either username or email (case-insensitive).
     """
     permission_classes = [permissions.AllowAny]
 
@@ -74,10 +82,22 @@ class LoginView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        username = serializer.validated_data['username']
+        username = serializer.validated_data['username'].strip()
         password = serializer.validated_data['password']
 
         user = authenticate(request, username=username, password=password)
+        if user is None:
+            # Fallback 1: Try lookup by email (case-insensitive)
+            try:
+                candidate = User.objects.filter(email__iexact=username).first()
+                if not candidate:
+                    # Fallback 2: Try lookup by username (case-insensitive)
+                    candidate = User.objects.filter(username__iexact=username).first()
+                if candidate and candidate.check_password(password):
+                    user = candidate
+            except Exception:
+                pass
+
         if user is None:
             return Response(
                 {'detail': 'Tên đăng nhập hoặc mật khẩu không chính xác.'},
@@ -93,10 +113,17 @@ class LoginView(APIView):
         login(request, user)
         # login() rotates token; get_token(request) retrieves the active rotated token
         active_csrf = get_token(request)
-        token, _ = Token.objects.get_or_create(user=user)
+
+        token_key = None
+        try:
+            token, _ = Token.objects.get_or_create(user=user)
+            token_key = token.key
+        except Exception:
+            token_key = None
+
         return Response({
             'detail': 'Đăng nhập thành công.',
-            'token': token.key,
+            'token': token_key,
             'csrf_token': active_csrf,
             'user': UserMeSerializer(user).data
         }, status=status.HTTP_200_OK)
