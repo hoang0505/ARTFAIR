@@ -33,8 +33,8 @@ for _h in _raw_hosts:
     _cleaned = _clean_host(_h)
     if _cleaned and _cleaned != '*':
         _cleaned_hosts.add(_cleaned)
-# Always ensure localhost and 127.0.0.1 are allowed
-_cleaned_hosts.update(['localhost', '127.0.0.1'])
+# Always ensure localhost, 127.0.0.1, and PythonAnywhere domains are allowed
+_cleaned_hosts.update(['localhost', '127.0.0.1', 'hoang0505.pythonanywhere.com', '.pythonanywhere.com'])
 ALLOWED_HOSTS = sorted(list(_cleaned_hosts))
 if DEBUG and 'testserver' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('testserver')
@@ -64,6 +64,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'config.middleware.CanonicalFrontendRedirectMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
