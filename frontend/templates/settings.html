@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cài đặt tài khoản | ARTFAIR{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 36px; padding-bottom: 72px;">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <a href="{% url 'home' %}" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
+    <span>/</span>
+    <a href="{% url 'user_dashboard' %}" style="color: var(--text-plum); text-decoration: none;">Khu vực cá nhân</a>
+    <span>/</span>
+    <span style="color: var(--text-berry); font-weight: 600;">Cài đặt tài khoản</span>
+  </nav>
+
+  <!-- Page Header -->
+  <div style="margin-bottom: 36px;">
+    <h1 style="font-family: var(--font-serif); font-size: 2.1rem; color: var(--text-plum); margin: 0 0 8px 0; font-weight: 700;">
+      Cài đặt tài khoản
+    </h1>
+    <p style="font-size: 0.95rem; color: var(--text-muted); margin: 0;">
+      Quản lý thông tin cá nhân, hồ sơ nghệ sĩ và bảo mật tài khoản của bạn.
+    </p>
+  </div>
+
+  <!-- Messages / Alerts -->
+  {% if success_msg %}
+    <div style="background: #F6FFED; border: 1px solid #B7EB8F; border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 24px; color: #389E0D; font-size: 0.92rem; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <span>{{ success_msg }}</span>
+    </div>
+  {% endif %}
+
+  {% if error_msg %}
+    <div style="background: #FFF1F0; border: 1px solid #FFA39E; border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 24px; color: #CF1322; font-size: 0.92rem; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <span>{{ error_msg }}</span>
+    </div>
+  {% endif %}
+
+  <div style="display: grid; grid-template-columns: 260px 1fr; gap: 32px; align-items: flex-start;">
+
+    <!-- Left Navigation -->
+    <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 18px; box-shadow: var(--shadow-subtle);">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <a href="#section-profile" class="btn btn-ghost" style="justify-content: flex-start; width: 100%; font-weight: 600; color: var(--primary-berry); background: var(--primary-berry-light);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21v-2a6.5 6.5 0 0 1 13 0v2"></path></svg>
+          <span>Thông tin cá nhân</span>
+        </a>
+        <a href="#section-security" class="btn btn-ghost" style="justify-content: flex-start; width: 100%; font-weight: 500; color: var(--text-plum);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span>Đổi mật khẩu</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Right Forms Area -->
+    <div style="display: flex; flex-direction: column; gap: 36px;">
+
+      <!-- Form 1: Profile Info -->
+      <div id="section-profile" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 32px; box-shadow: var(--shadow-card);">
+        <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
+          Thông tin hồ sơ
+        </h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0 0 24px 0;">
+          Tên tài khoản: <strong>@{{ user.username }}</strong> &bull; Vai trò: 
+          {% if user.is_creator %}<span class="role-pill creator">Nghệ sĩ (Creator)</span>{% else %}<span class="role-pill buyer">Người mua (Buyer)</span>{% endif %}
+        </p>
+
+        <form method="POST" enctype="multipart/form-data" action="{% url 'settings' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="profile">
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
+            <div>
+              <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Họ đệm</label>
+              <input type="text" name="last_name" value="{{ user.last_name }}" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+            </div>
+            <div>
+              <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Tên</label>
+              <input type="text" name="first_name" value="{{ user.first_name }}" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+            </div>
+          </div>
+
+          <div style="margin-bottom: 18px;">
+            <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Email</label>
+            <input type="email" name="email" value="{{ user.email }}" required style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+          </div>
+
+          <!-- Creator Specific Fields -->
+          {% if user.is_creator %}
+            <div style="border-top: 1px solid var(--border-light); padding-top: 20px; margin-top: 24px;">
+              <h3 style="font-size: 1.1rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700;">
+                Hồ sơ nghệ sĩ công khai
+              </h3>
+
+              <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Bút danh / Tên hiển thị</label>
+                <input type="text" name="display_name" value="{% if artist_profile %}{{ artist_profile.display_name }}{% else %}{{ user.username }}{% endif %}" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+              </div>
+
+              <div style="margin-bottom: 18px;">
+                <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Tiểu sử nghệ sĩ</label>
+                <textarea name="bio" rows="4" style="width: 100%; padding: 12px 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box; line-height: 1.5;">{% if artist_profile %}{{ artist_profile.bio }}{% endif %}</textarea>
+              </div>
+
+              <div style="margin-bottom: 20px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+                  <input type="checkbox" name="is_accepting_commissions" value="1" {% if artist_profile and artist_profile.is_accepting_commissions %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--primary-berry);">
+                  <span style="font-size: 0.92rem; font-weight: 600; color: var(--text-plum);">Đang mở nhận đơn đặt vẽ theo yêu cầu (Commission)</span>
+                </label>
+              </div>
+            </div>
+          {% endif %}
+
+          <div style="text-align: right; margin-top: 24px;">
+            <button type="submit" class="btn btn-primary" style="padding: 0 28px;">
+              Lưu thay đổi
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Form 2: Password Change -->
+      <div id="section-security" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 32px; box-shadow: var(--shadow-card);">
+        <h2 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
+          Đổi mật khẩu
+        </h2>
+        <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0 0 24px 0;">
+          Vui lòng nhập mật khẩu hiện tại để thiết lập mật khẩu mới.
+        </p>
+
+        <form method="POST" action="{% url 'settings' %}">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="password">
+
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Mật khẩu hiện tại</label>
+            <input type="password" name="old_password" required style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Mật khẩu mới (tối thiểu 6 ký tự)</label>
+            <input type="password" name="new_password" required minlength="6" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+          </div>
+
+          <div style="margin-bottom: 24px;">
+            <label style="display: block; font-size: 0.86rem; font-weight: 600; color: var(--text-plum); margin-bottom: 6px;">Xác nhận mật khẩu mới</label>
+            <input type="password" name="confirm_password" required minlength="6" style="width: 100%; height: 42px; padding: 0 14px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-md); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+          </div>
+
+          <div style="text-align: right;">
+            <button type="submit" class="btn btn-secondary" style="padding: 0 28px;">
+              Cập nhật mật khẩu
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

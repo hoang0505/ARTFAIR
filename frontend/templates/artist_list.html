@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Danh sách nghệ sĩ sáng tạo | ARTFAIR{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 36px; padding-bottom: 72px;">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <a href="{% url 'home' %}" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
+    <span>/</span>
+    <span style="color: var(--text-berry); font-weight: 600;">Danh sách nghệ sĩ</span>
+  </nav>
+
+  <!-- Page Header -->
+  <div style="margin-bottom: 36px; text-align: center; max-width: 680px; margin-left: auto; margin-right: auto;">
+    <div class="hero-pill" style="display: inline-flex; margin-bottom: 12px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="7" r="4"></circle><path d="M5.5 21v-2a6.5 6.5 0 0 1 13 0v2"></path></svg>
+      Cộng đồng nhà sáng tạo
+    </div>
+    <h1 style="font-family: var(--font-serif); font-size: 2.3rem; color: var(--text-plum); margin: 0 0 12px 0; font-weight: 700; line-height: 1.25;">
+      Nghệ sĩ sáng tạo trên ARTFAIR
+    </h1>
+    <p style="font-size: 0.98rem; color: var(--text-muted); margin: 0; line-height: 1.6;">
+      Khám phá các họa sĩ kỹ thuật số, nhà tạo hình 3D và nghệ sĩ minh họa độc lập. Xem trang hồ sơ cá nhân và gửi yêu cầu đặt vẽ theo ý tưởng của bạn.
+    </p>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <form method="GET" action="{% url 'artist_list' %}" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 16px 20px; box-shadow: var(--shadow-subtle); margin-bottom: 36px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+    <div style="position: relative; flex: 1; min-width: 260px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); pointer-events: none;">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" name="q" value="{{ q }}" placeholder="Tìm theo tên nghệ sĩ, bút danh, phong cách..." style="width: 100%; height: 42px; padding: 0 16px 0 42px; background: var(--bg-page); border: 1px solid var(--border-light); border-radius: var(--radius-full); font-size: 0.92rem; color: var(--text-plum); box-sizing: border-box;">
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--text-plum); cursor: pointer; user-select: none;">
+        <input type="checkbox" name="accepting" value="1" {% if accepting == '1' %}checked{% endif %} onchange="this.form.submit()" style="accent-color: var(--primary-berry); width: 16px; height: 16px;">
+        <span>Đang nhận đặt vẽ</span>
+      </label>
+
+      <button type="submit" class="btn btn-primary" style="height: 42px; padding: 0 22px;">
+        <span>Tìm kiếm</span>
+      </button>
+
+      {% if q or accepting %}
+        <a href="{% url 'artist_list' %}" class="btn btn-ghost" style="height: 42px; padding: 0 14px; font-size: 0.88rem; color: var(--text-muted);">
+          Đặt lại
+        </a>
+      {% endif %}
+    </div>
+  </form>
+
+  <!-- Artists Grid -->
+  {% if page_obj %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 24px; margin-bottom: 48px;">
+      {% for item in page_obj %}
+        {% with artist=item.artist profile=item.profile count=item.artworks_count %}
+          <div class="artist-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; transition: transform var(--trans-fast), box-shadow var(--trans-fast);">
+            
+            <!-- Cover image with soft fallback -->
+            <div style="height: 96px; position: relative; background: linear-gradient(135deg, #FDEBF3 0%, #EFE8FA 50%, #F5ECFF 100%); overflow: hidden;">
+              {% if profile and profile.cover_image %}
+                <img src="{{ profile.cover_image.url }}" alt="{{ artist.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+              {% else %}
+                <div style="width: 100%; height: 100%; opacity: 0.15; display: flex; align-items: center; justify-content: flex-end; padding: 16px;">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Profile Info Area -->
+            <div style="padding: 0 22px 22px 22px; flex: 1; display: flex; flex-direction: column; position: relative;">
+              
+              <!-- Avatar -->
+              <div style="width: 68px; height: 68px; border-radius: var(--radius-full); border: 3px solid #FFFFFF; background: linear-gradient(135deg, var(--primary-berry), #A22460); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; font-weight: 700; margin-top: -34px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(185, 44, 112, 0.25); overflow: hidden;">
+                {% if profile and profile.avatar %}
+                  <img src="{{ profile.avatar.url }}" alt="{{ artist.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                  <span>{{ artist.username|slice:":1"|upper }}</span>
+                {% endif %}
+              </div>
+
+              <!-- Header row -->
+              <div style="margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px;">
+                  <h2 style="font-family: var(--font-serif); font-size: 1.18rem; color: var(--text-plum); margin: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <a href="{% url 'artist_profile' artist.username %}" style="color: inherit; text-decoration: none;">
+                      {% if profile and profile.display_name %}{{ profile.display_name }}{% else %}{{ artist.username }}{% endif %}
+                    </a>
+                  </h2>
+                  {% if profile and profile.is_accepting_commissions %}
+                    <span style="font-size: 0.72rem; color: #0070BA; background: #E6F7FF; border: 1px solid #91D5FF; border-radius: var(--radius-full); padding: 2px 8px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">
+                      ● Nhận vẽ
+                    </span>
+                  {% endif %}
+                </div>
+                <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 500;">@{{ artist.username }}</span>
+              </div>
+
+              <!-- Bio -->
+              <p style="font-size: 0.86rem; color: var(--text-plum); line-height: 1.5; margin: 0 0 16px 0; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                {% if profile and profile.bio %}{{ profile.bio }}{% else %}Nghệ sĩ sáng tạo độc lập trên nền tảng ARTFAIR.{% endif %}
+              </p>
+
+              <!-- Stats & Action -->
+              <div style="border-top: 1px solid var(--border-light); padding-top: 14px; margin-top: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.82rem; color: var(--text-muted);">
+                  <span>Tác phẩm đã đăng</span>
+                  <strong style="color: var(--text-plum); font-size: 0.9rem;">{{ count }}</strong>
+                </div>
+
+                <a href="{% url 'artist_profile' artist.username %}" class="btn btn-secondary" style="width: 100%; text-align: center; text-decoration: none; font-size: 0.88rem; font-weight: 700; box-sizing: border-box;">
+                  Xem hồ sơ & Đặt vẽ &rarr;
+                </a>
+              </div>
+
+            </div>
+
+          </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+      <div style="display: flex; justify-content: center; gap: 8px; margin-top: 32px; align-items: center;">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if accepting %}&accepting={{ accepting }}{% endif %}" class="btn btn-secondary btn-sm" style="text-decoration: none;">
+            &larr; Trang trước
+          </a>
+        {% endif %}
+        
+        <span style="font-size: 0.88rem; color: var(--text-muted); padding: 0 12px;">
+          Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if accepting %}&accepting={{ accepting }}{% endif %}" class="btn btn-secondary btn-sm" style="text-decoration: none;">
+            Trang sau &rarr;
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  {% else %}
+    <div style="text-align: center; padding: 64px 20px; background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-xl);">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--bg-lavender); color: var(--primary-berry); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </div>
+      <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 8px;">Không tìm thấy nghệ sĩ phù hợp</h3>
+      <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px;">Hãy thử tìm kiếm với từ khóa khác hoặc bỏ chọn bộ lọc.</p>
+      <a href="{% url 'artist_list' %}" class="btn btn-secondary" style="text-decoration: none;">Xem tất cả nghệ sĩ</a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

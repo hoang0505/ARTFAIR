@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}403 — Từ chối truy cập | ARTFAIR{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 64px; padding-bottom: 96px; text-align: center;">
+
+  <div style="max-width: 540px; margin: 0 auto; background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 48px 32px; box-shadow: var(--shadow-card);">
+    
+    <div style="width: 80px; height: 80px; border-radius: 50%; background: #FFF1F0; color: #CF1322; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid #FFA39E;">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+    </div>
+
+    <span style="font-size: 0.85rem; font-weight: 700; color: #CF1322; text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 8px;">
+      Lỗi 403 &bull; Quyền truy cập bị từ chối
+    </span>
+
+    <h1 style="font-family: var(--font-serif); font-size: 2.1rem; color: var(--text-plum); margin: 0 0 12px 0; font-weight: 700;">
+      Bạn không có quyền truy cập
+    </h1>
+
+    <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin: 0 0 28px 0;">
+      Khu vực này yêu cầu đăng nhập với tài khoản có vai trò phù hợp (ví dụ: Nghệ sĩ sáng tạo đối với Creator Studio, hoặc đúng chủ tài khoản đối với tệp riêng tư).
+    </p>
+
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+      <a href="{% url 'home' %}" class="btn btn-primary" style="text-decoration: none; padding: 0 24px;">
+        Quay về Khám phá
+      </a>
+      {% if not user.is_authenticated %}
+        <button class="btn btn-secondary" onclick="window.ArtFair && window.ArtFair.openAuthModal ? window.ArtFair.openAuthModal('login') : null" style="padding: 0 20px;">
+          Đăng nhập ngay
+        </button>
+      {% else %}
+        <a href="{% url 'user_dashboard' %}" class="btn btn-secondary" style="text-decoration: none; padding: 0 20px;">
+          Khu vực cá nhân
+        </a>
+      {% endif %}
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

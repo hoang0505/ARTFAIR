@@ -1,0 +1,1108 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Đơn đặt vẽ {{ commission.commission_code }} | ARTFAIR{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 28px; padding-bottom: 64px;">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <a href="/" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
+    <span>/</span>
+    <a href="/dashboard/" style="color: var(--text-plum); text-decoration: none;">Khu vực cá nhân</a>
+    <span>/</span>
+    <span style="color: var(--text-berry); font-weight: 600;">Đơn đặt vẽ {{ commission.commission_code }}</span>
+  </nav>
+
+  <!-- =========================================================================
+       1. COMMISSION HEADER CARD & STEPPER
+       ========================================================================= -->
+  <div class="commission-header-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px 32px; box-shadow: var(--shadow-card); margin-bottom: 32px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px; flex-wrap: wrap;">
+          <span style="font-family: monospace; font-size: 0.95rem; font-weight: 700; color: var(--text-berry); background: var(--bg-lavender-subtle); padding: 3px 10px; border-radius: var(--radius-sm); border: 1px solid rgba(197, 42, 112, 0.2);">
+            {{ commission.commission_code }}
+          </span>
+          
+          <!-- Status Badge -->
+          <span class="commission-badge status-{{ commission.status|lower }}" style="font-size: 0.85rem; font-weight: 700; padding: 4px 12px; border-radius: var(--radius-full);">
+            {{ commission.get_status_display }}
+          </span>
+
+          <span style="font-size: 0.78rem; background: #FFF0F6; color: #C41D7F; border: 1px solid #FFADD2; border-radius: var(--radius-full); padding: 2px 10px; font-weight: 600;">
+            Thanh toán mô phỏng Sandbox
+          </span>
+        </div>
+
+        <h1 style="font-family: var(--font-serif); font-size: 1.7rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
+          {{ commission.title }}
+        </h1>
+        <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted);">
+          Khởi tạo ngày {{ commission.created_at|date:"d/m/Y H:i" }} &bull; Cập nhật lần cuối: {{ commission.updated_at|date:"d/m/Y H:i" }}
+        </p>
+      </div>
+
+      <!-- User Role Indicator -->
+      <div style="text-align: right;">
+        <span style="display: inline-block; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px;">
+          Vai trò của bạn:
+        </span>
+        <div>
+          {% if is_buyer %}
+            <span class="role-pill buyer" style="font-size: 0.85rem; padding: 4px 12px;">Bạn là Người mua (Buyer)</span>
+          {% elif is_creator %}
+            <span class="role-pill creator" style="font-size: 0.85rem; padding: 4px 12px;">Bạn là Nghệ sĩ (Creator)</span>
+          {% else %}
+            <span class="role-pill staff" style="font-size: 0.85rem; padding: 4px 12px;">Quản trị viên (Staff)</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Stepper / Progress Bar -->
+    <div class="commission-stepper-container" style="padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+      <div class="stepper-track" style="display: flex; justify-content: space-between; position: relative;">
+        
+        <!-- Step 1: Gửi brief -->
+        <div class="stepper-node {% if commission.status != 'REJECTED' and commission.status != 'CANCELLED' %}completed{% endif %}">
+          <div class="stepper-circle">1</div>
+          <div class="stepper-label">Gửi Brief</div>
+        </div>
+
+        <!-- Step 2: Báo giá -->
+        <div class="stepper-node {% if commission.status in 'QUOTED,IN_PROGRESS,DELIVERED,REVISION_REQUESTED,COMPLETED' %}completed{% elif commission.status == 'REQUESTED' %}active{% endif %}">
+          <div class="stepper-circle">2</div>
+          <div class="stepper-label">Báo giá</div>
+        </div>
+
+        <!-- Step 3: Ký quỹ mô phỏng -->
+        <div class="stepper-node {% if commission.status in 'IN_PROGRESS,DELIVERED,REVISION_REQUESTED,COMPLETED' and commission.is_paid %}completed{% elif commission.status == 'QUOTED' %}active{% endif %}">
+          <div class="stepper-circle">3</div>
+          <div class="stepper-label">Ký quỹ mô phỏng</div>
+        </div>
+
+        <!-- Step 4: Bàn giao -->
+        <div class="stepper-node {% if commission.status in 'DELIVERED,COMPLETED' %}completed{% elif commission.status in 'IN_PROGRESS,REVISION_REQUESTED' %}active{% endif %}">
+          <div class="stepper-circle">4</div>
+          <div class="stepper-label">Bàn giao</div>
+        </div>
+
+        <!-- Step 5: Nghiệm thu -->
+        <div class="stepper-node {% if commission.status == 'COMPLETED' %}completed{% elif commission.status == 'DELIVERED' %}active{% endif %}">
+          <div class="stepper-circle">5</div>
+          <div class="stepper-label">Nghiệm thu</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================================
+       2. MAIN CONTENT GRID (2 COLUMNS)
+       ========================================================================= -->
+  <div style="display: grid; grid-template-columns: 2fr 1.1fr; gap: 32px; align-items: flex-start;" class="commission-grid-layout">
+    
+    <!-- LEFT COLUMN: BRIEF, PROPOSALS, WORK IN PROGRESS, DELIVERABLES, EVENTS -->
+    <div style="display: flex; flex-direction: column; gap: 28px;">
+      
+      <!-- 2.1 BRIEF YÊU CẦU BAN ĐẦU -->
+      <div class="detail-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px 28px; box-shadow: var(--shadow-sm);">
+        <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+          <span>Thông tin yêu cầu đặt vẽ (Brief)</span>
+          <span style="font-size: 0.82rem; font-family: var(--font-sans); color: var(--text-muted); font-weight: 600;">
+            Gói quyền: {{ commission.get_license_type_display }}
+          </span>
+        </h2>
+
+        <!-- Buyer & Creator info row -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; background: var(--bg-lavender-subtle); padding: 14px 18px; border-radius: var(--radius-md);">
+          <div>
+            <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block;">Người đặt (Buyer)</span>
+            <strong style="color: var(--text-plum); font-size: 0.95rem;">@{{ commission.buyer.username }}</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block;">Nghệ sĩ nhận vẽ (Creator)</span>
+            <a href="{% url 'artist_profile' commission.creator.username %}" style="color: var(--text-berry); font-size: 0.95rem; font-weight: 700; text-decoration: none;">
+              @{{ commission.creator.username }} &rarr;
+            </a>
+          </div>
+        </div>
+
+        <!-- Ý tưởng Brief -->
+        <div style="margin-bottom: 20px;">
+          <h4 style="font-size: 0.88rem; text-transform: uppercase; color: var(--text-muted); margin: 0 0 8px 0; font-weight: 700; letter-spacing: 0.5px;">
+            Mô tả ý tưởng & Brief
+          </h4>
+          <div style="color: var(--text-plum); font-size: 0.95rem; line-height: 1.6; background: #FAFAFA; border: 1px solid #F0F0F0; border-radius: var(--radius-md); padding: 14px 18px;">
+            {{ commission.description|linebreaks }}
+          </div>
+        </div>
+
+        <!-- Budget & Deadline row -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px;">
+          <div>
+            <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block;">Ngân sách đề xuất:</span>
+            <strong style="font-size: 1.15rem; color: var(--text-berry); font-family: var(--font-serif);">
+              {{ commission.budget|floatformat:0 }} VND
+            </strong>
+          </div>
+          <div>
+            <span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 600; display: block;">Hạn mong muốn bàn giao:</span>
+            <strong style="font-size: 1.05rem; color: var(--text-plum);">
+              {{ commission.deadline|date:"d/m/Y" }}
+            </strong>
+          </div>
+        </div>
+
+        <!-- Reference / Moodboard File Download -->
+        {% if commission.reference_image %}
+          <div style="padding-top: 14px; border-top: 1px dashed var(--border-subtle); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-plum); display: block;">
+                Tệp tham khảo / Moodboard đính kèm:
+              </span>
+              <span style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">
+                {{ commission.reference_filename|default:"Tệp tham khảo bảo mật" }}
+              </span>
+            </div>
+            <a href="{% url 'commissions:download_reference' commission.id %}" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 6px; text-decoration: none;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Tải tệp tham khảo</span>
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+
+      <!-- 2.2 ĐỀ XUẤT & BÁO GIÁ CỦA NGHỆ SĨ (PROPOSALS) -->
+      <div class="detail-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px 28px; box-shadow: var(--shadow-sm);">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+          <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0; font-weight: 700;">
+            Đề xuất & Báo giá từ Nghệ sĩ
+          </h2>
+          <span style="font-size: 0.82rem; color: var(--text-muted);">
+            Lịch sử {{ commission.proposals.count }} lần gửi đề xuất
+          </span>
+        </div>
+
+        {% if commission.proposals.all %}
+          <div style="display: flex; flex-direction: column; gap: 18px;">
+            {% for prop in commission.proposals.all %}
+              <div class="proposal-box {% if prop.status == 'ACCEPTED' %}accepted-box{% elif prop.status == 'PENDING' %}pending-box{% endif %}" style="border: 1px solid {% if prop.status == 'ACCEPTED' %}#52C41A{% elif prop.status == 'PENDING' %}var(--primary-berry){% else %}var(--border-subtle){% endif %}; border-radius: var(--radius-md); padding: 18px; background: {% if prop.status == 'ACCEPTED' %}#F6FFED{% elif prop.status == 'PENDING' %}#FFF5F8{% else %}#FAFAFA{% endif %};">
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                  <div>
+                    <span style="font-weight: 700; color: var(--text-plum); font-size: 0.95rem;">
+                      Báo giá Phiên bản {{ prop.version }}
+                    </span>
+                    <span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 8px;">
+                      {{ prop.created_at|date:"d/m/Y H:i" }}
+                    </span>
+                  </div>
+
+                  <!-- Status tag -->
+                  <span class="prop-status-tag tag-{{ prop.status|lower }}" style="font-size: 0.76rem; font-weight: 700; padding: 2px 10px; border-radius: var(--radius-full);">
+                    {{ prop.get_status_display }}
+                  </span>
+                </div>
+
+                <!-- Price and terms summary -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                  <div>
+                    <span style="font-size: 0.76rem; color: var(--text-muted); display: block;">Giá chốt đề xuất:</span>
+                    <strong style="font-size: 1.15rem; color: var(--text-berry); font-family: var(--font-serif);">
+                      {{ prop.price|floatformat:0 }} VND
+                    </strong>
+                  </div>
+                  <div>
+                    <span style="font-size: 0.76rem; color: var(--text-muted); display: block;">Ngày bàn giao:</span>
+                    <strong style="color: var(--text-plum); font-size: 0.92rem;">
+                      {{ prop.delivery_date|date:"d/m/Y" }}
+                    </strong>
+                  </div>
+                  <div>
+                    <span style="font-size: 0.76rem; color: var(--text-muted); display: block;">Số lần sửa đổi miễn phí:</span>
+                    <strong style="color: var(--text-plum); font-size: 0.92rem;">
+                      {{ prop.max_revisions }} lần
+                    </strong>
+                  </div>
+                </div>
+
+                <!-- Scope & Terms -->
+                <div style="font-size: 0.88rem; color: var(--text-plum); line-height: 1.5; margin-bottom: 12px;">
+                  {% if prop.scope_of_work %}
+                    <p style="margin: 0 0 6px 0;"><strong>Phạm vi công việc:</strong> {{ prop.scope_of_work }}</p>
+                  {% endif %}
+                  {% if prop.license_terms %}
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.82rem;"><strong>Điều khoản quyền:</strong> {{ prop.license_terms }}</p>
+                  {% endif %}
+                </div>
+
+                <!-- Attached proposal sketch -->
+                {% if prop.sketch_file %}
+                  <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: space-between;">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Có kèm phác thảo đề xuất</span>
+                    <a href="{% url 'commissions:download_proposal_sketch' commission.id prop.id %}" class="btn btn-secondary btn-sm" style="text-decoration: none;">
+                      Xem phác thảo v{{ prop.version }}
+                    </a>
+                  </div>
+                {% endif %}
+
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="text-align: center; padding: 24px; color: var(--text-muted); background: #FAFAFA; border-radius: var(--radius-md);">
+            Nghệ sĩ chưa gửi báo giá cho yêu cầu này.
+          </div>
+        {% endif %}
+      </div>
+
+
+      <!-- 2.3 TIẾN ĐỘ & PHÁC THẢO (WORK IN PROGRESS) -->
+      {% if commission.status in 'IN_PROGRESS,DELIVERED,REVISION_REQUESTED,COMPLETED' %}
+        <div class="detail-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px 28px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
+            <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0; font-weight: 700;">
+              Tiến độ thực hiện & Phác thảo (WIP)
+            </h2>
+            {% if commission.sketch_file %}
+              <span style="font-size: 0.78rem; background: #E6F7FF; color: #0050B3; border: 1px solid #91D5FF; border-radius: var(--radius-full); padding: 2px 10px; font-weight: 600;">
+                Đã có bản phác thảo
+              </span>
+            {% endif %}
+          </div>
+
+          {% if commission.sketch_file %}
+            <div style="background: #F8F5FB; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+              <div>
+                <strong style="color: var(--text-plum); font-size: 0.95rem; display: block; margin-bottom: 4px;">
+                  Bản phác thảo tiến độ mới nhất
+                </strong>
+                <span style="font-size: 0.78rem; color: var(--text-muted); font-family: monospace;">
+                  {{ commission.sketch_filename|default:"Tệp phác thảo bảo mật" }}
+                </span>
+              </div>
+              <a href="{% url 'commissions:download_sketch' commission.id %}" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 6px; text-decoration: none;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <span>Tải phác thảo tiến độ</span>
+              </a>
+            </div>
+          {% else %}
+            <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted); font-style: italic;">
+              Nghệ sĩ đang thực hiện tác phẩm và sẽ tải lên bản phác thảo tiến độ trong thời gian tới.
+            </p>
+          {% endif %}
+        </div>
+      {% endif %}
+
+
+      <!-- 2.4 BÀN GIAO TÁC PHẨM & NGHIỆM THU (DELIVERABLES) -->
+      {% if commission.status in 'DELIVERED,REVISION_REQUESTED,COMPLETED' or commission.final_delivery_file %}
+        <div class="detail-card" style="background: #FFFFFF; border: 2px solid {% if commission.status == 'COMPLETED' %}#52C41A{% else %}var(--primary-berry){% endif %}; border-radius: var(--radius-lg); padding: 24px 28px; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0; font-weight: 700;">
+              Sản phẩm bàn giao hoàn chỉnh
+            </h2>
+            <span style="font-size: 0.82rem; color: var(--text-plum); font-weight: 600;">
+              Số lần đã yêu cầu sửa: <strong>{{ commission.revisions_used }}</strong> / {{ commission.agreed_max_revisions }} lần
+            </span>
+          </div>
+
+          {% if commission.final_delivery_file %}
+            <div style="background: #FFF0F6; border: 1px solid #FFADD2; border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                <div>
+                  <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--primary-berry); margin-bottom: 4px;">
+                    Tệp tác phẩm hoàn chỉnh (Kho riêng tư)
+                  </div>
+                  <strong style="color: var(--text-plum); font-size: 1.05rem; display: block; font-family: monospace;">
+                    {{ commission.final_delivery_filename|default:"Tệp bàn giao bảo mật" }}
+                  </strong>
+                  {% if commission.delivered_at %}
+                    <span style="font-size: 0.76rem; color: var(--text-muted);">
+                      Bàn giao ngày {{ commission.delivered_at|date:"d/m/Y H:i" }}
+                    </span>
+                  {% endif %}
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                  <a href="{% url 'commissions:download_deliverable' commission.id %}" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    <span>Tải tệp bàn giao gốc</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Xuất chứng nhận PDF nếu hoàn tất -->
+            {% if commission.status == 'COMPLETED' %}
+              <div style="background: #F6FFED; border: 1px solid #B7EB8F; border-radius: var(--radius-md); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div>
+                  <strong style="color: #389E0D; font-size: 0.95rem; display: block;">
+                    ✓ Giấy chứng nhận bản quyền đã phát hành
+                  </strong>
+                  <span style="font-size: 0.8rem; color: var(--text-muted);">
+                    Chứng nhận số hợp đồng commission và phạm vi sử dụng được xác thực bởi ARTFAIR.
+                  </span>
+                </div>
+                <a href="{% url 'commissions:certificate' commission.id %}" target="_blank" class="btn btn-secondary" style="border-color: #52C41A; color: #237804; text-decoration: none; font-weight: 700;">
+                  📄 Tải chứng nhận PDF
+                </a>
+              </div>
+            {% endif %}
+
+          {% else %}
+            <p style="margin: 0; font-size: 0.88rem; color: var(--text-muted); font-style: italic;">
+              Nghệ sĩ chưa tải lên tệp bàn giao hoàn chỉnh.
+            </p>
+          {% endif %}
+        </div>
+      {% endif %}
+
+
+      <!-- 2.5 NHẬT KÝ SỰ KIỆN (TIMELINE / AUDIT TRAIL) -->
+      <div class="detail-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px 28px; box-shadow: var(--shadow-sm);">
+        <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
+          Lịch sử tiến trình & Sự kiện
+        </h2>
+
+        <div class="events-timeline" style="display: flex; flex-direction: column; gap: 16px; border-left: 2px solid var(--bg-lavender); margin-left: 8px; padding-left: 18px;">
+          {% for ev in commission.events.all %}
+            <div class="timeline-event-item" style="position: relative;">
+              <div style="position: absolute; left: -25px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary-berry); border: 2px solid #FFFFFF;"></div>
+              <div>
+                <strong style="color: var(--text-plum); font-size: 0.92rem; display: block;">
+                  {{ ev.title }}
+                </strong>
+                <span style="font-size: 0.76rem; color: var(--text-muted);">
+                  Bởi @{{ ev.actor.username|default:"Hệ thống" }} &bull; {{ ev.created_at|date:"d/m/Y H:i:s" }}
+                </span>
+                {% if ev.note %}
+                  <p style="margin: 4px 0 0 0; font-size: 0.84rem; color: var(--text-plum); background: #FAFAFA; padding: 6px 10px; border-radius: var(--radius-sm);">
+                    {{ ev.note }}
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- RIGHT COLUMN: FINANCIAL SUMMARY, ESCROW STATUS, ACTION BUTTONS -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      
+      <!-- FINANCIAL & ESCROW CARD -->
+      <div class="summary-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card);">
+        <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
+          Tóm tắt tài chính & Ký quỹ
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Giá thỏa thuận:</span>
+            <strong style="font-size: 1.3rem; color: var(--text-berry); font-family: var(--font-serif);">
+              {% if commission.agreed_price %}
+                {{ commission.agreed_price|floatformat:0 }} ₫
+              {% else %}
+                {{ commission.budget|floatformat:0 }} ₫ (Dự kiến)
+              {% endif %}
+            </strong>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Trạng thái thanh toán:</span>
+            {% if commission.is_escrow_released %}
+              <span style="font-size: 0.82rem; font-weight: 700; color: #389E0D; background: #F6FFED; border: 1px solid #B7EB8F; padding: 2px 8px; border-radius: var(--radius-sm);">
+                Đã giải ngân
+              </span>
+            {% elif commission.is_paid %}
+              <span style="font-size: 0.82rem; font-weight: 700; color: #096DD9; background: #E6F7FF; border: 1px solid #91D5FF; padding: 2px 8px; border-radius: var(--radius-sm);">
+                Đang giữ ký quỹ
+              </span>
+            {% else %}
+              <span style="font-size: 0.82rem; font-weight: 700; color: #8C8C8C; background: #F5F5F5; border: 1px solid #D9D9D9; padding: 2px 8px; border-radius: var(--radius-sm);">
+                Chưa thanh toán
+              </span>
+            {% endif %}
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Hạn bàn giao đã chốt:</span>
+            <strong style="font-size: 0.95rem; color: var(--text-plum);">
+              {% if commission.agreed_delivery_date %}
+                {{ commission.agreed_delivery_date|date:"d/m/Y" }}
+              {% else %}
+                {{ commission.deadline|date:"d/m/Y" }}
+              {% endif %}
+            </strong>
+          </div>
+        </div>
+
+        <!-- Safe Escrow Notice -->
+        <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-md); padding: 12px; font-size: 0.78rem; color: var(--text-plum); line-height: 1.4;">
+          🛡️ <strong>Ký quỹ an toàn:</strong> Tiền được giữ tạm thời bởi hệ thống mô phỏng và chỉ được chuyển vào số dư khả dụng của nghệ sĩ khi Người mua xác nhận hoàn tất nghiệm thu.
+        </div>
+      </div>
+
+
+      <!-- ACTION CARD: BUTTONS DEPENDING ON ROLE & STATUS -->
+      <div class="actions-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card);">
+        <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
+          Thao tác xử lý
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 12px;" id="actionButtonsContainer">
+          
+          <!-- ================= BUYER ACTIONS ================= -->
+          {% if is_buyer %}
+            
+            <!-- When Quoted: Accept & Pay OR Decline -->
+            {% if commission.status == 'QUOTED' and commission.active_proposal %}
+              <button class="btn btn-primary" id="btnOpenPaymentModal" style="width: 100%; padding: 12px; font-weight: 700;">
+                💳 Chấp nhận & Thanh toán mô phỏng
+              </button>
+              <button class="btn btn-secondary" id="btnDeclineProposal" style="width: 100%;">
+                Từ chối báo giá này
+              </button>
+            {% endif %}
+
+            <!-- When Delivered: Complete OR Request Revision -->
+            {% if commission.status == 'DELIVERED' %}
+              <button class="btn btn-primary" id="btnCompleteCommission" style="width: 100%; padding: 12px; font-weight: 700; background: #52C41A; border-color: #52C41A;">
+                ✓ Nghiệm thu & Hoàn tất đơn
+              </button>
+
+              {% if commission.revisions_used < commission.agreed_max_revisions %}
+                <button class="btn btn-secondary" id="btnOpenRevisionModal" style="width: 100%;">
+                  Yêu cầu chỉnh sửa (Còn {{ commission.agreed_max_revisions|add:"-1" }} lần)
+                </button>
+              {% else %}
+                <div style="font-size: 0.8rem; color: #CF1322; background: #FFF1F0; border: 1px solid #FFA39E; border-radius: var(--radius-sm); padding: 8px; text-align: center;">
+                  Đã hết số lần chỉnh sửa miễn phí thỏa thuận.
+                </div>
+              {% endif %}
+            {% endif %}
+
+            <!-- When Requested or Quoted: Can Cancel -->
+            {% if commission.status in 'REQUESTED,QUOTED' and not commission.is_paid %}
+              <button class="btn btn-ghost" id="btnOpenCancelModal" style="color: #CF1322; border-color: rgba(207, 19, 34, 0.2);">
+                Hủy yêu cầu đặt vẽ
+              </button>
+            {% endif %}
+
+            <!-- When In Progress: Info banner -->
+            {% if commission.status == 'IN_PROGRESS' %}
+              <div style="font-size: 0.84rem; color: var(--text-muted); background: #FAFAFA; border-radius: var(--radius-sm); padding: 12px; text-align: center;">
+                ⏳ Nghệ sĩ đang thực hiện tác phẩm. Bạn sẽ nhận được thông báo khi nghệ sĩ tải lên phác thảo hoặc sản phẩm bàn giao.
+              </div>
+            {% endif %}
+
+            <!-- When Completed: Certificate & Download -->
+            {% if commission.status == 'COMPLETED' %}
+              <a href="{% url 'commissions:download_deliverable' commission.id %}" class="btn btn-primary" style="text-align: center; text-decoration: none;">
+                Tải tệp bàn giao hoàn chỉnh
+              </a>
+              <a href="{% url 'commissions:certificate' commission.id %}" target="_blank" class="btn btn-secondary" style="text-align: center; text-decoration: none;">
+                Xem chứng nhận PDF
+              </a>
+            {% endif %}
+
+          {% endif %}
+
+
+          <!-- ================= CREATOR ACTIONS ================= -->
+          {% if is_creator %}
+            
+            <!-- When Requested or Quoted: Submit / Revise Proposal OR Reject -->
+            {% if commission.status in 'REQUESTED,QUOTED' %}
+              <button class="btn btn-primary" id="btnOpenProposalModal" style="width: 100%; padding: 12px; font-weight: 700;">
+                {% if commission.status == 'QUOTED' %}Điều chỉnh báo giá (Phiên bản mới){% else %}Gửi báo giá & Đề xuất{% endif %}
+              </button>
+              <button class="btn btn-secondary" id="btnOpenRejectModal" style="width: 100%; color: #CF1322;">
+                Từ chối yêu cầu đặt vẽ
+              </button>
+            {% endif %}
+
+            <!-- When In Progress or Revision Requested: Upload Sketch OR Deliver -->
+            {% if commission.status in 'IN_PROGRESS,REVISION_REQUESTED' %}
+              <button class="btn btn-secondary" id="btnOpenSketchModal" style="width: 100%;">
+                Cập nhật phác thảo tiến độ
+              </button>
+              <button class="btn btn-primary" id="btnOpenDeliverModal" style="width: 100%; padding: 12px; font-weight: 700;">
+                Bàn giao tác phẩm hoàn chỉnh
+              </button>
+            {% endif %}
+
+            <!-- When Delivered: Info waiting for buyer -->
+            {% if commission.status == 'DELIVERED' %}
+              <div style="font-size: 0.84rem; color: var(--text-plum); background: #FFF0F6; border: 1px solid #FFADD2; border-radius: var(--radius-sm); padding: 12px; text-align: center;">
+                Tác phẩm đã bàn giao! Đang chờ Người mua nghiệm thu và giải ngân tiền ký quỹ.
+              </div>
+              <button class="btn btn-secondary" id="btnOpenDeliverModal" style="width: 100%; margin-top: 6px;">
+                Bàn giao lại bản chỉnh sửa (Nếu cần)
+              </button>
+            {% endif %}
+
+            <!-- When Completed: Direct to Revenue Dashboard -->
+            {% if commission.status == 'COMPLETED' %}
+              <div style="font-size: 0.84rem; color: #389E0D; background: #F6FFED; border: 1px solid #B7EB8F; border-radius: var(--radius-sm); padding: 12px; text-align: center;">
+                ✓ Đơn hàng hoàn tất nghiệm thu! Doanh thu đã được cộng vào số dư khả dụng của bạn.
+              </div>
+              <a href="/dashboard/#tab-revenue" class="btn btn-primary" style="text-align: center; text-decoration: none;">
+                Mở Dashboard Doanh thu & Rút tiền
+              </a>
+            {% endif %}
+
+          {% endif %}
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================================
+     MODALS
+     ========================================================================= -->
+
+<!-- MODAL 1: THANH TOÁN MÔ PHỎNG (BUYER) -->
+<div class="modal-backdrop" id="modalPaymentBackdrop" style="display: none;">
+  <div class="modal-dialog" style="max-width: 480px; text-align: center; padding: 28px;">
+    <div style="width: 56px; height: 56px; border-radius: 50%; background: #FFF0F6; color: var(--primary-berry); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+    </div>
+    <h3 style="font-family: var(--font-serif); font-size: 1.4rem; color: var(--text-plum); margin: 0 0 6px;">
+      Thanh toán ký quỹ mô phỏng
+    </h3>
+    <p style="font-size: 0.84rem; color: var(--text-berry); font-weight: 600; margin-bottom: 16px;">
+      Sandbox Testing — Không phát sinh giao dịch tiền thật
+    </p>
+
+    <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px; text-align: left;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+        <span style="font-size: 0.85rem; color: var(--text-muted);">Số tiền thanh toán:</span>
+        <strong style="font-size: 1.2rem; color: var(--text-berry); font-family: var(--font-serif);">
+          {{ commission.active_proposal.price|default:commission.budget|floatformat:0 }}₫
+        </strong>
+      </div>
+      <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">
+        Số tiền này sẽ được ký quỹ tại hệ thống ARTFAIR và chỉ được chuyển cho nghệ sĩ khi bạn nghiệm thu sản phẩm cuối cùng.
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="btn btn-primary" id="btnSimulateSuccess" style="padding: 12px; font-weight: 700;">
+        ✓ Giả lập Thanh toán Thành công
+      </button>
+      <button class="btn btn-secondary" id="btnSimulateFail" style="color: #CF1322;">
+        ✕ Giả lập Thất bại
+      </button>
+      <button class="btn btn-ghost" id="btnClosePaymentModal">
+        Hủy bỏ
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL 2: GỬI BÁO GIÁ & ĐỀ XUẤT (CREATOR) -->
+<div class="modal-backdrop" id="modalProposalBackdrop" style="display: none;">
+  <div class="modal-dialog" style="max-width: 580px;">
+    <button class="modal-close-btn" id="btnCloseProposalModal">&times;</button>
+    <div class="modal-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px; margin-bottom: 18px;">
+      <h3 style="font-family: var(--font-serif); font-size: 1.3rem; color: var(--text-plum); margin: 0 0 4px;">
+        Gửi báo giá & Đề xuất thỏa thuận
+      </h3>
+      <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">
+        Xác lập giá chính thức, hạn bàn giao và điều khoản cho người mua.
+      </p>
+    </div>
+
+    <form id="formSubmitProposal" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+        <div class="form-group">
+          <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+            Giá chốt (VND) *
+          </label>
+          <input type="number" name="price" class="form-input" min="1000" step="1000" value="{{ commission.budget|floatformat:0 }}" required style="width: 100%;">
+        </div>
+
+        <div class="form-group">
+          <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+            Ngày bàn giao cam kết *
+          </label>
+          <input type="date" name="delivery_date" id="propDeliveryDate" class="form-input" required style="width: 100%;">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+          Số lần chỉnh sửa miễn phí cho phép *
+        </label>
+        <input type="number" name="max_revisions" class="form-input" min="0" max="10" value="2" required style="width: 100%;">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+          Phạm vi công việc (Scope of work) *
+        </label>
+        <textarea name="scope_of_work" class="form-input" rows="3" placeholder="Ví dụ: Vẽ phác thảo 2 concept, hoàn thiện lineart và tô màu toàn bộ, xuất file PNG độ phân giải 300DPI..." required style="width: 100%;"></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+          Điều khoản quyền sử dụng
+        </label>
+        <input type="text" name="license_terms" class="form-input" value="Bản quyền sử dụng không độc quyền, quyền tác giả giữ bởi nghệ sĩ." style="width: 100%;">
+      </div>
+
+      <div class="form-group" style="margin-bottom: 18px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+          Phác thảo sơ bộ đính kèm (Tùy chọn)
+        </label>
+        <input type="file" name="sketch_file" class="form-input" accept=".jpg,.jpeg,.png,.webp,.pdf" style="width: 100%; font-size: 0.84rem;">
+      </div>
+
+      <div id="proposalErrorBox" style="display: none; background: #FFF1F0; border: 1px solid #FFA39E; border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.82rem; color: #CF1322; margin-bottom: 14px;"></div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="btnCancelProposalModal">Hủy</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitProposalBtn">Gửi báo giá</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- MODAL 3: BÀN GIAO TÁC PHẨM (CREATOR DELIVER) -->
+<div class="modal-backdrop" id="modalDeliverBackdrop" style="display: none;">
+  <div class="modal-dialog" style="max-width: 520px;">
+    <button class="modal-close-btn" id="btnCloseDeliverModal">&times;</button>
+    <div class="modal-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px; margin-bottom: 18px;">
+      <h3 style="font-family: var(--font-serif); font-size: 1.3rem; color: var(--text-plum); margin: 0 0 4px;">
+        Bàn giao tác phẩm hoàn chỉnh
+      </h3>
+      <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">
+        Tải lên tệp gốc bàn giao. Tệp sẽ được lưu trong kho riêng tư bảo mật.
+      </p>
+    </div>
+
+    <form id="formDeliver" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+          Chọn tệp bàn giao (JPG, PNG, PSD, AI, ZIP...) *
+        </label>
+        <input type="file" name="delivery_file" class="form-input" required style="width: 100%; font-size: 0.84rem;">
+        <span style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-top: 4px;">Tối đa 50MB. Chỉ người mua sau khi nghiệm thu mới có thể tải tệp này.</span>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 18px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+          Lời nhắn tới Người mua
+        </label>
+        <textarea name="delivery_note" class="form-input" rows="3" placeholder="Ghi chú về định dạng tệp, kích thước, hoặc hướng dẫn sử dụng..." style="width: 100%;"></textarea>
+      </div>
+
+      <div id="deliverErrorBox" style="display: none; background: #FFF1F0; border: 1px solid #FFA39E; border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.82rem; color: #CF1322; margin-bottom: 14px;"></div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="btnCancelDeliverModal">Hủy</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitDeliverBtn">Bàn giao ngay</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- MODAL 4: YÊU CẦU CHỈNH SỬA (BUYER REVISION) -->
+<div class="modal-backdrop" id="modalRevisionBackdrop" style="display: none;">
+  <div class="modal-dialog" style="max-width: 500px;">
+    <button class="modal-close-btn" id="btnCloseRevisionModal">&times;</button>
+    <div class="modal-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px; margin-bottom: 18px;">
+      <h3 style="font-family: var(--font-serif); font-size: 1.3rem; color: var(--text-plum); margin: 0 0 4px;">
+        Yêu cầu chỉnh sửa tác phẩm
+      </h3>
+      <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">
+        Số lần đã sửa: {{ commission.revisions_used }} / {{ commission.agreed_max_revisions }} lần.
+      </p>
+    </div>
+
+    <form id="formRevision">
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+          Chi tiết nội dung cần chỉnh sửa *
+        </label>
+        <textarea name="revision_note" class="form-input" rows="4" placeholder="Mô tả cụ thể những điểm nghệ sĩ cần thay đổi hoặc hoàn thiện..." required style="width: 100%;"></textarea>
+      </div>
+
+      <div id="revisionErrorBox" style="display: none; background: #FFF1F0; border: 1px solid #FFA39E; border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.82rem; color: #CF1322; margin-bottom: 14px;"></div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="btnCancelRevisionModal">Hủy</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitRevisionBtn">Gửi yêu cầu sửa</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- MODAL 5: TẢI LÊN PHÁC THẢO TIẾN ĐỘ (CREATOR SKETCH) -->
+<div class="modal-backdrop" id="modalSketchBackdrop" style="display: none;">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <button class="modal-close-btn" id="btnCloseSketchModal">&times;</button>
+    <div class="modal-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px; margin-bottom: 18px;">
+      <h3 style="font-family: var(--font-serif); font-size: 1.3rem; color: var(--text-plum); margin: 0 0 4px;">
+        Cập nhật phác thảo tiến độ
+      </h3>
+    </div>
+
+    <form id="formSketch" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+          Chọn tệp phác thảo (JPG, PNG, PDF) *
+        </label>
+        <input type="file" name="sketch_file" class="form-input" accept=".jpg,.jpeg,.png,.webp,.pdf" required style="width: 100%; font-size: 0.84rem;">
+      </div>
+
+      <div id="sketchErrorBox" style="display: none; background: #FFF1F0; border: 1px solid #FFA39E; border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.82rem; color: #CF1322; margin-bottom: 14px;"></div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="btnCancelSketchModal">Hủy</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitSketchBtn">Tải lên</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- MODAL 6: HỦY HOẶC TỪ CHỐI -->
+<div class="modal-backdrop" id="modalReasonBackdrop" style="display: none;">
+  <div class="modal-dialog" style="max-width: 460px;">
+    <button class="modal-close-btn" id="btnCloseReasonModal">&times;</button>
+    <div class="modal-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px; margin-bottom: 18px;">
+      <h3 style="font-family: var(--font-serif); font-size: 1.3rem; color: #CF1322; margin: 0 0 4px;" id="reasonModalTitle">
+        Xác nhận
+      </h3>
+    </div>
+
+    <form id="formReason">
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-plum); margin-bottom: 4px;">
+          Lý do *
+        </label>
+        <textarea name="reason" id="reasonInput" class="form-input" rows="3" required style="width: 100%;"></textarea>
+      </div>
+
+      <div id="reasonErrorBox" style="display: none; background: #FFF1F0; border: 1px solid #FFA39E; border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.82rem; color: #CF1322; margin-bottom: 14px;"></div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="button" class="btn btn-secondary" id="btnCancelReasonModal">Đóng</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitReasonBtn" style="background: #CF1322; border-color: #CF1322;">Xác nhận</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+<script>
+(function() {
+  const commId = {{ commission.id }};
+  const csrfToken = window.ArtFair ? window.ArtFair.getCsrfToken() : '';
+
+  // Helper for generic API action
+  async function callApi(actionUrl, bodyData = {}) {
+    const liveCsrf = (window.ArtFair && window.ArtFair.getCsrfToken) 
+      ? window.ArtFair.getCsrfToken() 
+      : (document.querySelector('meta[name="csrf-token"]')?.content || '');
+
+    let headers = {
+      'X-CSRFToken': liveCsrf
+    };
+    let body = bodyData;
+
+    if (!(bodyData instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+      body = JSON.stringify(bodyData);
+    }
+
+    const response = await fetch(actionUrl, {
+      method: 'POST',
+      headers: headers,
+      credentials: 'same-origin',
+      body: body
+    });
+
+    if (response.status === 403) {
+      const clone = response.clone();
+      const bodyText = await clone.text().catch(() => '');
+      if (bodyText.includes('CSRF') || bodyText.includes('csrf') || bodyText.includes('Csrftoken')) {
+        if (window.ArtFair?.fetchCsrfToken) await window.ArtFair.fetchCsrfToken();
+        throw new Error('Phiên xác thực đã thay đổi. Vui lòng tải lại trang và thử lại.');
+      }
+    }
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.detail || 'Có lỗi xảy ra khi thực hiện thao tác.');
+    }
+    return data;
+  }
+
+  // 1. PAYMENT MODAL
+  const modalPayment = document.getElementById('modalPaymentBackdrop');
+  const btnOpenPayment = document.getElementById('btnOpenPaymentModal');
+  const btnClosePayment = document.getElementById('btnClosePaymentModal');
+  const btnSimSuccess = document.getElementById('btnSimulateSuccess');
+  const btnSimFail = document.getElementById('btnSimulateFail');
+
+  if (btnOpenPayment) btnOpenPayment.addEventListener('click', () => modalPayment.style.display = 'flex');
+  if (btnClosePayment) btnClosePayment.addEventListener('click', () => modalPayment.style.display = 'none');
+
+  if (btnSimSuccess) {
+    btnSimSuccess.addEventListener('click', async () => {
+      btnSimSuccess.disabled = true;
+      try {
+        await callApi(`/api/commissions/${commId}/accept-and-pay/`, { action: 'SUCCESS' });
+        window.ArtFair && window.ArtFair.showToast('Thanh toán ký quỹ mô phỏng thành công! Đơn chuyển sang trạng thái Đang thực hiện.', 'success');
+        setTimeout(() => window.location.reload(), 1000);
+      } catch (e) {
+        window.ArtFair && window.ArtFair.showToast(e.message, 'error');
+        btnSimSuccess.disabled = false;
+      }
+    });
+  }
+
+  if (btnSimFail) {
+    btnSimFail.addEventListener('click', async () => {
+      window.ArtFair && window.ArtFair.showToast('Mô phỏng thất bại: Thanh toán không thành công.', 'warning');
+      modalPayment.style.display = 'none';
+    });
+  }
+
+  // 2. DECLINE PROPOSAL
+  const btnDecline = document.getElementById('btnDeclineProposal');
+  if (btnDecline) {
+    btnDecline.addEventListener('click', async () => {
+      if (!confirm('Bạn có chắc chắn muốn từ chối báo giá này? Nghệ sĩ sẽ nhận được phản hồi để gửi báo giá mới.')) return;
+      try {
+        await callApi(`/api/commissions/${commId}/decline-proposal/`);
+        window.ArtFair && window.ArtFair.showToast('Đã từ chối báo giá thành công.', 'info');
+        setTimeout(() => window.location.reload(), 800);
+      } catch (e) {
+        window.ArtFair && window.ArtFair.showToast(e.message, 'error');
+      }
+    });
+  }
+
+  // 3. COMPLETE COMMISSION
+  const btnComplete = document.getElementById('btnCompleteCommission');
+  if (btnComplete) {
+    btnComplete.addEventListener('click', async () => {
+      if (!confirm('Xác nhận nghiệm thu tác phẩm? Thao tác này sẽ giải ngân số tiền ký quỹ mô phỏng cho nghệ sĩ và cấp Giấy chứng nhận bản quyền PDF.')) return;
+      btnComplete.disabled = true;
+      try {
+        await callApi(`/api/commissions/${commId}/complete/`);
+        window.ArtFair && window.ArtFair.showToast('Chúc mừng! Đã hoàn tất nghiệm thu đơn đặt vẽ.', 'success');
+        setTimeout(() => window.location.reload(), 1000);
+      } catch (e) {
+        window.ArtFair && window.ArtFair.showToast(e.message, 'error');
+        btnComplete.disabled = false;
+      }
+    });
+  }
+
+  // 4. PROPOSAL MODAL (CREATOR)
+  const modalProposal = document.getElementById('modalProposalBackdrop');
+  const btnOpenProposal = document.getElementById('btnOpenProposalModal');
+  const btnCloseProposal = document.getElementById('btnCloseProposalModal');
+  const btnCancelProposal = document.getElementById('btnCancelProposalModal');
+  const formProposal = document.getElementById('formSubmitProposal');
+  const propErrBox = document.getElementById('proposalErrorBox');
+
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 7);
+  const yyyy = tomorrow.getFullYear();
+  const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const dd = String(tomorrow.getDate()).padStart(2, '0');
+  const propDateInput = document.getElementById('propDeliveryDate');
+  if (propDateInput) propDateInput.value = `${yyyy}-${mm}-${dd}`;
+
+  if (btnOpenProposal) btnOpenProposal.addEventListener('click', () => modalProposal.style.display = 'flex');
+  if (btnCloseProposal) btnCloseProposal.addEventListener('click', () => modalProposal.style.display = 'none');
+  if (btnCancelProposal) btnCancelProposal.addEventListener('click', () => modalProposal.style.display = 'none');
+
+  if (formProposal) {
+    formProposal.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      propErrBox.style.display = 'none';
+      const formData = new FormData(formProposal);
+      try {
+        await callApi(`/api/commissions/${commId}/submit-proposal/`, formData);
+        window.ArtFair && window.ArtFair.showToast('Gửi báo giá thành công!', 'success');
+        setTimeout(() => window.location.reload(), 800);
+      } catch (err) {
+        propErrBox.textContent = err.message;
+        propErrBox.style.display = 'block';
+      }
+    });
+  }
+
+  // 5. DELIVER MODAL (CREATOR)
+  const modalDeliver = document.getElementById('modalDeliverBackdrop');
+  const btnOpenDeliver = document.getElementById('btnOpenDeliverModal');
+  const btnCloseDeliver = document.getElementById('btnCloseDeliverModal');
+  const btnCancelDeliver = document.getElementById('btnCancelDeliverModal');
+  const formDeliver = document.getElementById('formDeliver');
+  const deliverErrBox = document.getElementById('deliverErrorBox');
+
+  if (btnOpenDeliver) btnOpenDeliver.addEventListener('click', () => modalDeliver.style.display = 'flex');
+  if (btnCloseDeliver) btnCloseDeliver.addEventListener('click', () => modalDeliver.style.display = 'none');
+  if (btnCancelDeliver) btnCancelDeliver.addEventListener('click', () => modalDeliver.style.display = 'none');
+
+  if (formDeliver) {
+    formDeliver.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      deliverErrBox.style.display = 'none';
+      const formData = new FormData(formDeliver);
+      try {
+        await callApi(`/api/commissions/${commId}/deliver/`, formData);
+        window.ArtFair && window.ArtFair.showToast('Bàn giao tác phẩm thành công!', 'success');
+        setTimeout(() => window.location.reload(), 800);
+      } catch (err) {
+        deliverErrBox.textContent = err.message;
+        deliverErrBox.style.display = 'block';
+      }
+    });
+  }
+
+  // 6. REVISION MODAL (BUYER)
+  const modalRevision = document.getElementById('modalRevisionBackdrop');
+  const btnOpenRevision = document.getElementById('btnOpenRevisionModal');
+  const btnCloseRevision = document.getElementById('btnCloseRevisionModal');
+  const btnCancelRevision = document.getElementById('btnCancelRevisionModal');
+  const formRevision = document.getElementById('formRevision');
+  const revErrBox = document.getElementById('revisionErrorBox');
+
+  if (btnOpenRevision) btnOpenRevision.addEventListener('click', () => modalRevision.style.display = 'flex');
+  if (btnCloseRevision) btnCloseRevision.addEventListener('click', () => modalRevision.style.display = 'none');
+  if (btnCancelRevision) btnCancelRevision.addEventListener('click', () => modalRevision.style.display = 'none');
+
+  if (formRevision) {
+    formRevision.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      revErrBox.style.display = 'none';
+      const formData = new FormData(formRevision);
+      try {
+        await callApi(`/api/commissions/${commId}/request-revision/`, formData);
+        window.ArtFair && window.ArtFair.showToast('Đã gửi yêu cầu chỉnh sửa tới nghệ sĩ.', 'success');
+        setTimeout(() => window.location.reload(), 800);
+      } catch (err) {
+        revErrBox.textContent = err.message;
+        revErrBox.style.display = 'block';
+      }
+    });
+  }
+
+  // 7. SKETCH MODAL (CREATOR)
+  const modalSketch = document.getElementById('modalSketchBackdrop');
+  const btnOpenSketch = document.getElementById('btnOpenSketchModal');
+  const btnCloseSketch = document.getElementById('btnCloseSketchModal');
+  const btnCancelSketch = document.getElementById('btnCancelSketchModal');
+  const formSketch = document.getElementById('formSketch');
+  const sketchErrBox = document.getElementById('sketchErrorBox');
+
+  if (btnOpenSketch) btnOpenSketch.addEventListener('click', () => modalSketch.style.display = 'flex');
+  if (btnCloseSketch) btnCloseSketch.addEventListener('click', () => modalSketch.style.display = 'none');
+  if (btnCancelSketch) btnCancelSketch.addEventListener('click', () => modalSketch.style.display = 'none');
+
+  if (formSketch) {
+    formSketch.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      sketchErrBox.style.display = 'none';
+      const formData = new FormData(formSketch);
+      try {
+        await callApi(`/api/commissions/${commId}/upload-sketch/`, formData);
+        window.ArtFair && window.ArtFair.showToast('Tải lên phác thảo tiến độ thành công!', 'success');
+        setTimeout(() => window.location.reload(), 800);
+      } catch (err) {
+        sketchErrBox.textContent = err.message;
+        sketchErrBox.style.display = 'block';
+      }
+    });
+  }
+
+  // 8. REJECT / CANCEL MODAL
+  const modalReason = document.getElementById('modalReasonBackdrop');
+  const btnOpenCancel = document.getElementById('btnOpenCancelModal');
+  const btnOpenReject = document.getElementById('btnOpenRejectModal');
+  const btnCloseReason = document.getElementById('btnCloseReasonModal');
+  const btnCancelReason = document.getElementById('btnCancelReasonModal');
+  const formReason = document.getElementById('formReason');
+  const reasonTitle = document.getElementById('reasonModalTitle');
+  const reasonErrBox = document.getElementById('reasonErrorBox');
+
+  let currentReasonAction = ''; // 'cancel' or 'reject'
+
+  if (btnOpenCancel) {
+    btnOpenCancel.addEventListener('click', () => {
+      currentReasonAction = 'cancel';
+      reasonTitle.textContent = 'Hủy yêu cầu đặt vẽ';
+      modalReason.style.display = 'flex';
+    });
+  }
+
+  if (btnOpenReject) {
+    btnOpenReject.addEventListener('click', () => {
+      currentReasonAction = 'reject';
+      reasonTitle.textContent = 'Từ chối yêu cầu đặt vẽ';
+      modalReason.style.display = 'flex';
+    });
+  }
+
+  if (btnCloseReason) btnCloseReason.addEventListener('click', () => modalReason.style.display = 'none');
+  if (btnCancelReason) btnCancelReason.addEventListener('click', () => modalReason.style.display = 'none');
+
+  if (formReason) {
+    formReason.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      reasonErrBox.style.display = 'none';
+      const reasonVal = document.getElementById('reasonInput').value;
+      const endpoint = currentReasonAction === 'reject' 
+        ? `/api/commissions/${commId}/reject/` 
+        : `/api/commissions/${commId}/cancel/`;
+
+      try {
+        await callApi(endpoint, { reason: reasonVal });
+        window.ArtFair && window.ArtFair.showToast('Thao tác thành công.', 'info');
+        setTimeout(() => window.location.reload(), 800);
+      } catch (err) {
+        reasonErrBox.textContent = err.message;
+        reasonErrBox.style.display = 'block';
+      }
+    });
+  }
+
+})();
+</script>
+{% endblock %}

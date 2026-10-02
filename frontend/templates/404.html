@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}404 — Không tìm thấy trang | ARTFAIR{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 64px; padding-bottom: 96px; text-align: center;">
+
+  <div style="max-width: 540px; margin: 0 auto; background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 48px 32px; box-shadow: var(--shadow-card);">
+    
+    <!-- Delicate 404 Badge -->
+    <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--bg-page); color: var(--primary-berry); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid var(--border-subtle);">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+    </div>
+
+    <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary-berry); text-transform: uppercase; letter-spacing: 1.5px; display: block; margin-bottom: 8px;">
+      Lỗi 404 &bull; Not Found
+    </span>
+
+    <h1 style="font-family: var(--font-serif); font-size: 2.1rem; color: var(--text-plum); margin: 0 0 12px 0; font-weight: 700;">
+      Trang không tồn tại
+    </h1>
+
+    <p style="font-size: 0.95rem; color: var(--text-muted); line-height: 1.6; margin: 0 0 28px 0;">
+      Đường dẫn bạn đang tìm kiếm có thể đã bị thay đổi, xóa bỏ hoặc tạm thời không khả dụng trên hệ thống ARTFAIR.
+    </p>
+
+    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+      <a href="{% url 'home' %}" class="btn btn-primary" style="text-decoration: none; padding: 0 24px;">
+        Quay về Khám phá
+      </a>
+      <a href="{% url 'artist_list' %}" class="btn btn-secondary" style="text-decoration: none; padding: 0 20px;">
+        Xem các nghệ sĩ
+      </a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

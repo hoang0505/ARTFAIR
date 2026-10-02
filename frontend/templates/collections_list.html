@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bộ sưu tập tác phẩm tuyển chọn | ARTFAIR{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 36px; padding-bottom: 72px;">
+
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <a href="{% url 'home' %}" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
+    <span>/</span>
+    <span style="color: var(--text-berry); font-weight: 600;">Bộ sưu tập</span>
+  </nav>
+
+  <!-- Page Header -->
+  <div style="margin-bottom: 40px; text-align: center; max-width: 680px; margin-left: auto; margin-right: auto;">
+    <div class="hero-pill" style="display: inline-flex; margin-bottom: 12px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+      Chủ đề & Thể loại
+    </div>
+    <h1 style="font-family: var(--font-serif); font-size: 2.3rem; color: var(--text-plum); margin: 0 0 12px 0; font-weight: 700; line-height: 1.25;">
+      Bộ sưu tập nghệ thuật tuyển chọn
+    </h1>
+    <p style="font-size: 0.98rem; color: var(--text-muted); margin: 0; line-height: 1.6;">
+      Khám phá các nhóm tác phẩm số được tuyển chọn và phân loại theo chủ đề, thể loại và phong cách sáng tạo trên ARTFAIR.
+    </p>
+  </div>
+
+  <!-- Collections Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px;">
+    {% for col in collections %}
+      <div class="collection-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; transition: transform var(--trans-fast), box-shadow var(--trans-fast);">
+        
+        <!-- Collection Representative Visual Banner -->
+        <div style="height: 180px; position: relative; background: linear-gradient(135deg, #FDEBF3 0%, #EEE7FA 100%); overflow: hidden;">
+          {% if col.cover_art and col.cover_art.preview_image %}
+            <img src="{{ col.cover_art.preview_image.url }}" alt="{{ col.name }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;">
+          {% else %}
+            {% if col.slug == 'digital-painting' %}
+              <img src="{% static 'images/curated/monet_water_lilies_1906.jpg' %}" alt="{{ col.name }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.94;">
+            {% elif col.slug == '3d-art' %}
+              <img src="{% static 'images/curated/monet_water_lily_pond_1899.jpg' %}" alt="{{ col.name }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.94;">
+            {% elif col.slug == 'concept-art' %}
+              <img src="{% static 'images/curated/hitchcock_flower_girl_holland_1887.jpg' %}" alt="{{ col.name }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.94;">
+            {% else %}
+              <img src="{% static 'images/curated/vangogh_roses_1890.jpg' %}" alt="{{ col.name }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.94;">
+            {% endif %}
+            <span style="position: absolute; top: 12px; right: 12px; background: rgba(50, 21, 47, 0.65); backdrop-filter: blur(4px); font-size: 0.68rem; font-weight: 600; color: #FFF; padding: 2px 8px; border-radius: var(--radius-full);">
+              Ảnh minh họa • CC0
+            </span>
+          {% endif %}
+
+          <div style="position: absolute; bottom: 12px; left: 16px; background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(6px); border: 1px solid var(--border-light); border-radius: var(--radius-full); padding: 4px 12px; font-size: 0.78rem; font-weight: 700; color: var(--primary-berry);">
+            {{ col.count }} tác phẩm đã đăng
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 24px; flex: 1; display: flex; flex-direction: column;">
+          <h2 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-plum); margin: 0 0 8px 0; font-weight: 700;">
+            <a href="{% url 'collection_detail' col.slug %}" style="color: inherit; text-decoration: none;">
+              {{ col.name }}
+            </a>
+          </h2>
+
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.55; margin: 0 0 20px 0; flex: 1;">
+            {{ col.description }}
+          </p>
+
+          <a href="{% url 'collection_detail' col.slug %}" class="btn btn-secondary" style="width: 100%; text-align: center; text-decoration: none; font-size: 0.88rem; font-weight: 700; box-sizing: border-box;">
+            Khám phá bộ sưu tập &rarr;
+          </a>
+        </div>
+
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

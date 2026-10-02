@@ -1,0 +1,74 @@
+# ==============================================================================
+# ARTFAIR .gitignore
+# Excludes virtualenvs, databases, secrets, user-uploaded media, and backups.
+# ==============================================================================
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment secrets and credentials
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# SQLite Databases & transaction journals
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+*.db
+db.sqlite3
+db.sqlite3.bak
+
+# User-uploaded Media & Protected delivery files
+media/
+protected_media/
+artfair_backend/media/
+artfair_backend/protected_media/
+
+# Backups & Archives
+backups/
+backup/
+*.bak
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Logs
+*.log
+
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE & Editor caches
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary test scripts
+scratch/
+test_*.py
+comprehensive_smoke_test.py
+check_*.py

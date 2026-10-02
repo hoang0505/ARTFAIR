@@ -1,0 +1,43 @@
+# ==============================================================================
+# ARTFAIR Backend .gitignore
+# ==============================================================================
+
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Database & Journals
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+*.db
+db.sqlite3
+db.sqlite3.bak
+
+# Media storage
+media/
+protected_media/
+
+# Archives & Backups
+*.bak
+*.zip
+*.tar.gz
+*.rar
+*.7z
+backups/
+
+# Logs
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
