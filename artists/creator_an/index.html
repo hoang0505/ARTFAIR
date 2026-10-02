@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="AO8l3TNaYpyutsIUfYrROi8ImBkdBtSUKDUCH5ttVhnvY6Es5MMFFxsI3L3CFBQo">
+  <meta name="csrf-token" content="7iTtoH4urUST7gznkxl6VPLsSCzVSEjw9rEggfVR0Dg80mVmelUUcuW3gMXzd61v">
   
 </head>
 <body>
@@ -479,7 +479,7 @@
     </div>
 
     <form id="commissionRequestForm" enctype="multipart/form-data">
-      <input type="hidden" name="csrfmiddlewaretoken" value="AO8l3TNaYpyutsIUfYrROi8ImBkdBtSUKDUCH5ttVhnvY6Es5MMFFxsI3L3CFBQo">
+      <input type="hidden" name="csrfmiddlewaretoken" value="7iTtoH4urUST7gznkxl6VPLsSCzVSEjw9rEggfVR0Dg80mVmelUUcuW3gMXzd61v">
       <input type="hidden" name="creator_username" value="creator_an">
 
       <!-- Tiêu đề -->
@@ -1094,6 +1094,41 @@
         }
       });
     }
+
+    // Dynamically synchronize live profile details (avatar, cover, display name) from live API
+    (async function syncLiveProfile() {
+      try {
+        const username = 'creator_an';
+        const apiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+          ? window.ArtFairConfig.apiUrl(`/api/accounts/artists/${encodeURIComponent(username)}/`)
+          : `/api/accounts/artists/${encodeURIComponent(username)}/`;
+        const res = await fetch(apiUrl);
+        if (!res.ok) return;
+        const pData = await res.json();
+        const mUrl = (window.ArtFairConfig && window.ArtFairConfig.mediaUrl)
+          ? window.ArtFairConfig.mediaUrl
+          : (p) => p;
+
+        if (pData.avatar) {
+          const avatarElem = document.querySelector('.artist-avatar-wrapper');
+          if (avatarElem) {
+            avatarElem.innerHTML = `<img src="${mUrl(pData.avatar)}" alt="${username}" style="width: 100%; height: 100%; object-fit: cover;">`;
+          }
+        }
+        if (pData.cover_image) {
+          const coverElem = document.querySelector('.artist-cover-banner');
+          if (coverElem) {
+            coverElem.innerHTML = `<img src="${mUrl(pData.cover_image)}" alt="Cover của ${username}" style="width: 100%; height: 100%; object-fit: cover;">`;
+          }
+        }
+        if (pData.display_name) {
+          const nameElem = document.querySelector('.artist-hero-card h1');
+          if (nameElem && nameElem.textContent.trim() !== pData.display_name) {
+            nameElem.textContent = pData.display_name;
+          }
+        }
+      } catch (_) {}
+    })();
   })();
 </script>
 
