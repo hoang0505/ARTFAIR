@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hồ sơ nghệ sĩ Hoang0505 | ARTFAIR</title>
+  <title>Hồ sơ nghệ sĩ hoang0505 | ARTFAIR</title>
 
   <!-- Google Fonts: Be Vietnam Pro (Sans-serif) & Playfair Display (Serif) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="3GIbUmlL0PHUIH186KqbPHiGJOs3CuioSml2cYisUpW3FoI6moEqZgSBIjkFTpd7">
+  <meta name="csrf-token" content="f3I5kAn3TFHLMwrBe2Kk0Hx31Y0czsgqeNj7nTRyGieOsSOjs22fJjziAHnIodvn">
   
 </head>
 <body>
@@ -192,7 +192,7 @@
       <div style="margin-bottom: 16px;">
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px;">
           <h1 style="font-family: var(--font-serif); font-size: 1.9rem; color: var(--text-plum); margin: 0; font-weight: 700;">
-            Hoang0505
+            hoang0505
           </h1>
           
             <span class="role-pill buyer" style="font-size: 0.8rem; padding: 3px 10px;">Người mua (Buyer)</span>
@@ -202,7 +202,7 @@
         </div>
 
         <p style="margin: 0; font-size: 0.95rem; color: var(--text-muted); font-weight: 500;">
-          @Hoang0505
+          @hoang0505
         </p>
       </div>
 
@@ -343,7 +343,7 @@
 
     <div class="modal-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px; margin-bottom: 20px;">
       <h3 style="font-family: var(--font-serif); font-size: 1.35rem; color: var(--text-plum); margin: 0 0 4px 0;">
-        Đặt vẽ Commission với @Hoang0505
+        Đặt vẽ Commission với @hoang0505
       </h3>
       <p style="margin: 0; font-size: 0.84rem; color: var(--text-berry); font-weight: 600;">
         ★ Thanh toán mô phỏng — Không giao dịch tiền thật
@@ -356,8 +356,8 @@
     </div>
 
     <form id="commissionRequestForm" enctype="multipart/form-data">
-      <input type="hidden" name="csrfmiddlewaretoken" value="3GIbUmlL0PHUIH186KqbPHiGJOs3CuioSml2cYisUpW3FoI6moEqZgSBIjkFTpd7">
-      <input type="hidden" name="creator_username" value="Hoang0505">
+      <input type="hidden" name="csrfmiddlewaretoken" value="f3I5kAn3TFHLMwrBe2Kk0Hx31Y0czsgqeNj7nTRyGieOsSOjs22fJjziAHnIodvn">
+      <input type="hidden" name="creator_username" value="hoang0505">
 
       <!-- Tiêu đề -->
       <div class="form-group" style="margin-bottom: 16px;">
@@ -470,7 +470,7 @@
       Mã đơn của bạn: <strong id="successCommCode" style="color: var(--text-berry);"></strong>
     </p>
     <p style="font-size: 0.84rem; color: var(--text-plum); line-height: 1.5; margin-bottom: 24px;">
-      Yêu cầu đã được chuyển tới nghệ sĩ @Hoang0505. Nghệ sĩ sẽ xem xét ý tưởng và gửi lại báo giá chính thức cho bạn.
+      Yêu cầu đã được chuyển tới nghệ sĩ @hoang0505. Nghệ sĩ sẽ xem xét ý tưởng và gửi lại báo giá chính thức cho bạn.
     </p>
     <div style="display: flex; gap: 12px; justify-content: center;">
       <button class="btn btn-secondary" id="btnCloseSuccessModal">Đóng</button>
@@ -586,6 +586,7 @@
               </div>
             </div>
 
+            <div class="form-alert form-alert-bottom" id="loginAlertBottom" style="display: none; margin-top: 10px; margin-bottom: 8px;"></div>
             <button type="submit" class="btn btn-primary btn-full" id="btnLoginSubmit" style="margin-top: 10px;">
               Đăng nhập
             </button>
@@ -666,6 +667,7 @@
               </label>
             </div>
 
+            <div class="form-alert form-alert-bottom" id="registerAlertBottom" style="display: none; margin-top: 10px; margin-bottom: 8px;"></div>
             <button type="submit" class="btn btn-primary btn-full" id="btnRegisterSubmit" style="margin-top: 10px;">
               Tạo tài khoản
             </button>
@@ -774,7 +776,7 @@
       }
 
       // Check self-commission
-      if (window.ArtFair.currentUser.username === "Hoang0505") {
+      if (window.ArtFair.currentUser.username === "hoang0505") {
         window.ArtFair.showToast('Bạn không thể tự gửi yêu cầu đặt vẽ cho chính mình.', 'warning');
         return;
       }
@@ -930,7 +932,7 @@
         btnSub.textContent = 'Đang gửi...';
 
         try {
-          const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/accounts/artists/Hoang0505/reviews/', {
+          const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/accounts/artists/hoang0505/reviews/', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'
@@ -975,7 +977,7 @@
     // Dynamically synchronize live profile details (avatar, cover, display name) from live API
     (async function syncLiveProfile() {
       try {
-        const username = 'Hoang0505';
+        const username = 'hoang0505';
         const apiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
           ? window.ArtFairConfig.apiUrl(`/api/accounts/artists/${encodeURIComponent(username)}/`)
           : `/api/accounts/artists/${encodeURIComponent(username)}/`;
@@ -1011,7 +1013,7 @@
       const u = (window.ArtFair && window.ArtFair.getCurrentUser) ? window.ArtFair.getCurrentUser() : (window.ArtFair ? window.ArtFair.currentUser : null);
       const ownerBox = document.getElementById('artistOwnerActions');
       const visitorBox = document.getElementById('artistVisitorActions');
-      if (u && u.username === 'Hoang0505') {
+      if (u && u.username === 'hoang0505') {
         if (ownerBox) ownerBox.style.display = 'flex';
         if (visitorBox) visitorBox.style.display = 'none';
       } else {

@@ -269,7 +269,12 @@ def build():
     # 4.6 User & Artist Public Profiles (/artists/<username>/)
     from accounts.models import ArtistReview
     all_users = User.objects.all().select_related('artist_profile').order_by('-id')
+    seen_usernames = set()
     for user_obj in all_users:
+        uname_lower = user_obj.username.lower()
+        if uname_lower in seen_usernames:
+            continue
+        seen_usernames.add(uname_lower)
         if user_obj.is_creator:
             artworks_qs = Artwork.objects.filter(
                 creator=user_obj,
