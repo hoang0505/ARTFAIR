@@ -8,5 +8,8 @@ Curated CC0 Public Domain Masterpieces:
 4. George Hitchcock - Flower Girl in Holland (1887, Art Institute of Chicago #138)
 5. Vincent van Gogh - Roses (1890, The Metropolitan Museum of Art #436534)
 6. Vincent van Gogh - Irises (1890, The Metropolitan Museum of Art #436528)
+7. Katsushika Hokusai - The Great Wave off Kanagawa (c. 1831, Tokyo National Museum / Commons)
+8. Gustav Klimt - Farm Garden with Sunflowers (1907, Galerie Belvedere / Commons)
+9. Claude Monet - Water Lilies - Seerosen (1916, NMWA Tokyo / Commons)
 
 All assets are in the Public Domain (CC0) and optimized for web performance.

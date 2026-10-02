@@ -1264,11 +1264,12 @@
       html += `
         <article class="art-card" data-artwork-id="${art.id}">
           <div class="art-card-img-wrap">
-            <img class="art-card-img protected-artwork-img" src="${previewSrc}" alt="${art.title}" loading="lazy" draggable="false">
+            <img class="art-card-img protected-artwork-img" src="${previewSrc}" alt="${art.title}" loading="lazy" draggable="false" style="object-fit: cover; object-position: center;">
             <div style="position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 4px; z-index: 2;">
               <span class="art-card-status-badge">Đang bán</span>
               ${categoryName ? `<span class="art-card-badge">${categoryName}</span>` : ''}
               ${art.style ? `<span class="art-card-style-badge">${art.style}</span>` : ''}
+              ${state.filters.license_type ? `<span class="art-card-license-badge">Quyền: <strong>${state.filters.license_type}</strong></span>` : ''}
             </div>
             <button class="art-card-favorite-btn ${isFav ? 'active' : ''}" data-artwork-id="${art.id}" title="${isFav ? 'Bỏ lưu yêu thích' : 'Yêu thích'}">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="${isFav ? '#E11D48' : 'none'}" stroke="${isFav ? '#E11D48' : 'currentColor'}" stroke-width="2">
@@ -1277,11 +1278,11 @@
             </button>
           </div>
           <div class="art-card-body">
-            <h3 class="art-card-title" title="${art.title}">${art.title}</h3>
-            <div class="art-card-artist">${artistHtml}</div>
+            <h3 class="art-card-title" title="${art.title}"><strong>${art.title}</strong></h3>
+            <div class="art-card-artist"><span class="art-card-by-label">Nghệ sĩ:</span> <strong>${artistHtml}</strong></div>
             <div class="art-card-price-row">
-              <span class="art-card-price">${formattedPrice}</span>
-              <span class="art-card-license-hint">${licenses.length} gói quyền</span>
+              <span class="art-card-price"><strong>${formattedPrice}</strong></span>
+              <span class="art-card-license-hint"><strong class="hint-count">${licenses.length}</strong> gói quyền</span>
             </div>
           </div>
         </article>
