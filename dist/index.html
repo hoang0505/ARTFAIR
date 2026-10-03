@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="nCZzZktc34H5jazRMGN8qRkwG3XRkvg8To1v6GeJ0jKKFtrCguY4uGm0b4BDsoUq">
+  <meta name="csrf-token" content="jgzoZRg1OWs0gXvuJfID8IGXQgUs5a1NbnKyPWrqKxjgMIq6siMmABQPwGspZTeu">
   
 </head>
 <body>
@@ -366,7 +366,7 @@
     <div class="active-filters-bar" id="activeFiltersBar"></div>
 
     <!-- Artwork Cards Gallery Grid (Dynamically rendered via JS) -->
-    <div class="art-grid" id="artGridContainer">
+    <div class="art-grid" id="artworksGrid">
       <!-- Fallback Skeleton Loading -->
       
         <div class="art-card-skeleton"></div>
@@ -384,7 +384,7 @@
     </div>
 
     <!-- Empty State -->
-    <div class="empty-state" id="galleryEmptyState">
+    <div class="empty-state" id="galleryEmptyState" style="display: none;">
       <div class="empty-icon-wrap">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <circle cx="11" cy="11" r="8"></circle>
@@ -399,23 +399,7 @@
     </div>
 
     <!-- Pagination Controls -->
-    <div class="pagination-bar" id="paginationBar">
-      <button class="pagination-btn" id="paginationPrevBtn" disabled>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-        <span>Trước</span>
-      </button>
-
-      <div class="pagination-pages" id="paginationPagesList"></div>
-
-      <button class="pagination-btn" id="paginationNextBtn" disabled>
-        <span>Sau</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </button>
-    </div>
+    <div class="pagination-wrapper" id="paginationWrapper"></div>
 
   </section>
 
@@ -442,7 +426,7 @@
       </a>
     </div>
 
-    <div class="artists-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+    <div class="artists-grid" id="homeArtistsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
       
         <div class="artist-showcase-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
           
@@ -920,5 +904,82 @@
   <script src="/ARTFAIR/static/js/config.js"></script>
   <script src="/ARTFAIR/static/js/artfair.js"></script>
   
+<script>
+  (async function syncHomeArtists() {
+    const grid = document.getElementById('homeArtistsGrid');
+    if (!grid) return;
+    try {
+      const apiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+        ? window.ArtFairConfig.apiUrl('/api/accounts/artists/')
+        : '/api/accounts/artists/';
+      const res = await fetch(apiUrl);
+      if (!res.ok) return;
+      const data = await res.json();
+      const artists = data.results || (Array.isArray(data) ? data : []);
+      if (!artists || artists.length === 0) return;
+
+      const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
+      const mUrl = (path) => (window.ArtFairConfig && window.ArtFairConfig.mediaUrl) ? window.ArtFairConfig.mediaUrl(path) : path;
+
+      const gradients = [
+        'linear-gradient(135deg, #FDEBF3 0%, #F5ECFF 100%)',
+        'linear-gradient(135deg, #EEE7FA 0%, #E6F7FF 100%)',
+        'linear-gradient(135deg, #FFF0F6 0%, #FFF2E8 100%)'
+      ];
+
+      grid.innerHTML = artists.slice(0, 8).map((creator, idx) => {
+        const profileUrl = pUrl(`/artists/${encodeURIComponent(creator.username)}/`);
+        const displayName = creator.display_name || creator.username;
+        const initial = (creator.username || 'A').charAt(0).toUpperCase();
+        const grad = gradients[idx % gradients.length];
+
+        const coverHtml = creator.cover_image
+          ? `<img src="${mUrl(creator.cover_image)}" alt="${creator.username}" style="width: 100%; height: 100%; object-fit: cover;">`
+          : '';
+
+        const avatarHtml = creator.avatar
+          ? `<img src="${mUrl(creator.avatar)}" alt="${creator.username}" style="width: 100%; height: 100%; object-fit: cover;">`
+          : `<span>${initial}</span>`;
+
+        const acceptingBadge = creator.is_accepting_commissions
+          ? `<span style="font-size: 0.72rem; color: #0070BA; background: #E6F7FF; border: 1px solid #91D5FF; border-radius: var(--radius-full); padding: 2px 8px; font-weight: 600; white-space: nowrap; flex-shrink: 0;">● Nhận vẽ</span>`
+          : '';
+
+        const bioText = creator.bio || 'Nghệ sĩ sáng tạo độc lập trên nền tảng ARTFAIR.';
+
+        return `
+          <div class="artist-showcase-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
+            <div style="height: 88px; background: ${grad}; position: relative; overflow: hidden;">
+              ${coverHtml}
+            </div>
+            <div style="padding: 0 20px 20px 20px; flex: 1; display: flex; flex-direction: column; position: relative;">
+              <div style="width: 60px; height: 60px; border-radius: var(--radius-full); border: 3px solid #FFFFFF; background: linear-gradient(135deg, var(--primary-berry), #A22460); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.45rem; font-weight: 700; margin-top: -30px; margin-bottom: 10px; box-shadow: 0 4px 12px rgba(185, 44, 112, 0.25); overflow: hidden;">
+                ${avatarHtml}
+              </div>
+              <div style="margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px;">
+                  <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    <a href="${profileUrl}" style="color: inherit; text-decoration: none;">
+                      ${displayName}
+                    </a>
+                  </h3>
+                  ${acceptingBadge}
+                </div>
+                <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">@${creator.username}</span>
+              </div>
+              <p style="font-size: 0.84rem; color: var(--text-plum); line-height: 1.5; margin: 0 0 16px 0; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                ${bioText}
+              </p>
+              <a href="${profileUrl}" class="btn btn-secondary btn-sm" style="width: 100%; text-align: center; text-decoration: none; font-weight: 700; box-sizing: border-box;">
+                Xem hồ sơ & Đặt vẽ &rarr;
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } catch (_) {}
+  })();
+</script>
+
 </body>
 </html>

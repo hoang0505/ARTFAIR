@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="GxcQdWMP4jgI5Z6SdjzFO6W5pY8m8D3lcjeMkixm1yjnriYDH7KBSVYzUZM8gwHD">
+  <meta name="csrf-token" content="XpD4exlHSZTadohpWo8wuMcqi37obTXzPwOe4Cw6OAKqJ9c1FrcfWFmiYtFl5Cag">
   
 </head>
 <body>
@@ -156,7 +156,7 @@
 
   <!-- Artwork Cards Grid -->
   
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 24px; margin-bottom: 48px;">
+    <div id="collectionArtworksGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 24px; margin-bottom: 48px;">
       
         <article class="art-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; transition: transform var(--trans-fast), box-shadow var(--trans-fast);">
           
@@ -510,5 +510,69 @@
   <script src="/ARTFAIR/static/js/config.js"></script>
   <script src="/ARTFAIR/static/js/artfair.js"></script>
   
+<script>
+  (async function syncCollectionArtworks() {
+    const grid = document.getElementById('collectionArtworksGrid');
+    if (!grid) return;
+    try {
+      const catSlug = "3d-art";
+      const apiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+        ? window.ArtFairConfig.apiUrl(`/api/artworks/?category=${encodeURIComponent(catSlug)}`)
+        : `/api/artworks/?category=${encodeURIComponent(catSlug)}`;
+      const res = await fetch(apiUrl);
+      if (!res.ok) return;
+      const data = await res.json();
+      const results = data.results || (Array.isArray(data) ? data : []);
+      if (!results || results.length === 0) return;
+
+      const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
+      const mUrl = (path) => (window.ArtFairConfig && window.ArtFairConfig.mediaUrl) ? window.ArtFairConfig.mediaUrl(path) : path;
+
+      grid.innerHTML = results.map(art => {
+        const detailUrl = pUrl(`/artworks/${encodeURIComponent(art.slug || art.id)}/`);
+        const creator = art.creator || {};
+        const artistName = creator.display_name || creator.username || 'Nghệ sĩ ARTFAIR';
+        const artistUrl = pUrl(`/artists/${encodeURIComponent(creator.username)}/`);
+        const imgUrl = art.preview_image ? mUrl(art.preview_image) : '';
+        const lics = art.license_options || [];
+        const prices = lics.map(l => Number(l.price)).filter(p => !isNaN(p) && p > 0);
+        const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+        const priceLabel = minPrice ? `Từ ${minPrice.toLocaleString('vi-VN')} ₫` : 'Chưa định giá';
+
+        return `
+          <article class="art-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-card); display: flex; flex-direction: column; transition: transform var(--trans-fast), box-shadow var(--trans-fast);">
+            <div class="art-card-img-wrap" style="position: relative; aspect-ratio: 4/3; overflow: hidden; background: #F8F5F8;">
+              <img src="${imgUrl}" alt="${art.title}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+              <span class="art-card-badge" style="position: absolute; top: 12px; left: 12px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(4px); padding: 3px 10px; border-radius: var(--radius-full); font-size: 0.72rem; font-weight: 600; color: var(--text-plum);">
+                3D Art
+              </span>
+            </div>
+            <div class="art-card-body" style="padding: 16px; flex: 1; display: flex; flex-direction: column;">
+              <h3 style="font-family: var(--font-serif); font-size: 1.05rem; font-weight: 700; margin: 0 0 4px 0; color: var(--text-plum); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <a href="${detailUrl}" style="color: inherit; text-decoration: none;">
+                  ${art.title}
+                </a>
+              </h3>
+              <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+                Bởi <a href="${artistUrl}" style="color: var(--primary-berry); text-decoration: none; font-weight: 600;">
+                  ${artistName}
+                </a>
+              </div>
+              <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-light); padding-top: 10px;">
+                <span style="font-size: 0.95rem; font-weight: 800; color: var(--primary-berry);">
+                  ${priceLabel}
+                </span>
+                <a href="${detailUrl}" class="btn btn-secondary btn-sm" style="font-size: 0.8rem; padding: 4px 12px; text-decoration: none;">
+                  Chi tiết &rarr;
+                </a>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    } catch (_) {}
+  })();
+</script>
+
 </body>
 </html>
