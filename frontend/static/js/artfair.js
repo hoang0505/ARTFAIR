@@ -2181,7 +2181,7 @@
 
       // User is authenticated: populate exact user information
       const isCreator = !!(user.is_creator || user.role === 'CREATOR');
-      const displayName = user.display_name || [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username;
+      const displayName = (user.artist_profile && user.artist_profile.display_name) || user.display_name || [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username;
 
       // Update Header
       const headerDisplayName = document.getElementById('dashHeaderDisplayName');
@@ -2205,9 +2205,10 @@
       }
 
       const headerAvatar = document.getElementById('dashHeaderAvatar');
+      const avatarSrc = (user.artist_profile && user.artist_profile.avatar) || user.avatar;
       if (headerAvatar) {
-        if (user.avatar) {
-          headerAvatar.innerHTML = `<img src="${mUrl(user.avatar)}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        if (avatarSrc) {
+          headerAvatar.innerHTML = `<img src="${mUrl(avatarSrc)}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover;">`;
         } else {
           const initial = (user.username || 'U').charAt(0).toUpperCase();
           headerAvatar.innerHTML = `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--primary-berry-light); color: var(--primary-berry); font-weight: 700; font-size: 1.4rem;">${initial}</div>`;
@@ -2244,6 +2245,12 @@
             if (aBio) aBio.value = prof.bio || '';
             const aComm = document.getElementById('artistAcceptCommission');
             if (aComm) aComm.checked = !!prof.is_accepting_commissions;
+            if (prof.display_name && headerDisplayName) {
+              headerDisplayName.textContent = prof.display_name;
+            }
+            if (prof.avatar && headerAvatar) {
+              headerAvatar.innerHTML = `<img src="${mUrl(prof.avatar)}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            }
           }
         } catch (_) {}
 
