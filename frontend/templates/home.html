@@ -354,18 +354,47 @@
   (async function syncHomeArtists() {
     const grid = document.getElementById('homeArtistsGrid');
     if (!grid) return;
+
+    const getApiUrl = (endpoint) => {
+      if (window.ArtFairConfig && window.ArtFairConfig.apiUrl) {
+        return window.ArtFairConfig.apiUrl(endpoint);
+      }
+      if (window.location.hostname.endsWith('github.io')) {
+        return 'https://hoang0505.pythonanywhere.com' + endpoint;
+      }
+      return endpoint;
+    };
+
+    const getPageUrl = (route) => {
+      if (window.ArtFairConfig && window.ArtFairConfig.pageUrl) {
+        return window.ArtFairConfig.pageUrl(route);
+      }
+      if (window.location.pathname.startsWith('/ARTFAIR')) {
+        return '/ARTFAIR' + (route.startsWith('/') ? route : '/' + route);
+      }
+      return route;
+    };
+
+    const getMediaUrl = (path) => {
+      if (!path) return '';
+      if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
+      if (window.ArtFairConfig && window.ArtFairConfig.mediaUrl) {
+        return window.ArtFairConfig.mediaUrl(path);
+      }
+      if (window.location.hostname.endsWith('github.io')) {
+        return 'https://hoang0505.pythonanywhere.com' + (path.startsWith('/') ? path : '/' + path);
+      }
+      return path;
+    };
+
     try {
-      const apiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
-        ? window.ArtFairConfig.apiUrl('/api/accounts/artists/')
-        : '/api/accounts/artists/';
-      const res = await fetch(apiUrl);
+      const apiUrl = getApiUrl('/api/accounts/artists/');
+      const fetchFn = (window.ArtFair && window.ArtFair.apiFetch) ? window.ArtFair.apiFetch : fetch;
+      const res = await fetchFn(apiUrl);
       if (!res.ok) return;
       const data = await res.json();
       const artists = data.results || (Array.isArray(data) ? data : []);
       if (!artists || artists.length === 0) return;
-
-      const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
-      const mUrl = (path) => (window.ArtFairConfig && window.ArtFairConfig.mediaUrl) ? window.ArtFairConfig.mediaUrl(path) : path;
 
       const gradients = [
         'linear-gradient(135deg, #FDEBF3 0%, #F5ECFF 100%)',
@@ -374,17 +403,17 @@
       ];
 
       grid.innerHTML = artists.slice(0, 8).map((creator, idx) => {
-        const profileUrl = pUrl(`/artists/${encodeURIComponent(creator.username)}/`);
+        const profileUrl = getPageUrl(`/artists/${encodeURIComponent(creator.username)}/`);
         const displayName = creator.display_name || creator.username;
         const initial = (creator.username || 'A').charAt(0).toUpperCase();
         const grad = gradients[idx % gradients.length];
 
         const coverHtml = creator.cover_image
-          ? `<img src="${mUrl(creator.cover_image)}" alt="${creator.username}" style="width: 100%; height: 100%; object-fit: cover;">`
+          ? `<img src="${getMediaUrl(creator.cover_image)}" alt="${creator.username}" style="width: 100%; height: 100%; object-fit: cover;">`
           : '';
 
         const avatarHtml = creator.avatar
-          ? `<img src="${mUrl(creator.avatar)}" alt="${creator.username}" style="width: 100%; height: 100%; object-fit: cover;">`
+          ? `<img src="${getMediaUrl(creator.avatar)}" alt="${creator.username}" style="width: 100%; height: 100%; object-fit: cover;">`
           : `<span>${initial}</span>`;
 
         const acceptingBadge = creator.is_accepting_commissions

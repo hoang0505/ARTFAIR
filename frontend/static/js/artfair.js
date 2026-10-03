@@ -102,9 +102,12 @@
 
   // Centralized API Request Wrapper with CSRF protection, Token Auth, and Base URL resolution
   async function apiFetch(url, options = {}) {
-    const resolvedUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
-      ? window.ArtFairConfig.apiUrl(url)
-      : url;
+    let resolvedUrl = url;
+    if (window.ArtFairConfig && window.ArtFairConfig.apiUrl) {
+      resolvedUrl = window.ArtFairConfig.apiUrl(url);
+    } else if (window.location.hostname.endsWith('github.io')) {
+      resolvedUrl = 'https://hoang0505.pythonanywhere.com' + (url.startsWith('/') ? url : '/' + url);
+    }
 
     const method = (options.method || 'GET').toUpperCase();
     const headers = Object.assign({}, options.headers || {});

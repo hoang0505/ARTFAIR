@@ -14,6 +14,8 @@
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="{% static 'css/artfair.css' %}">
   <meta name="csrf-token" content="{{ csrf_token }}">
+  <!-- ARTFAIR Environment Configuration -->
+  <script src="{% static 'js/config.js' %}"></script>
   {% block extra_head %}{% endblock %}
 </head>
 <body>

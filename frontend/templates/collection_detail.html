@@ -134,26 +134,55 @@
   (async function syncCollectionArtworks() {
     const grid = document.getElementById('collectionArtworksGrid');
     if (!grid) return;
+
+    const getApiUrl = (endpoint) => {
+      if (window.ArtFairConfig && window.ArtFairConfig.apiUrl) {
+        return window.ArtFairConfig.apiUrl(endpoint);
+      }
+      if (window.location.hostname.endsWith('github.io')) {
+        return 'https://hoang0505.pythonanywhere.com' + endpoint;
+      }
+      return endpoint;
+    };
+
+    const getPageUrl = (route) => {
+      if (window.ArtFairConfig && window.ArtFairConfig.pageUrl) {
+        return window.ArtFairConfig.pageUrl(route);
+      }
+      if (window.location.pathname.startsWith('/ARTFAIR')) {
+        return '/ARTFAIR' + (route.startsWith('/') ? route : '/' + route);
+      }
+      return route;
+    };
+
+    const getMediaUrl = (path) => {
+      if (!path) return '';
+      if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
+      if (window.ArtFairConfig && window.ArtFairConfig.mediaUrl) {
+        return window.ArtFairConfig.mediaUrl(path);
+      }
+      if (window.location.hostname.endsWith('github.io')) {
+        return 'https://hoang0505.pythonanywhere.com' + (path.startsWith('/') ? path : '/' + path);
+      }
+      return path;
+    };
+
     try {
       const catSlug = "{{ category.slug }}";
-      const apiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
-        ? window.ArtFairConfig.apiUrl(`/api/artworks/?category=${encodeURIComponent(catSlug)}`)
-        : `/api/artworks/?category=${encodeURIComponent(catSlug)}`;
-      const res = await fetch(apiUrl);
+      const apiUrl = getApiUrl(`/api/artworks/?category=${encodeURIComponent(catSlug)}`);
+      const fetchFn = (window.ArtFair && window.ArtFair.apiFetch) ? window.ArtFair.apiFetch : fetch;
+      const res = await fetchFn(apiUrl);
       if (!res.ok) return;
       const data = await res.json();
       const results = data.results || (Array.isArray(data) ? data : []);
       if (!results || results.length === 0) return;
 
-      const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
-      const mUrl = (path) => (window.ArtFairConfig && window.ArtFairConfig.mediaUrl) ? window.ArtFairConfig.mediaUrl(path) : path;
-
       grid.innerHTML = results.map(art => {
-        const detailUrl = pUrl(`/artworks/${encodeURIComponent(art.slug || art.id)}/`);
+        const detailUrl = getPageUrl(`/artworks/${encodeURIComponent(art.slug || art.id)}/`);
         const creator = art.creator || {};
         const artistName = creator.display_name || creator.username || 'Nghệ sĩ ARTFAIR';
-        const artistUrl = pUrl(`/artists/${encodeURIComponent(creator.username)}/`);
-        const imgUrl = art.preview_image ? mUrl(art.preview_image) : '';
+        const artistUrl = getPageUrl(`/artists/${encodeURIComponent(creator.username)}/`);
+        const imgUrl = art.preview_image ? getMediaUrl(art.preview_image) : '';
         const lics = art.license_options || [];
         const prices = lics.map(l => Number(l.price)).filter(p => !isNaN(p) && p > 0);
         const minPrice = prices.length > 0 ? Math.min(...prices) : null;
