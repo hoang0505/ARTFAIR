@@ -1269,9 +1269,13 @@
 
   // 8. Load Artworks Gallery (Real API)
   async function loadArtworks() {
-    const grid = document.getElementById('artworksGrid');
-    const pagination = document.getElementById('paginationWrapper');
+    const grid = document.getElementById('artworksGrid') || document.getElementById('artGridContainer');
+    const pagination = document.getElementById('paginationWrapper') || document.getElementById('paginationBar');
+    const emptyStateEl = document.getElementById('galleryEmptyState');
     if (!grid) return;
+
+    if (emptyStateEl) emptyStateEl.style.display = 'none';
+    grid.style.display = 'grid';
 
     // Show skeletons while loading
     renderSkeletons(grid);
@@ -1296,14 +1300,22 @@
       }
 
       const data = await res.json();
-      const results = data.results || [];
-      const totalCount = data.count || 0;
+      const results = data.results || (Array.isArray(data) ? data : []);
+      const totalCount = data.count !== undefined ? data.count : results.length;
 
       if (results.length === 0) {
-        renderEmptyState(grid);
+        if (emptyStateEl) {
+          emptyStateEl.style.display = 'block';
+          grid.style.display = 'none';
+        } else {
+          renderEmptyState(grid);
+        }
         if (pagination) pagination.innerHTML = '';
         return;
       }
+
+      if (emptyStateEl) emptyStateEl.style.display = 'none';
+      grid.style.display = 'grid';
 
       renderArtworks(grid, results);
       renderPagination(totalCount);
@@ -1538,7 +1550,7 @@
 
   // 10. Pagination rendering
   function renderPagination(totalCount) {
-    const container = document.getElementById('paginationWrapper');
+    const container = document.getElementById('paginationWrapper') || document.getElementById('paginationBar');
     if (!container) return;
 
     const pageSize = 12;
@@ -1546,8 +1558,10 @@
 
     if (totalPages <= 1) {
       container.innerHTML = '';
+      container.style.display = 'none';
       return;
     }
+    container.style.display = 'flex';
 
     let html = `
       <button class="page-btn" id="pageBtnPrev" ${state.filters.page <= 1 ? 'disabled' : ''}>
@@ -1814,7 +1828,7 @@
     const navSearch = document.getElementById('navSearchInput');
     let searchDebounceTimer;
     navSearch?.addEventListener('input', (e) => {
-      const grid = document.getElementById('artworksGrid');
+      const grid = document.getElementById('artworksGrid') || document.getElementById('artGridContainer');
       if (!grid) return;
       clearTimeout(searchDebounceTimer);
       searchDebounceTimer = setTimeout(() => {
