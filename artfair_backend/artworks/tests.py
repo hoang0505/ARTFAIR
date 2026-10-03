@@ -1448,5 +1448,130 @@ class Screen04DashboardAndPersonalHubTests(TestCase):
         res_valid_token = anon_client.get(f'{dl_url}?token={token.key}')
         self.assertEqual(res_valid_token.status_code, status.HTTP_200_OK)
 
+    def test_order_creation_with_artwork_slug_and_mismatched_id(self):
+        """
+        Verify that order creation succeeds when resolving via artwork_slug even if
+        artwork_id is an invalid/mismatched ID from a different environment.
+        """
+        self.client.force_login(self.buyer1)
+        url = reverse('artworks:order_create')
+
+        # 1. With valid slug and mismatched numeric ID
+        res1 = self.client.post(url, {
+            'artwork_id': '999999',
+            'artwork_slug': self.artwork.slug,
+            'license_type': LicenseOption.LicenseType.PERSONAL
+        })
+        self.assertEqual(res1.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res1.data['artwork']['id'], self.artwork.id)
+
+        # 2. With only artwork_slug (no artwork_id)
+        # Create a second artwork
+        art2 = Artwork.objects.create(
+            title='Art 2 Slug Only',
+            creator=self.creator,
+            category=self.category,
+            status=Artwork.Status.PUBLISHED
+        )
+        lic2 = LicenseOption.objects.create(
+            artwork=art2,
+            license_type=LicenseOption.LicenseType.COMMERCIAL,
+            price=Decimal('200000'),
+            terms='Commercial terms'
+        )
+        res2 = self.client.post(url, {
+            'artwork_slug': art2.slug,
+            'license_type': LicenseOption.LicenseType.COMMERCIAL
+        })
+        self.assertEqual(res2.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(res2.data['artwork']['id'], art2.id)
+
+    def test_order_creation_rejects_draft_and_archived_artworks(self):
+        """
+        Verify that order creation explicitly rejects DRAFT and ARCHIVED artworks
+        with distinct, descriptive error messages.
+        """
+        draft_art = Artwork.objects.create(
+            title='Draft Artwork',
+            creator=self.creator,
+            category=self.category,
+            status=Artwork.Status.DRAFT
+        )
+        LicenseOption.objects.create(
+            artwork=draft_art,
+            license_type=LicenseOption.LicenseType.PERSONAL,
+            price=Decimal('100000'),
+            terms='Draft terms'
+        )
+
+        archived_art = Artwork.objects.create(
+            title='Archived Artwork',
+            creator=self.creator,
+            category=self.category,
+            status=Artwork.Status.ARCHIVED
+        )
+        LicenseOption.objects.create(
+            artwork=archived_art,
+            license_type=LicenseOption.LicenseType.PERSONAL,
+            price=Decimal('100000'),
+            terms='Archived terms'
+        )
+
+        self.client.force_login(self.buyer1)
+        url = reverse('artworks:order_create')
+
+        # 1. Attempt to buy DRAFT artwork
+        res_draft = self.client.post(url, {
+            'artwork_slug': draft_art.slug,
+            'license_type': LicenseOption.LicenseType.PERSONAL
+        })
+        self.assertEqual(res_draft.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('bản nháp', str(res_draft.data))
+
+        # 2. Attempt to buy ARCHIVED artwork
+        res_archived = self.client.post(url, {
+            'artwork_slug': archived_art.slug,
+            'license_type': LicenseOption.LicenseType.PERSONAL
+        })
+        self.assertEqual(res_archived.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('lưu trữ', str(res_archived.data))
+
+        # 3. Attempt to buy non-existent artwork
+        res_none = self.client.post(url, {
+            'artwork_slug': 'non-existent-artwork-xyz-123',
+            'license_type': LicenseOption.LicenseType.PERSONAL
+        })
+        self.assertEqual(res_none.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Tác phẩm không tồn tại', str(res_none.data))
+
+    def test_download_file_and_favorite_by_slug(self):
+        """
+        Verify that ArtworkFileDownloadView and ArtworkFavoriteToggleView
+        both accept slug as identifier.
+        """
+        # Buyer1 purchases artwork
+        Order.objects.create(
+            buyer=self.buyer1,
+            artwork=self.artwork,
+            license_type=LicenseOption.LicenseType.PERSONAL,
+            license_option=self.lic_pers,
+            price_paid=Decimal('150000'),
+            status=Order.Status.COMPLETED
+        )
+
+        self.client.force_login(self.buyer1)
+
+        # 1. Download by slug
+        dl_url = reverse('artworks:artwork_download_file', kwargs={'artwork_id': self.artwork.slug})
+        dl_res = self.client.get(dl_url)
+        self.assertEqual(dl_res.status_code, status.HTTP_200_OK)
+
+        # 2. Toggle favorite by slug
+        fav_url = reverse('artworks:artwork_favorite_toggle', kwargs={'pk': self.artwork.slug})
+        fav_res = self.client.post(fav_url)
+        self.assertEqual(fav_res.status_code, status.HTTP_200_OK)
+        self.assertTrue(fav_res.data['favorited'])
+
+
 
 

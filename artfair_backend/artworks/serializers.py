@@ -290,18 +290,53 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class CreateOrderSerializer(serializers.Serializer):
-    artwork_id = serializers.IntegerField(required=True)
+    artwork_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    artwork_slug = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     license_type = serializers.ChoiceField(choices=LicenseOption.LicenseType.choices, required=True)
 
     def validate(self, attrs):
         user = self.context['request'].user
-        artwork_id = attrs['artwork_id']
+        artwork_id_raw = attrs.get('artwork_id')
+        artwork_slug_raw = attrs.get('artwork_slug')
         license_type = attrs['license_type']
 
-        try:
-            artwork = Artwork.objects.get(pk=artwork_id, status=Artwork.Status.PUBLISHED)
-        except Artwork.DoesNotExist:
-            raise serializers.ValidationError({'artwork_id': 'Tác phẩm không tồn tại hoặc chưa được phát hành.'})
+        if not artwork_id_raw and not artwork_slug_raw:
+            raise serializers.ValidationError({'artwork_id': 'Vui lòng cung cấp mã hoặc slug tác phẩm.'})
+
+        artwork = None
+
+        # 1. Authoritative cross-environment resolution by slug if provided
+        if artwork_slug_raw:
+            str_slug = str(artwork_slug_raw).strip()
+            if str_slug:
+                artwork = Artwork.objects.filter(slug=str_slug).first()
+
+        # 2. If not found by slug, resolve by artwork_id_raw (supports int PK or slug)
+        if not artwork and artwork_id_raw is not None:
+            str_id = str(artwork_id_raw).strip()
+            if str_id.isdigit():
+                artwork = Artwork.objects.filter(pk=int(str_id)).first()
+            if not artwork:
+                artwork = Artwork.objects.filter(slug=str_id).first()
+
+        if not artwork:
+            raise serializers.ValidationError({'artwork_id': 'Tác phẩm không tồn tại trên hệ thống.'})
+
+        # Distinct, informative status validation
+        if artwork.status == Artwork.Status.ARCHIVED:
+            raise serializers.ValidationError({
+                'detail': 'Tác phẩm này đã được chuyển vào kho lưu trữ và ngừng kinh doanh.',
+                'status': 'ARCHIVED'
+            })
+
+        if artwork.status == Artwork.Status.DRAFT:
+            raise serializers.ValidationError({
+                'detail': 'Tác phẩm này đang ở trạng thái bản nháp và chưa được phát hành công khai.',
+                'status': 'DRAFT'
+            })
+
+        if artwork.status != Artwork.Status.PUBLISHED:
+            raise serializers.ValidationError({'artwork_id': 'Tác phẩm chưa được phát hành công khai.'})
 
         if artwork.creator == user:
             raise serializers.ValidationError({'detail': 'Nghệ sĩ không thể tự mua quyền sử dụng tác phẩm của chính mình.'})

@@ -36,7 +36,7 @@ urlpatterns = [
     # Favorites / Wishlist endpoints
     path('favorites/ids/', MyFavoriteIdsView.as_view(), name='my_favorite_ids'),
     path('favorites/my-favorites/', MyFavoritesListView.as_view(), name='my_favorites_list'),
-    path('<int:pk>/favorite/', ArtworkFavoriteToggleView.as_view(), name='artwork_favorite_toggle'),
+    path('<str:pk>/favorite/', ArtworkFavoriteToggleView.as_view(), name='artwork_favorite_toggle'),
 
     # Personal Library & Certificate (Screen 04)
     path('library/my-library/', MyLibraryListView.as_view(), name='my_library_list'),
@@ -53,7 +53,7 @@ urlpatterns = [
     path('orders/<str:order_code>/simulate-payment/', SimulatePaymentView.as_view(), name='order_simulate_payment'),
 
     # Secure original file download endpoint (Creator owner, Staff & Buyer with completed order)
-    path('<int:artwork_id>/download-file/', ArtworkFileDownloadView.as_view(), name='artwork_download_file'),
+    path('<str:artwork_id>/download-file/', ArtworkFileDownloadView.as_view(), name='artwork_download_file'),
 
     # Creator studio / management endpoints
     path('my-artworks/', CreatorArtworkListCreateView.as_view(), name='creator_artwork_list_create'),

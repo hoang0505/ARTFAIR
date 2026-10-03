@@ -662,7 +662,14 @@ class ArtworkFileDownloadView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        artwork = get_object_or_404(Artwork, pk=artwork_id)
+        str_id = str(artwork_id).strip()
+        artwork = None
+        if str_id.isdigit():
+            artwork = Artwork.objects.filter(pk=int(str_id)).first()
+        if not artwork:
+            artwork = Artwork.objects.filter(slug=str_id).first()
+        if not artwork:
+            raise Http404("Tác phẩm không tồn tại trên hệ thống lưu trữ.")
 
         # Check if buyer has completed order
         has_purchased = Order.objects.filter(
@@ -1077,7 +1084,14 @@ class ArtworkFavoriteToggleView(APIView):
 
     def post(self, request, pk):
         from .models import ArtworkFavorite
-        artwork = get_object_or_404(Artwork, pk=pk, status=Artwork.Status.PUBLISHED)
+        str_pk = str(pk).strip()
+        artwork = None
+        if str_pk.isdigit():
+            artwork = Artwork.objects.filter(pk=int(str_pk), status=Artwork.Status.PUBLISHED).first()
+        if not artwork:
+            artwork = Artwork.objects.filter(slug=str_pk, status=Artwork.Status.PUBLISHED).first()
+        if not artwork:
+            raise Http404("Tác phẩm không tồn tại hoặc chưa được phát hành.")
         fav = ArtworkFavorite.objects.filter(user=request.user, artwork=artwork).first()
         if fav:
             fav.delete()
