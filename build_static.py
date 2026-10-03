@@ -152,9 +152,10 @@ def build():
     categories = list(Category.objects.all().order_by('name'))
     tags = list(Tag.objects.all().order_by('name'))
     creators = list(User.objects.filter(role=User.Role.CREATOR, is_active=True).exclude(username='admin').select_related('artist_profile').order_by('username'))
-    featured_artworks = list(Artwork.objects.filter(
+    gallery_artworks = list(Artwork.objects.filter(
         status=Artwork.Status.PUBLISHED
-    ).select_related('creator', 'creator__artist_profile', 'category').prefetch_related('license_options').order_by('-created_at')[:3])
+    ).select_related('creator', 'creator__artist_profile', 'category').prefetch_related('license_options').order_by('-created_at')[:8])
+    featured_artworks = gallery_artworks[:3]
 
     styles = [
         {'id': 'son-dau', 'name': 'Sơn dầu'},
@@ -174,6 +175,7 @@ def build():
         'styles': styles,
         'creators': creators,
         'featured_artworks': featured_artworks,
+        'gallery_artworks': gallery_artworks,
     }, request=dummy_request)
     write_page('index.html', home_html)
 

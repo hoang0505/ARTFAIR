@@ -49,6 +49,14 @@
     } catch (_) {}
   }
 
+  // Utility: Currency Formatter for VND
+  function formatVND(value) {
+    if (value === null || value === undefined || isNaN(value)) return '0 ₫';
+    const num = Math.round(Number(value));
+    return num.toLocaleString('vi-VN') + ' ₫';
+  }
+  window.formatVND = formatVND;
+
   // Utility: Get CSRF token from document cookies
   function getCookie(name) {
     if (!document.cookie) return null;
@@ -1340,6 +1348,7 @@
       renderPagination(totalCount);
 
     } catch (err) {
+      console.error('[ARTFAIR Gallery Error]', err);
       renderErrorState(grid);
       if (pagination) pagination.innerHTML = '';
     }
@@ -1361,17 +1370,23 @@
   }
 
   function renderEmptyState(container) {
+    const pUrl = (route) => (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(route) : route;
     container.innerHTML = `
       <div style="grid-column: 1 / -1;">
-        <div class="state-notice-box">
-          <svg class="state-notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            <line x1="8" y1="11" x2="14" y2="11"></line>
-          </svg>
-          <h3 class="state-notice-title">Không tìm thấy tác phẩm</h3>
-          <p class="state-notice-desc">Không có tác phẩm nào phù hợp với bộ lọc hiện tại. Hãy thử chọn danh mục khác hoặc đặt lại bộ lọc.</p>
-          <button class="btn btn-primary" id="btnResetFiltersEmpty">Đặt lại bộ lọc</button>
+        <div class="state-notice-box" style="text-align: center; padding: 48px 24px; background: #FFFDFB; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg); margin: 20px 0;">
+          <div style="width: 60px; height: 60px; margin: 0 auto 16px; border-radius: 50%; background: #FAF5FF; display: flex; align-items: center; justify-content: center; color: var(--primary-berry);">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          </div>
+          <h3 class="state-notice-title" style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Chưa có tác phẩm trong danh mục này</h3>
+          <p class="state-notice-desc" style="font-size: 0.92rem; color: var(--text-muted); max-width: 480px; margin: 0 auto 20px;">Danh mục này đang mở đón nhận tác phẩm mới từ cộng đồng nghệ sĩ. Bạn có thể chọn danh mục khác hoặc đặt vẽ tác phẩm theo yêu cầu.</p>
+          <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-primary btn-sm" id="btnResetFiltersEmpty">Khám phá tất cả tác phẩm</button>
+            <a href="${pUrl('/artists/')}" class="btn btn-secondary btn-sm" style="text-decoration: none;">Xem các nghệ sĩ</a>
+          </div>
         </div>
       </div>
     `;
@@ -1435,11 +1450,13 @@
         : artistName;
       const categoryName = art.category ? art.category.name : '';
       const previewSrc = mUrl(art.preview_image || '');
+      const fallbackImg = 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&auto=format&fit=crop&q=80';
+      const imgSrc = previewSrc || fallbackImg;
 
       html += `
         <article class="art-card" data-artwork-id="${art.id}">
           <div class="art-card-img-wrap">
-            <img class="art-card-img protected-artwork-img" src="${previewSrc}" alt="${art.title}" loading="lazy" draggable="false" style="object-fit: cover; object-position: center;">
+            <img class="art-card-img protected-artwork-img" src="${imgSrc}" alt="${art.title}" loading="lazy" draggable="false" style="object-fit: cover; object-position: center;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&auto=format&fit=crop&q=80';">
             <div style="position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 4px; z-index: 2;">
               <span class="art-card-status-badge">Đang bán</span>
               ${categoryName ? `<span class="art-card-badge">${categoryName}</span>` : ''}
@@ -1512,7 +1529,11 @@
     const descElem = document.getElementById('qvDesc');
     const tiersElem = document.getElementById('qvLicenseTiers');
 
-    if (imgElem) imgElem.src = mUrl(art.preview_image || '');
+    if (imgElem) {
+      const qvSrc = mUrl(art.preview_image || '') || 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&auto=format&fit=crop&q=80';
+      imgElem.src = qvSrc;
+      imgElem.onerror = () => { imgElem.src = 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&auto=format&fit=crop&q=80'; };
+    }
     if (titleElem) titleElem.textContent = art.title;
     if (artistElem) artistElem.textContent = (art.creator && art.creator.display_name) ? art.creator.display_name : (art.creator?.username || 'Nghệ sĩ ArtFair');
     if (categoryElem) categoryElem.textContent = art.category ? art.category.name : '';

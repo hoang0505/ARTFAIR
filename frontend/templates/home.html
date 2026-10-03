@@ -244,27 +244,70 @@
     <!-- Active Filter Badges Indicator -->
     <div class="active-filters-bar" id="activeFiltersBar"></div>
 
-    <!-- Artwork Cards Gallery Grid (Dynamically rendered via JS) -->
-    <div class="art-grid" id="artworksGrid">
-      <!-- Fallback Skeleton Loading -->
-      {% for i in "123456" %}
-        <div class="art-card-skeleton"></div>
-      {% endfor %}
+    <!-- Artwork Cards Gallery Grid (Pre-rendered for instant load, dynamically hydrated via JS) -->
+    <div class="artworks-grid art-grid" id="artworksGrid">
+      {% if gallery_artworks %}
+        {% for art in gallery_artworks %}
+          <article class="art-card" data-artwork-id="{{ art.id }}" onclick="window.location.href='{% url 'artwork_detail' art.slug %}'" style="cursor: pointer;">
+            <div class="art-card-img-wrap">
+              {% if art.preview_image %}
+                <img class="art-card-img protected-artwork-img" src="{{ art.preview_image.url }}" alt="{{ art.title }}" loading="lazy" draggable="false" style="object-fit: cover; object-position: center;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&auto=format&fit=crop&q=80';">
+              {% else %}
+                <img class="art-card-img protected-artwork-img" src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600&auto=format&fit=crop&q=80" alt="{{ art.title }}" loading="lazy" draggable="false" style="object-fit: cover; object-position: center;">
+              {% endif %}
+              <div style="position: absolute; top: 10px; left: 10px; display: flex; flex-direction: column; gap: 4px; z-index: 2;">
+                <span class="art-card-status-badge">Đang bán</span>
+                {% if art.category %}<span class="art-card-badge">{{ art.category.name }}</span>{% endif %}
+                {% if art.style %}<span class="art-card-style-badge">{{ art.style }}</span>{% endif %}
+              </div>
+            </div>
+            <div class="art-card-body">
+              <h3 class="art-card-title" title="{{ art.title }}"><strong>{{ art.title }}</strong></h3>
+              <div class="art-card-artist"><span class="art-card-by-label">Nghệ sĩ:</span> <strong>{{ art.creator.artist_profile.display_name|default:art.creator.username }}</strong></div>
+              <div class="art-card-price-row">
+                <span class="art-card-price">
+                  {% with lic=art.license_options.first %}
+                    {% if lic %}<strong>Từ {{ lic.price|floatformat:0 }} ₫</strong>{% else %}<strong>Chưa định giá</strong>{% endif %}
+                  {% endwith %}
+                </span>
+                <span class="art-card-license-hint"><strong class="hint-count">{{ art.license_options.count }}</strong> gói quyền</span>
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      {% else %}
+        {% for i in "12345678" %}
+          <div class="skeleton-card">
+            <div class="skeleton-img"></div>
+            <div class="skeleton-text" style="width: 70%;"></div>
+            <div class="skeleton-text short"></div>
+            <div class="skeleton-text price"></div>
+          </div>
+        {% endfor %}
+      {% endif %}
     </div>
 
     <!-- Empty State -->
     <div class="empty-state" id="galleryEmptyState" style="display: none;">
-      <div class="empty-icon-wrap">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
+      <div style="text-align: center; padding: 48px 24px; background: #FFFDFB; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg); margin: 20px 0;">
+        <div style="width: 60px; height: 60px; margin: 0 auto 16px; border-radius: 50%; background: #FAF5FF; display: flex; align-items: center; justify-content: center; color: var(--primary-berry);">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </div>
+        <h3 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin-bottom: 8px;">Chưa có tác phẩm trong danh mục này</h3>
+        <p style="font-size: 0.92rem; color: var(--text-muted); max-width: 480px; margin: 0 auto 20px;">Danh mục này đang mở đón nhận tác phẩm mới từ cộng đồng nghệ sĩ. Bạn có thể chọn danh mục khác hoặc đặt vẽ tác phẩm theo yêu cầu.</p>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <button class="btn btn-primary btn-sm" onclick="window.ArtFair && window.ArtFair.resetFilters ? window.ArtFair.resetFilters() : null">
+            Khám phá tất cả tác phẩm
+          </button>
+          <a href="{% url 'artist_list' %}" class="btn btn-secondary btn-sm" style="text-decoration: none;">
+            Xem các nghệ sĩ
+          </a>
+        </div>
       </div>
-      <h3 class="empty-title">Không tìm thấy tác phẩm phù hợp</h3>
-      <p class="empty-desc">Hãy thử thay đổi danh mục, mức giá hoặc từ khóa tìm kiếm của bạn.</p>
-      <button class="btn btn-secondary" onclick="window.ArtFair && window.ArtFair.resetFilters ? window.ArtFair.resetFilters() : null">
-        Khám phá tất cả tác phẩm
-      </button>
     </div>
 
     <!-- Pagination Controls -->
