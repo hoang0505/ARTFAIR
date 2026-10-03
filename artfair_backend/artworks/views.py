@@ -43,6 +43,7 @@ class CategoryListView(generics.ListAPIView):
     """
     Public list of all art categories.
     """
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -53,6 +54,7 @@ class TagListView(generics.ListAPIView):
     """
     Public list of all tags.
     """
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
@@ -65,6 +67,7 @@ class PublicArtworkListView(generics.ListAPIView):
     Supports filtering by category, artist, tag, license_type, min_price, max_price.
     Supports search by title, description, and tags.
     """
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
     serializer_class = PublicArtworkListSerializer
     filterset_class = ArtworkFilter
@@ -83,6 +86,7 @@ class PublicArtworkDetailView(generics.RetrieveAPIView):
     Public detail view of a single PUBLISHED artwork.
     Lookup by ID or slug.
     """
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
     serializer_class = PublicArtworkDetailSerializer
 

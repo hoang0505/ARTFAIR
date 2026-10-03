@@ -188,6 +188,7 @@ class PublicArtistProfileView(RetrieveAPIView):
     Hides private contact details and unverified credentials.
     Supports case-insensitive username lookup.
     """
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
     serializer_class = PublicArtistProfileSerializer
     lookup_url_kwarg = 'username'
@@ -209,6 +210,7 @@ class PublicArtistListView(ListAPIView):
     Public directory of creator profiles (/api/accounts/artists/).
     Supports search query 'q' and filtering by is_accepting_commissions.
     """
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
     serializer_class = PublicArtistProfileSerializer
 
@@ -288,6 +290,7 @@ class ArtistReviewsByUsernameView(APIView):
     """
     Public view: list verified buyer reviews for an artist.
     """
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, username):

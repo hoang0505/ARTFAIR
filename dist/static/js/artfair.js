@@ -112,14 +112,22 @@
     const method = (options.method || 'GET').toUpperCase();
     const headers = Object.assign({}, options.headers || {});
 
-    // Check if endpoint is an unauthenticated public auth endpoint
+    // Check if endpoint is an unauthenticated public auth endpoint or public read endpoint
     const isPublicAuthEndpoint = url.includes('/api/accounts/auth/login') ||
                                  url.includes('/api/accounts/auth/register') ||
                                  url.includes('/api/accounts/auth/csrf');
 
-    // Attach Token Authorization header if user has authenticated token (NEVER on login, register, or csrf)
+    // Public read endpoints never require token; omitting token protects against stale token 401
+    const isPublicReadEndpoint = (method === 'GET') && (
+      (url.startsWith('/api/artworks/') && !url.includes('/creator') && !url.includes('/my-artworks') && !url.includes('/library') && !url.includes('/favorites')) ||
+      (url.startsWith('/api/accounts/artists') && !url.includes('/artist-profile/')) ||
+      url.startsWith('/api/artworks/categories') ||
+      url.startsWith('/api/artworks/tags')
+    );
+
+    // Attach Token Authorization header if user has authenticated token
     const token = getAuthToken();
-    if (token && !headers['Authorization'] && !isPublicAuthEndpoint) {
+    if (token && !headers['Authorization'] && !isPublicAuthEndpoint && !isPublicReadEndpoint) {
       headers['Authorization'] = `Token ${token}`;
     }
 
@@ -139,19 +147,27 @@
     };
 
     try {
-      const res = await fetch(resolvedUrl, fetchOptions);
+      let res = await fetch(resolvedUrl, fetchOptions);
 
       // Check for Invalid Token failure (401 Unauthorized)
       if (res.status === 401) {
         const clone = res.clone();
         try {
           const bodyText = await clone.text();
-          if (bodyText.includes('Invalid token') || bodyText.includes('invalid_token')) {
+          if (bodyText.includes('Invalid token') || bodyText.includes('invalid_token') || bodyText.includes('Authentication credentials were not provided')) {
             console.warn('[ARTFAIR Auth] Stale or invalid token detected. Purging invalid token from storage...');
             setAuthToken('');
             state.currentUser = null;
             renderNavbarAuth();
             window.dispatchEvent(new CustomEvent('artfair:user_loaded', { detail: null }));
+
+            // Auto-retry once without the stale Authorization header
+            if (fetchOptions.headers && fetchOptions.headers['Authorization']) {
+              const retryHeaders = Object.assign({}, fetchOptions.headers);
+              delete retryHeaders['Authorization'];
+              const retryOptions = Object.assign({}, fetchOptions, { headers: retryHeaders });
+              res = await fetch(resolvedUrl, retryOptions);
+            }
           }
         } catch (_) {}
       }
