@@ -1491,8 +1491,20 @@
             if (live.status && live.status !== 'PUBLISHED') {
               if (btnBuy) {
                 btnBuy.disabled = true;
-                if (btnBuyText) btnBuyText.textContent = live.status === 'ARCHIVED' ? 'Tác phẩm đã lưu trữ' : 'Tác phẩm chưa phát hành';
+                btnBuyText.textContent = live.status === 'ARCHIVED' ? 'Tác phẩm đã lưu trữ' : 'Tác phẩm chưa phát hành';
               }
+            }
+
+            const liveImg = live.preview_image || live.watermarked_image || '';
+            if (liveImg) {
+              const fullImg = window.ArtFairConfig ? window.ArtFairConfig.mediaUrl(liveImg) : liveImg;
+              const scMain = document.getElementById('showcaseMainImg');
+              if (scMain && (!scMain.src || scMain.src.endsWith('#') || scMain.naturalWidth === 0)) scMain.src = fullImg;
+              const lbImg = document.querySelector('.lightbox-img');
+              if (lbImg && (!lbImg.src || lbImg.src.endsWith('#'))) lbImg.src = fullImg;
+              document.querySelectorAll('.protected-artwork-img').forEach(el => {
+                if (!el.src || el.src.endsWith('#') || el.naturalWidth === 0) el.src = fullImg;
+              });
             }
 
             updateSelectionUI();
@@ -1647,6 +1659,7 @@
         btnBuy.disabled = true;
       }
       try {
+        const selLic = artworkData.licenses.find(l => l.type === selectedLicenseType);
         const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/artworks/orders/', {
           method: 'POST',
           headers: {
@@ -1655,7 +1668,8 @@
           body: JSON.stringify({
             artwork_id: artworkData.id,
             artwork_slug: artworkData.slug,
-            license_type: selectedLicenseType
+            license_type: selectedLicenseType,
+            license_id: selLic ? selLic.id : undefined
           })
         });
 

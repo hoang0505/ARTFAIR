@@ -5,18 +5,775 @@
 
 {% block extra_head %}
 <style>
+  /* Screen 02: Artwork Detail Styles */
+  .detail-page-container {
+    padding-top: 28px;
+    padding-bottom: 64px;
+  }
+
+  /* Breadcrumb */
+  .breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .breadcrumb-nav a {
+    color: var(--text-muted);
+    transition: color var(--trans-fast);
+  }
+  .breadcrumb-nav a:hover {
+    color: var(--primary-berry);
+  }
+  .breadcrumb-sep {
+    font-size: 0.8rem;
+    opacity: 0.6;
+  }
+  .breadcrumb-current {
+    color: var(--text-plum);
+    font-weight: 600;
+  }
+
+  /* Main Grid */
   .artwork-detail-grid {
     display: grid;
     grid-template-columns: 1.15fr 0.85fr;
     gap: 40px;
     align-items: start;
   }
+
+  /* Left Column: Visuals & Specs */
+  .detail-visual-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .artwork-showcase-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    position: relative;
+    transition: transform var(--trans-normal), box-shadow var(--trans-normal);
+  }
+  .artwork-showcase-card:hover {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .showcase-image-wrapper {
+    position: relative;
+    background: #FCEEF3;
+    overflow: hidden;
+    cursor: zoom-in;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .showcase-main-img {
+    width: 100%;
+    max-height: 640px;
+    object-fit: contain;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+  .showcase-image-wrapper:hover .showcase-main-img {
+    transform: scale(1.02);
+  }
+
+  /* Watermark badge on preview */
+  .preview-watermark-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.08) 60px,
+      rgba(197, 42, 112, 0.05) 60px,
+      rgba(197, 42, 112, 0.05) 120px
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .watermark-diagonal-text {
+    font-family: var(--font-serif);
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.35);
+    text-shadow: 0 2px 10px rgba(50, 21, 47, 0.15);
+    transform: rotate(-25deg);
+    user-select: none;
+    letter-spacing: 4px;
+  }
+
+  .zoom-indicator-btn {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-plum);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(50, 21, 47, 0.12);
+    cursor: pointer;
+    transition: all var(--trans-fast);
+  }
+  .zoom-indicator-btn:hover {
+    background: #FFFFFF;
+    color: var(--primary-berry);
+    transform: translateY(-2px);
+  }
+
+  /* Showcase / Mockup Frame View */
+  .mockup-showcase-box {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    padding: 24px;
+    box-shadow: var(--shadow-subtle);
+  }
+  .mockup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .mockup-title {
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: var(--text-plum);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mockup-notice {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+  .mockup-frame-stage {
+    background: linear-gradient(135deg, #F8EDF2 0%, #EFE8FA 100%);
+    border-radius: var(--radius-md);
+    padding: 32px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mockup-art-mat {
+    background: #FFFFFF;
+    padding: 16px;
+    box-shadow: 0 16px 36px rgba(50, 21, 47, 0.18), 0 2px 6px rgba(50, 21, 47, 0.08);
+    border: 8px solid #2B2129;
+    border-radius: 4px;
+    max-width: 380px;
+    width: 100%;
+  }
+  .mockup-art-mat img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+  }
+  .mockup-tab-btn {
+    border: 1px solid var(--border-subtle);
+    background: #FFFFFF;
+    color: var(--text-plum);
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--trans-fast);
+  }
+  .mockup-tab-btn:hover {
+    background: var(--bg-lavender-subtle);
+    border-color: var(--primary-berry);
+  }
+  .mockup-tab-btn.active {
+    background: var(--primary-berry);
+    color: #FFFFFF;
+    border-color: var(--primary-berry);
+    box-shadow: 0 2px 8px var(--primary-berry-glow);
+  }
+  .mockup-stage-pane {
+    display: none;
+  }
+  .mockup-stage-pane.active {
+    display: block;
+  }
+
+  /* File Specifications Card */
+  .file-specs-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-subtle);
+    padding: 24px;
+    box-shadow: var(--shadow-subtle);
+  }
+  .specs-heading {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-plum);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .specs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .spec-item {
+    background: var(--bg-lavender-subtle);
+    border: 1px solid rgba(197, 42, 112, 0.08);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
+  .spec-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .spec-value {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-plum);
+  }
+  .specs-security-note {
+    background: #FFF8F9;
+    border: 1px solid rgba(197, 42, 112, 0.15);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+
+  /* Right Column: Title, Artist, License Selection */
+  .detail-info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .artwork-tag-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .detail-title {
+    font-family: var(--font-serif);
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-plum);
+    line-height: 1.25;
+  }
+
+  /* Artist Bar */
+  .detail-artist-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    box-shadow: var(--shadow-subtle);
+  }
+  .artist-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .artist-avatar-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    background: var(--primary-berry-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: var(--primary-berry);
+    font-size: 1.1rem;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 2px 8px rgba(197, 42, 112, 0.15);
+  }
+  .artist-avatar-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .artist-meta-name {
+    font-weight: 700;
+    color: var(--text-plum);
+    font-size: 1rem;
+  }
+  .artist-meta-handle {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .artist-profile-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary-berry);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    background: var(--primary-berry-light);
+    transition: all var(--trans-fast);
+  }
+  .artist-profile-link:hover {
+    background: var(--primary-berry);
+    color: #FFFFFF;
+  }
+
+  /* Description */
+  .detail-description-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-subtle);
+  }
+  .description-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .description-content {
+    font-size: 0.95rem;
+    color: var(--text-plum);
+    line-height: 1.68;
+    white-space: pre-line;
+  }
+
+  /* License Selection Area */
+  .license-selector-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 28px;
+    box-shadow: var(--shadow-card);
+  }
+  .license-section-header {
+    margin-bottom: 20px;
+  }
+  .license-section-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-plum);
+    margin-bottom: 4px;
+  }
+  .license-section-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .license-cards-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .license-card-option {
+    border: 2px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    background: #FFFFFF;
+    cursor: pointer;
+    transition: all var(--trans-fast);
+    position: relative;
+    user-select: none;
+  }
+  .license-card-option:hover {
+    border-color: rgba(197, 42, 112, 0.4);
+    box-shadow: 0 6px 20px rgba(197, 42, 112, 0.08);
+  }
+  .license-card-option.active {
+    border-color: var(--primary-berry);
+    background: #FFF7FA;
+    box-shadow: 0 8px 24px rgba(197, 42, 112, 0.12);
+  }
+  .license-card-option.is-owned {
+    border-color: #28A745;
+    background: #F4FBF6;
+  }
+
+  .license-top-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .license-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .license-radio-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--trans-fast);
+  }
+  .license-card-option.active .license-radio-circle {
+    border-color: var(--primary-berry);
+  }
+  .license-card-option.active .license-radio-circle::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-full);
+    background: var(--primary-berry);
+  }
+  .license-card-option.is-owned .license-radio-circle {
+    border-color: #28A745;
+  }
+  .license-card-option.is-owned .license-radio-circle::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-full);
+    background: #28A745;
+  }
+
+  .license-card-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-plum);
+  }
+  .license-card-price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--primary-berry);
+  }
+  .license-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-left: 30px;
+  }
+
+  .license-owned-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #D4EDDA;
+    color: #155724;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .license-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    margin-left: 30px;
+    padding: 7px 14px;
+    background: #28A745;
+    color: #FFFFFF;
+    border-radius: var(--radius-full);
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: background var(--trans-fast);
+  }
+  .license-download-btn:hover {
+    background: #218838;
+    color: #FFFFFF;
+  }
+
+  /* Non-exclusive Notice */
+  .non-exclusive-banner {
+    background: var(--bg-lavender);
+    border: 1px solid rgba(107, 59, 167, 0.18);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.84rem;
+    color: #4A2870;
+    line-height: 1.55;
+    margin-bottom: 22px;
+  }
+  .non-exclusive-banner svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Total & Action Area */
+  .checkout-summary-box {
+    background: #FFF2F6;
+    border: 1px solid rgba(197, 42, 112, 0.15);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .summary-left-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+  .summary-tier-name {
+    font-weight: 700;
+    color: var(--text-plum);
+    font-size: 1rem;
+  }
+  .summary-right-total {
+    text-align: right;
+  }
+  .summary-total-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .summary-total-amount {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: var(--primary-berry);
+  }
+
+  .btn-buy-license {
+    width: 100%;
+    height: 52px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 8px 24px var(--primary-berry-glow);
+    transition: all var(--trans-fast);
+  }
+  .btn-buy-license:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(197, 42, 112, 0.35);
+  }
+  .btn-buy-license:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  /* Responsive Stacking */
   @media (max-width: 900px) {
     .artwork-detail-grid {
       grid-template-columns: 1fr;
-      gap: 24px;
+      gap: 32px;
     }
   }
+
+  /* Lightbox Modal for Zoom */
+  .lightbox-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    background: rgba(30, 10, 25, 0.88);
+    backdrop-filter: blur(10px);
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .lightbox-modal.show {
+    display: flex;
+  }
+  .lightbox-content-box {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  }
+  .lightbox-img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    display: block;
+  }
+  .lightbox-watermark {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lightbox-watermark-text {
+    font-family: var(--font-serif);
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.28);
+    transform: rotate(-30deg);
+    letter-spacing: 6px;
+    user-select: none;
+  }
+  .lightbox-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-plum);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    transition: transform var(--trans-fast);
+  }
+  .lightbox-close-btn:hover {
+    transform: scale(1.1);
+  }
+
+  /* Simulated Payment Modal */
+  .payment-modal-dialog {
+    max-width: 520px;
+  }
+  .payment-sim-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #FFF3CD;
+    color: #856404;
+    border: 1px solid #FFEEBA;
+    border-radius: var(--radius-full);
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .payment-order-summary {
+    background: var(--bg-lavender-subtle);
+    border: 1px solid rgba(197, 42, 112, 0.12);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  .order-summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+  .order-summary-row:last-child {
+    margin-bottom: 0;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(197, 42, 112, 0.2);
+  }
+  .order-row-label {
+    color: var(--text-muted);
+  }
+  .order-row-value {
+    font-weight: 700;
+    color: var(--text-plum);
+  }
+  .order-row-price {
+    font-weight: 800;
+    color: var(--primary-berry);
+    font-size: 1.15rem;
+  }
+
+  .sim-actions-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .btn-sim-success {
+    background: #28A745;
+    color: #FFFFFF;
+    height: 46px;
+    font-weight: 700;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background var(--trans-fast);
+  }
+  .btn-sim-success:hover {
+    background: #218838;
+  }
+  .btn-sim-failed {
+    background: #FFF1F0;
+    color: #DC3545;
+    border: 1px solid #FFA39E;
+    height: 44px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all var(--trans-fast);
+  }
+  .btn-sim-failed:hover {
+    background: #FFCCC7;
+  }
+  .btn-sim-cancel {
+    background: #F8F9FA;
+    color: var(--text-muted);
+    border: 1px solid #E9ECEF;
+    height: 40px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--trans-fast);
+  }
+  .btn-sim-cancel:hover {
+    background: #E2E6EA;
+    color: var(--text-plum);
+  }
+
   .dyn-license-card {
     border: 2px solid var(--border-subtle);
     border-radius: var(--radius-lg);
@@ -134,146 +891,400 @@
 </div>
 
 <!-- 3. Dynamic Artwork Detail Container (Rendered dynamically when visiting a newly published artwork) -->
-<div id="dynamicArtworkDetailContainer" class="container" style="display: none; padding-top: 28px; padding-bottom: 64px;">
+<div id="dynamicArtworkDetailContainer" class="container detail-page-container" style="display: none;">
+
   <!-- Breadcrumbs -->
-  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
-    <a href="/" id="dynArtBcHome" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
-    <span>/</span>
-    <a href="/#gallerySection" id="dynArtBcCategory" style="color: var(--text-plum); text-decoration: none;">Khám phá</a>
-    <span>/</span>
-    <span id="dynArtBcTitle" style="color: var(--text-berry); font-weight: 600;">Chi tiết tác phẩm</span>
+  <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+    <a href="/" id="dynArtBcHome">Trang chủ</a>
+    <span class="breadcrumb-sep">/</span>
+    <a href="/#gallerySection" id="dynArtBcCategory">Khám phá</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current" id="dynArtBcTitle">Chi tiết tác phẩm</span>
   </nav>
 
+  <!-- Artwork Detail Grid -->
   <div class="artwork-detail-grid">
-    <!-- Left Column: Visuals & Specs -->
-    <div style="display: flex; flex-direction: column; gap: 24px;">
-      <div style="background: #FFFFFF; border-radius: var(--radius-xl); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card); overflow: hidden; position: relative;">
-        <div style="position: relative; background: #FCEEF3; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 380px;">
-          <img id="dynArtMainImg" src="" alt="Ảnh tác phẩm" style="width: 100%; max-height: 600px; object-fit: contain; display: block;">
-          <div style="position: absolute; inset: 0; pointer-events: none; background-image: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.08) 60px, rgba(197, 42, 112, 0.05) 60px, rgba(197, 42, 112, 0.05) 120px); display: flex; align-items: center; justify-content: center;">
-            <span style="font-family: var(--font-serif); font-size: 2.2rem; font-weight: 800; color: rgba(255, 255, 255, 0.35); transform: rotate(-25deg); user-select: none; letter-spacing: 4px;">ARTFAIR PREVIEW</span>
+
+    <!-- LEFT COLUMN: Public Preview, Zoom Lightbox, Mockup Frame, File Specs -->
+    <div class="detail-visual-col">
+
+      <!-- Main Showcase Card -->
+      <div class="artwork-showcase-card">
+        <div class="showcase-image-wrapper" id="dynBtnOpenZoom" title="Nhấn để phóng to ảnh xem trước">
+          <img src="" alt="" class="showcase-main-img" id="dynArtMainImg">
+          <div class="preview-watermark-overlay">
+            <span class="watermark-diagonal-text">ARTFAIR PREVIEW</span>
           </div>
-        </div>
-      </div>
-
-      <!-- File Specs -->
-      <div style="background: #FFFFFF; border-radius: var(--radius-lg); border: 1px solid var(--border-subtle); padding: 24px; box-shadow: var(--shadow-subtle);">
-        <div style="font-size: 1rem; font-weight: 700; color: var(--text-plum); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-          <span>Thông số kỹ thuật tệp</span>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px;">
-          <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-sm); padding: 12px;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Định dạng</div>
-            <div id="dynArtFormat" style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum);">PNG / JPG</div>
-          </div>
-          <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-sm); padding: 12px;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Kích thước</div>
-            <div id="dynArtDimensions" style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum);">Độ phân giải cao</div>
-          </div>
-          <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-sm); padding: 12px;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Độ phân giải</div>
-            <div id="dynArtDPI" style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum);">300 DPI</div>
-          </div>
-          <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-sm); padding: 12px;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Hệ màu</div>
-            <div id="dynArtColorMode" style="font-size: 0.95rem; font-weight: 700; color: var(--text-plum);">sRGB</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Column: Info & License Selection -->
-    <div style="display: flex; flex-direction: column; gap: 24px;">
-      <!-- Title & Creator Info -->
-      <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-card);">
-        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-          <span id="dynArtCategoryBadge" class="role-pill creator">Concept Art</span>
-          <div id="dynArtTags" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
-        </div>
-
-        <h1 id="dynArtTitle" style="font-family: var(--font-serif); font-size: 1.85rem; font-weight: 700; color: var(--text-plum); margin: 0 0 16px 0; line-height: 1.3;"></h1>
-
-        <!-- Creator Box -->
-        <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--border-light); padding-top: 16px; margin-top: 16px; flex-wrap: wrap; gap: 12px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div id="dynArtCreatorAvatar" style="width: 44px; height: 44px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--primary-berry), var(--primary-violet)); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; overflow: hidden;">
-            </div>
-            <div>
-              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Nghệ sĩ sáng tác</div>
-              <a id="dynArtCreatorLink" href="#" style="font-size: 1rem; font-weight: 700; color: var(--text-plum); text-decoration: none;"></a>
-            </div>
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <a id="dynArtCreatorBtn" href="#" class="btn btn-secondary btn-sm" style="text-decoration: none; padding: 6px 14px;">Xem hồ sơ</a>
-            <a id="dynArtStudioBtn" href="#" class="btn btn-primary btn-sm" style="display: none; text-decoration: none; padding: 6px 14px;">Vào Studio</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Description -->
-      <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-subtle);">
-        <div style="font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 8px;">Mô tả tác phẩm</div>
-        <p id="dynArtDescription" style="font-size: 0.95rem; color: var(--text-plum); line-height: 1.68; margin: 0;"></p>
-      </div>
-
-      <!-- License Selection Area -->
-      <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px; box-shadow: var(--shadow-card);">
-        <div style="margin-bottom: 20px;">
-          <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--text-plum); margin: 0 0 4px 0;">Các gói quyền sử dụng khả dụng</h2>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Mỗi gói quyền có phạm vi sử dụng pháp lý và mức giá riêng biệt.</p>
-        </div>
-
-        <div id="dynArtLicenseStack" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 24px;"></div>
-
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <button type="button" class="btn btn-primary" id="dynArtBuyBtn" style="flex: 1; height: 50px; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-            <span>Mua quyền sử dụng</span>
-          </button>
-          <button type="button" class="btn btn-secondary" id="dynArtFavBtn" style="width: 50px; height: 50px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md);" title="Yêu thích">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+          <button type="button" class="zoom-indicator-btn" id="dynZoomIndicatorBtn" aria-label="Phóng to ảnh">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="11" y1="8" x2="11" y2="14"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+            <span>Phóng to xem nét</span>
           </button>
         </div>
       </div>
+
+      <!-- Mockup Visual Display Section with 4 Tabs -->
+      <div class="mockup-showcase-box">
+        <div class="mockup-header">
+          <div class="mockup-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <span>Trưng bày trực quan (Visual Showcase)</span>
+          </div>
+          <span class="mockup-notice">Xem trước phối cảnh thực tế</span>
+        </div>
+
+        <!-- 4 Mockup Tabs Bar -->
+        <div class="mockup-tabs-bar" role="tablist" style="display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px;">
+          <button type="button" class="mockup-tab-btn active" data-dyn-mockup="frame" role="tab" aria-selected="true">
+            <span>🖼️ Khung tranh / Canvas</span>
+          </button>
+          <button type="button" class="mockup-tab-btn" data-dyn-mockup="tshirt" role="tab" aria-selected="false">
+            <span>👕 Áo thun</span>
+          </button>
+          <button type="button" class="mockup-tab-btn" data-dyn-mockup="phone" role="tab" aria-selected="false">
+            <span>📱 Ốp điện thoại</span>
+          </button>
+          <button type="button" class="mockup-tab-btn" data-dyn-mockup="tote" role="tab" aria-selected="false">
+            <span>👜 Túi vải</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: Khung tranh / Canvas Stage -->
+        <div class="mockup-stage-pane active" id="dynMockupStageFrame">
+          <div class="mockup-frame-stage" style="width: 100%;">
+            <div class="mockup-art-mat">
+              <img id="dynMockupImgFrame" src="" alt="Trưng bày" draggable="false" class="protected-artwork-img" style="width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Áo thun -->
+        <div class="mockup-stage-pane" id="dynMockupStageTshirt">
+          <div class="mockup-frame-stage" style="width: 100%; min-height: 280px; background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);">
+            <div class="mockup-tshirt-canvas" style="position: relative; width: 280px; height: 300px; display: flex; align-items: center; justify-content: center;">
+              <svg width="280" height="300" viewBox="0 0 280 300" fill="none" style="position: absolute; top: 0; left: 0; filter: drop-shadow(0 12px 24px rgba(0,0,0,0.12));">
+                <path d="M70 20 L105 50 C115 55 125 57 140 57 C155 57 165 55 175 50 L210 20 L270 70 L235 115 L215 95 L215 285 C215 292 208 298 200 298 L80 298 C72 298 65 292 65 285 L65 95 L45 115 L10 70 Z" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>
+                <path d="M105 50 C115 70 165 70 175 50" fill="none" stroke="#CBD5E1" stroke-width="2"/>
+                <path d="M65 95 L85 90" stroke="#E2E8F0" stroke-width="1.5"/>
+                <path d="M215 95 L195 90" stroke="#E2E8F0" stroke-width="1.5"/>
+              </svg>
+              <div class="mockup-tshirt-imprint" style="position: relative; z-index: 2; width: 120px; height: 140px; margin-top: 35px; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; background: #FAFAFA;">
+                <img id="dynMockupImgTshirt" src="" alt="Áo thun" style="width: 100%; height: 100%; object-fit: cover;" draggable="false" class="protected-artwork-img">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Ốp điện thoại -->
+        <div class="mockup-stage-pane" id="dynMockupStagePhone">
+          <div class="mockup-frame-stage" style="width: 100%; min-height: 280px; background: linear-gradient(135deg, #FDF2F8 0%, #EDE9FE 100%);">
+            <div class="mockup-phone-case" style="position: relative; width: 170px; height: 310px; background: #1E1B24; border-radius: 36px; padding: 10px; box-shadow: 0 20px 40px rgba(40,15,35,0.22); display: flex; flex-direction: column; overflow: hidden; border: 3px solid #374151;">
+              <div style="position: absolute; top: 18px; left: 18px; width: 50px; height: 52px; background: rgba(15, 12, 20, 0.9); border-radius: 14px; z-index: 5; border: 1.5px solid #4B5563; display: flex; flex-wrap: wrap; padding: 6px; gap: 4px; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
+                <div style="width: 14px; height: 14px; border-radius: 50%; background: #111827; border: 2px solid #374151;"></div>
+                <div style="width: 14px; height: 14px; border-radius: 50%; background: #111827; border: 2px solid #374151;"></div>
+                <div style="width: 8px; height: 8px; border-radius: 50%; background: #4B5563;"></div>
+              </div>
+              <div style="width: 100%; height: 100%; border-radius: 28px; overflow: hidden; position: relative;">
+                <img id="dynMockupImgPhone" src="" alt="Ốp điện thoại" style="width: 100%; height: 100%; object-fit: cover;" draggable="false" class="protected-artwork-img">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.02) 50%, transparent 100%); pointer-events: none;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Túi vải -->
+        <div class="mockup-stage-pane" id="dynMockupStageTote">
+          <div class="mockup-frame-stage" style="width: 100%; min-height: 280px; background: linear-gradient(135deg, #FFFBEB 0%, #F5F3FF 100%);">
+            <div class="mockup-tote-bag" style="position: relative; width: 230px; height: 300px; display: flex; flex-direction: column; align-items: center;">
+              <svg width="120" height="85" viewBox="0 0 120 85" fill="none" style="margin-bottom: -15px; z-index: 1;">
+                <path d="M25 85 C25 20 95 20 95 85" stroke="#D1C7B7" stroke-width="14" fill="none" stroke-linecap="round"/>
+              </svg>
+              <div style="position: relative; z-index: 2; width: 220px; height: 230px; background: #F5EFEB; border-radius: 6px 6px 14px 14px; box-shadow: 0 16px 30px rgba(60,40,20,0.12); border: 1px solid #E6DCCD; display: flex; align-items: center; justify-content: center; padding: 18px;">
+                <div style="width: 135px; height: 145px; border-radius: 4px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background: #FFFFFF;">
+                  <img id="dynMockupImgTote" src="" alt="Túi vải" style="width: 100%; height: 100%; object-fit: cover;" draggable="false" class="protected-artwork-img">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mandatory Short Caption -->
+        <div style="text-align: center; margin-top: 14px; font-size: 0.78rem; color: var(--text-muted); font-style: italic;">
+          Minh họa ứng dụng tác phẩm — không bao gồm sản phẩm vật lý
+        </div>
+      </div>
+
+      <!-- File Specifications Card -->
+      <div class="file-specs-card">
+        <div class="specs-heading">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+            <polyline points="13 2 13 9 20 9"></polyline>
+          </svg>
+          <span>Thông số tệp gốc bàn giao</span>
+        </div>
+
+        <div class="specs-grid">
+          <div class="spec-item">
+            <div class="spec-label">Định dạng tệp</div>
+            <div class="spec-value" id="dynArtFormat">PNG / PSD gốc</div>
+          </div>
+
+          <div class="spec-item">
+            <div class="spec-label">Kích thước ảnh</div>
+            <div class="spec-value" id="dynArtDimensions">3840 × 2160 px (4K)</div>
+          </div>
+
+          <div class="spec-item">
+            <div class="spec-label">Độ phân giải DPI</div>
+            <div class="spec-value" id="dynArtDPI">300 DPI (Chuẩn in)</div>
+          </div>
+
+          <div class="spec-item">
+            <div class="spec-label">Hệ màu</div>
+            <div class="spec-value" id="dynArtColorMode">RGB (sRGB / Display P3)</div>
+          </div>
+        </div>
+
+        <div class="specs-security-note">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span>
+            Bảo mật bản quyền: Tệp gốc được mã hóa trên máy chủ riêng biệt. Bạn chỉ có thể tải về tệp gốc sau khi hoàn tất mua quyền sử dụng tác phẩm.
+          </span>
+        </div>
+      </div>
+
     </div>
+
+    <!-- RIGHT COLUMN: Title, Artist, Description, License Selection, Order Button -->
+    <div class="detail-info-col">
+
+      <!-- Category & Tags -->
+      <div class="artwork-tag-row">
+        <span class="role-pill creator" id="dynArtCategoryBadge" style="font-size: 0.82rem;">Khám phá</span>
+        <span class="role-pill" id="dynArtStyleBadge" style="display: none; background: #FCE7F3; color: #BE185D; font-size: 0.82rem; font-weight: 600;"></span>
+        <div id="dynArtTags" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+      </div>
+
+      <!-- Title & Favorite Button -->
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+        <h1 class="detail-title" id="dynArtTitle" style="margin: 0; flex: 1;"></h1>
+        <button type="button" class="btn-detail-favorite-toggle" id="dynArtFavBtn"
+                title="Lưu vào tác phẩm yêu thích"
+                style="flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--border-subtle); background: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all var(--trans-fast); box-shadow: var(--shadow-subtle);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-plum)" stroke-width="2" class="detail-heart-icon">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Artist Profile Bar -->
+      <div class="detail-artist-bar">
+        <a href="#" id="dynArtCreatorBarLink" class="artist-left" style="text-decoration: none; color: inherit;">
+          <div class="artist-avatar-wrap" id="dynArtCreatorAvatar">
+            <span>A</span>
+          </div>
+          <div>
+            <div class="artist-meta-name" id="dynArtCreatorName">Nghệ sĩ ARTFAIR</div>
+            <div class="artist-meta-handle" id="dynArtCreatorHandle">@artist &bull; Nghệ sĩ (Creator)</div>
+          </div>
+        </a>
+
+        <a href="#" id="dynArtCreatorProfileLink" class="artist-profile-link" title="Xem hồ sơ & đặt vẽ Commission">
+          <span>Hồ sơ & Đặt vẽ</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </a>
+      </div>
+
+      <!-- Artwork Description -->
+      <div class="detail-description-card">
+        <div class="description-title">Giới thiệu tác phẩm</div>
+        <div class="description-content" id="dynArtDescription">
+          Tác phẩm nghệ thuật số độc quyền trên nền tảng ARTFAIR.
+        </div>
+      </div>
+
+      <!-- License Selection Cards -->
+      <div class="license-selector-section">
+        <div class="license-section-header">
+          <h2 class="license-section-title">Chọn gói quyền sử dụng</h2>
+          <p class="license-section-desc">Giá bán và điều khoản cam kết minh bạch từ tác giả</p>
+        </div>
+
+        <div class="license-cards-stack" id="dynArtLicenseStack">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Non-exclusive Legal Disclaimer -->
+        <div class="non-exclusive-banner" style="background: var(--bg-page); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px 16px; margin: 18px 0; display: flex; gap: 12px; align-items: flex-start; font-size: 0.85rem; color: var(--text-plum); line-height: 1.5;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-berry)" stroke-width="2" style="flex-shrink: 0; margin-top: 1px;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <div>
+            <strong>Quyền sử dụng không độc quyền:</strong> Bạn mua quyền sử dụng tác phẩm theo gói quyền và điều khoản đã chọn. Tác giả gốc vẫn giữ quyền tác giả theo Luật Sở hữu trí tuệ. Tác phẩm tiếp tục được cấp phép cho các người mua khác.
+          </div>
+        </div>
+
+        <!-- Sandbox notice -->
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; padding: 0 4px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          <span>Thanh toán mô phỏng Sandbox — Không trừ tiền thật từ tài khoản ngân hàng.</span>
+        </div>
+
+        <!-- Checkout Summary Box -->
+        <div class="checkout-summary-box">
+          <div>
+            <div class="summary-left-label">Gói quyền đã chọn</div>
+            <div class="summary-tier-name" id="dynSummaryTierName">...</div>
+          </div>
+          <div class="summary-right-total">
+            <div class="summary-total-label">Tổng thanh toán</div>
+            <div class="summary-total-amount" id="dynSummaryTotalAmount">0 ₫</div>
+          </div>
+        </div>
+
+        <!-- Purchase Action Button / Owner Studio Button -->
+        <div id="dynArtActionContainer" style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" class="btn btn-primary btn-buy-license" id="dynArtBuyBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span id="dynArtBuyBtnText">Mua quyền sử dụng</span>
+          </button>
+          <a href="#" id="dynArtOwnerStudioBtn" class="btn btn-primary" style="display: none; height: 48px; border-radius: var(--radius-full); align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-weight: 700; box-shadow: 0 4px 14px rgba(185, 44, 112, 0.25);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span>Vào Creator Studio quản lý tác phẩm</span>
+          </a>
+        </div>
+
+        <!-- Commission Custom Request Callout -->
+        <div class="commission-cta-card" style="background: linear-gradient(135deg, #FFF5F8 0%, #F8F5FF 100%); border: 1.5px dashed var(--primary-berry); border-radius: var(--radius-lg); padding: 20px; margin-top: 24px; text-align: center;">
+          <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--primary-berry); letter-spacing: 0.5px; margin-bottom: 4px;">
+            Yêu cầu sáng tạo riêng
+          </div>
+          <h4 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;">
+            Đặt vẽ theo yêu cầu với nghệ sĩ
+          </h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin: 0 0 16px 0;" id="dynCommCtaDesc">
+            Bạn thích phong cách này và muốn một tác phẩm vẽ riêng theo ý tưởng của bạn? Hãy gửi brief trực tiếp cho nghệ sĩ.
+          </p>
+          <a href="#" id="dynCommCtaBtn" class="btn btn-secondary" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; text-decoration: none; font-weight: 700; border-color: var(--primary-berry); color: var(--primary-berry);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span>Đặt vẽ với nghệ sĩ này &rarr;</span>
+          </a>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Zoom Lightbox Modal for Dynamic Artwork -->
+<div class="lightbox-modal" id="dynLightboxModal">
+  <div class="lightbox-content-box">
+    <img src="" alt="" class="lightbox-img" id="dynLightboxImg">
+    <div class="lightbox-watermark">
+      <div class="lightbox-watermark-text">ARTFAIR PREVIEW</div>
+    </div>
+    <button class="lightbox-close-btn" id="btnDynCloseLightbox" aria-label="Đóng ảnh phóng to">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
   </div>
 </div>
 
 <!-- Simulated Payment Modal for Dynamic Artwork Checkout -->
-<div id="dynSimPaymentModalBackdrop" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
-  <div style="background: #FFFFFF; border-radius: var(--radius-xl); padding: 32px; max-width: 480px; width: 90%; box-shadow: var(--shadow-card); position: relative;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-light); padding-bottom: 12px;">
-      <h3 style="margin: 0; font-family: var(--font-serif); color: var(--text-plum); font-size: 1.3rem;">Cổng thanh toán mô phỏng</h3>
-      <button type="button" id="btnDynClosePayModal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+<div class="modal-backdrop" id="dynSimPaymentModalBackdrop" style="display: none;">
+  <div class="modal-dialog payment-modal-dialog">
+    <button class="modal-close-btn" id="btnDynClosePayModal" aria-label="Đóng cửa sổ">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+
+    <div class="modal-header" style="text-align: left;">
+      <div class="payment-sim-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>Môi trường thanh toán thử nghiệm (Sandbox)</span>
+      </div>
+      <h2 class="modal-title" style="font-size: 1.4rem;">Xác nhận mua quyền sử dụng</h2>
+      <p class="modal-subtitle">Giao dịch mô phỏng — Không yêu cầu thẻ ngân hàng hay nạp tiền thật.</p>
     </div>
-    <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.88rem;">
-        <span style="color: var(--text-muted);">Mã đơn hàng:</span>
-        <strong id="dynPayOrderCode" style="color: var(--text-plum); font-family: monospace;"></strong>
+
+    <div class="modal-body">
+      <!-- Order details summary -->
+      <div class="payment-order-summary">
+        <div class="order-summary-row">
+          <span class="order-row-label">Mã đơn hàng</span>
+          <span class="order-row-value" id="dynPayOrderCode">—</span>
+        </div>
+        <div class="order-summary-row">
+          <span class="order-row-label">Tác phẩm</span>
+          <span class="order-row-value" id="dynPayArtworkTitle">—</span>
+        </div>
+        <div class="order-summary-row">
+          <span class="order-row-label">Gói quyền</span>
+          <span class="order-row-value" id="dynPayLicenseName">—</span>
+        </div>
+        <div class="order-summary-row">
+          <span class="order-row-label">Tổng thanh toán</span>
+          <span class="order-row-price" id="dynPayPrice">0 đ</span>
+        </div>
       </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.88rem;">
-        <span style="color: var(--text-muted);">Gói quyền:</span>
-        <strong id="dynPayLicenseName" style="color: var(--text-plum);"></strong>
+
+      <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+        Hãy chọn một trong các kịch bản mô phỏng giao dịch dưới đây để kiểm tra hệ thống:
       </div>
-      <div style="display: flex; justify-content: space-between; font-size: 0.95rem; border-top: 1px dashed var(--border-subtle); padding-top: 8px; margin-top: 8px;">
-        <span style="color: var(--text-muted); font-weight: 600;">Số tiền cần thanh toán:</span>
-        <strong id="dynPayPrice" style="color: var(--primary-berry); font-size: 1.15rem;"></strong>
+
+      <!-- Action buttons -->
+      <div class="sim-actions-grid">
+        <button type="button" class="btn-sim-success" id="btnDynSimSuccess">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Xác nhận thanh toán (Thành công)</span>
+        </button>
+
+        <button type="button" class="btn-sim-failed" id="btnDynSimFail">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+          <span>Giả lập thanh toán thất bại (Failed)</span>
+        </button>
+
+        <button type="button" class="btn-sim-cancel" id="btnDynSimCancel">
+          <span>Hủy giao dịch (Cancel)</span>
+        </button>
       </div>
-    </div>
-    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 20px 0; line-height: 1.5;">
-      💡 Đây là môi trường thử nghiệm Sandbox (không trừ tiền thật). Bạn có thể chọn kết quả giao dịch bên dưới để kiểm thử hệ sinh thái cấp quyền tự động.
-    </p>
-    <div style="display: flex; flex-direction: column; gap: 10px;">
-      <button type="button" class="btn btn-primary" id="btnDynSimSuccess" style="background: #28A745; border-color: #28A745; padding: 12px; font-weight: 700;">
-        ✓ Mô phỏng Thành công (Cấp quyền & Tải file)
-      </button>
-      <button type="button" class="btn btn-secondary" id="btnDynSimFail" style="color: #DC3545; border-color: #DC3545; padding: 10px;">
-        ✗ Mô phỏng Thất bại
-      </button>
-      <button type="button" class="btn btn-ghost" id="btnDynSimCancel" style="padding: 8px;">
-        Hủy giao dịch
-      </button>
     </div>
   </div>
 </div>
@@ -616,7 +1627,16 @@
           if (defaultBox) defaultBox.style.display = 'none';
           if (artDetailBox) artDetailBox.style.display = 'block';
 
-          document.title = `${art.title} — Chi tiết tác phẩm | ARTFAIR`;
+          document.title = `${art.title} — Chi tiết tác phẩm & Mua quyền | ARTFAIR`;
+
+          // Current User
+          let currentUser = null;
+          try {
+            const meRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/accounts/me/');
+            if (meRes.ok) currentUser = await meRes.json();
+          } catch (_) {
+            currentUser = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
+          }
 
           // Breadcrumbs
           const dynArtBcHome = document.getElementById('dynArtBcHome');
@@ -624,235 +1644,456 @@
           const dynArtBcCat = document.getElementById('dynArtBcCategory');
           if (dynArtBcCat) {
             dynArtBcCat.href = pUrl('/#gallerySection');
-            dynArtBcCat.textContent = art.category ? art.category.name : 'Khám phá';
+            if (art.category) {
+              dynArtBcCat.textContent = art.category.name;
+              dynArtBcCat.href = pUrl(`/?category=${encodeURIComponent(art.category.slug)}#gallerySection`);
+            }
           }
           const dynArtBcTitle = document.getElementById('dynArtBcTitle');
           if (dynArtBcTitle) dynArtBcTitle.textContent = art.title;
 
-          // Main Image
+          // Main Image & Mockups
           const imgUrl = art.preview_image || art.watermarked_image || '';
           const fullImgUrl = window.ArtFairConfig ? window.ArtFairConfig.mediaUrl(imgUrl) : imgUrl;
+
           const mainImgEl = document.getElementById('dynArtMainImg');
           if (mainImgEl) {
             mainImgEl.src = fullImgUrl;
             mainImgEl.alt = art.title;
           }
+          const frameImgEl = document.getElementById('dynMockupImgFrame');
+          if (frameImgEl) frameImgEl.src = fullImgUrl;
+          const tshirtImgEl = document.getElementById('dynMockupImgTshirt');
+          if (tshirtImgEl) tshirtImgEl.src = fullImgUrl;
+          const phoneImgEl = document.getElementById('dynMockupImgPhone');
+          if (phoneImgEl) phoneImgEl.src = fullImgUrl;
+          const toteImgEl = document.getElementById('dynMockupImgTote');
+          if (toteImgEl) toteImgEl.src = fullImgUrl;
+          const lightboxImgEl = document.getElementById('dynLightboxImg');
+          if (lightboxImgEl) lightboxImgEl.src = fullImgUrl;
+
+          // Zoom Lightbox Wireup
+          const btnOpenZoom = document.getElementById('dynBtnOpenZoom');
+          const zoomIndBtn = document.getElementById('dynZoomIndicatorBtn');
+          const lightboxModal = document.getElementById('dynLightboxModal');
+          const btnCloseLightbox = document.getElementById('btnDynCloseLightbox');
+
+          function openLightbox() {
+            if (lightboxModal) lightboxModal.classList.add('show');
+          }
+          function closeLightbox() {
+            if (lightboxModal) lightboxModal.classList.remove('show');
+          }
+
+          if (btnOpenZoom) btnOpenZoom.addEventListener('click', openLightbox);
+          if (zoomIndBtn) zoomIndBtn.addEventListener('click', (e) => { e.stopPropagation(); openLightbox(); });
+          if (btnCloseLightbox) btnCloseLightbox.addEventListener('click', closeLightbox);
+          if (lightboxModal) {
+            lightboxModal.addEventListener('click', (e) => {
+              if (e.target === lightboxModal) closeLightbox();
+            });
+          }
+
+          // Mockup Tabs Switching
+          const mockupBtns = document.querySelectorAll('[data-dyn-mockup]');
+          mockupBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+              mockupBtns.forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-selected', 'false');
+              });
+              document.querySelectorAll('.mockup-stage-pane').forEach(p => p.classList.remove('active'));
+              btn.classList.add('active');
+              btn.setAttribute('aria-selected', 'true');
+              const target = btn.getAttribute('data-dyn-mockup');
+              const stageId = 'dynMockupStage' + target.charAt(0).toUpperCase() + target.slice(1);
+              const stageEl = document.getElementById(stageId);
+              if (stageEl) stageEl.classList.add('active');
+            });
+          });
 
           // Metadata specs
           const meta = art.file_metadata || {};
           const fmtEl = document.getElementById('dynArtFormat');
-          if (fmtEl) fmtEl.textContent = meta.file_format || 'PNG / JPG';
+          if (fmtEl) fmtEl.textContent = meta.file_format ? meta.file_format.toUpperCase() : 'PNG / PSD gốc';
           const dimEl = document.getElementById('dynArtDimensions');
-          if (dimEl) dimEl.textContent = (meta.width && meta.height) ? `${meta.width} × ${meta.height} px` : 'Độ phân giải cao';
+          if (dimEl) dimEl.textContent = (meta.width && meta.height) ? `${meta.width} × ${meta.height} px` : '3840 × 2160 px (4K)';
           const dpiEl = document.getElementById('dynArtDPI');
-          if (dpiEl) dpiEl.textContent = meta.dpi ? `${meta.dpi} DPI` : '300 DPI';
+          if (dpiEl) dpiEl.textContent = meta.dpi ? `${meta.dpi} DPI` : '300 DPI (Chuẩn in)';
           const clrEl = document.getElementById('dynArtColorMode');
-          if (clrEl) clrEl.textContent = meta.color_mode || 'sRGB';
+          if (clrEl) clrEl.textContent = meta.color_mode || 'RGB (sRGB / Display P3)';
 
-          // Category Badge & Tags
+          // Category Badge, Style & Tags
           const catBadge = document.getElementById('dynArtCategoryBadge');
           if (catBadge) catBadge.textContent = art.category ? art.category.name : 'Nghệ thuật số';
+          const styleBadge = document.getElementById('dynArtStyleBadge');
+          if (styleBadge) {
+            if (art.style) {
+              styleBadge.textContent = `🎨 ${art.style}`;
+              styleBadge.style.display = 'inline-block';
+            } else {
+              styleBadge.style.display = 'none';
+            }
+          }
           const tagsBox = document.getElementById('dynArtTags');
-          if (tagsBox && art.tags && art.tags.length > 0) {
-            tagsBox.innerHTML = art.tags.map(t => `<span class="badge" style="background:#F0F0F0; font-size:0.74rem; padding:2px 8px; border-radius:12px;">#${t.name || t}</span>`).join('');
+          if (tagsBox) {
+            if (art.tags && art.tags.length > 0) {
+              tagsBox.innerHTML = art.tags.map(t => `<span class="role-pill" style="background: var(--bg-lavender); color: #6B3BA7; font-size: 0.82rem;">#${t.name || t}</span>`).join('');
+            } else {
+              tagsBox.innerHTML = '';
+            }
           }
 
           // Title & Description
           const titleEl = document.getElementById('dynArtTitle');
           if (titleEl) titleEl.textContent = art.title;
           const descEl = document.getElementById('dynArtDescription');
-          if (descEl) descEl.textContent = art.description || 'Tác giả chưa cung cấp mô tả chi tiết.';
+          if (descEl) descEl.textContent = art.description || `Tác phẩm nghệ thuật số độc quyền trên nền tảng ARTFAIR. Được sáng tạo bởi ${(art.creator && (art.creator.display_name || art.creator.username)) || 'nghệ sĩ'}.`;
 
           // Creator
           const creator = art.creator || {};
-          const creatorName = creator.display_name || creator.username || 'Nghệ sĩ ARTFAIR';
-          const creatorLinkEl = document.getElementById('dynArtCreatorLink');
-          if (creatorLinkEl) {
-            creatorLinkEl.textContent = creatorName;
-            creatorLinkEl.href = pUrl(`/artists/${creator.username}/`);
-          }
-          const creatorBtn = document.getElementById('dynArtCreatorBtn');
-          if (creatorBtn) creatorBtn.href = pUrl(`/artists/${creator.username}/`);
+          const creatorUsername = creator.username || '';
+          const creatorDisplayName = creator.display_name || creator.username || 'Nghệ sĩ ARTFAIR';
 
-          const creatorAvatarEl = document.getElementById('dynArtCreatorAvatar');
-          if (creatorAvatarEl) {
-            creatorAvatarEl.textContent = creatorName.charAt(0).toUpperCase();
-          }
+          const barLink = document.getElementById('dynArtCreatorBarLink');
+          if (barLink) barLink.href = pUrl(`/artists/${encodeURIComponent(creatorUsername)}/`);
+          const profLink = document.getElementById('dynArtCreatorProfileLink');
+          if (profLink) profLink.href = pUrl(`/artists/${encodeURIComponent(creatorUsername)}/`);
 
-          // Creator Studio link if current logged in user is the owner
-          const currentUser = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
-          const studioBtn = document.getElementById('dynArtStudioBtn');
-          if (studioBtn && currentUser && (currentUser.username === creator.username)) {
-            studioBtn.style.display = 'inline-flex';
-            studioBtn.href = pUrl('/studio/');
-          }
+          const creatorNameEl = document.getElementById('dynArtCreatorName');
+          if (creatorNameEl) creatorNameEl.textContent = creatorDisplayName;
+          const creatorHandleEl = document.getElementById('dynArtCreatorHandle');
+          if (creatorHandleEl) creatorHandleEl.textContent = `@${creatorUsername} • Nghệ sĩ (Creator)`;
 
-          // Licenses Selection
-          const licenses = art.license_options || [];
-          const licStack = document.getElementById('dynArtLicenseStack');
-          let selectedLicenseId = licenses.length > 0 ? licenses[0].id : null;
-
-          if (licStack) {
-            if (licenses.length === 0) {
-              licStack.innerHTML = '<div style="color:var(--text-muted); font-size:0.9rem;">Hiện chưa có gói quyền mở bán cho tác phẩm này.</div>';
+          const avatarEl = document.getElementById('dynArtCreatorAvatar');
+          if (avatarEl) {
+            if (creator.avatar) {
+              const aUrl = window.ArtFairConfig ? window.ArtFairConfig.mediaUrl(creator.avatar) : creator.avatar;
+              avatarEl.innerHTML = `<img src="${aUrl}" alt="${creatorUsername}" style="width: 100%; height: 100%; object-fit: cover;">`;
             } else {
-              licStack.innerHTML = licenses.map((lic, idx) => {
-                const isPersonal = lic.license_type === 'PERSONAL';
-                const typeName = isPersonal ? 'Quyền sử dụng Cá nhân' : 'Quyền sử dụng Thương mại';
-                const badgeClass = isPersonal ? 'personal' : 'commercial';
-                const formattedPrice = Number(lic.price).toLocaleString('vi-VN') + ' đ';
-                const isActive = idx === 0;
+              avatarEl.innerHTML = `<span>${(creatorDisplayName).charAt(0).toUpperCase()}</span>`;
+            }
+          }
 
-                return `
-                  <div class="dyn-license-card ${isActive ? 'active' : ''}" data-license-id="${lic.id}" style="border: 2px solid ${isActive ? 'var(--primary-berry)' : 'var(--border-subtle)'}; border-radius: var(--radius-lg); padding: 18px 20px; background: ${isActive ? '#FFF7FA' : '#FFFFFF'}; cursor: pointer; transition: all 0.2s;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                      <div style="display: flex; align-items: center; gap: 8px;">
-                        <input type="radio" name="dynLicenseRadio" value="${lic.id}" ${isActive ? 'checked' : ''} style="accent-color: var(--primary-berry);">
-                        <strong style="color: var(--text-plum); font-size: 0.98rem;">${typeName}</strong>
+          // Commission CTA
+          const commDesc = document.getElementById('dynCommCtaDesc');
+          if (commDesc) {
+            commDesc.innerHTML = `Bạn thích phong cách này và muốn một tác phẩm vẽ riêng theo ý tưởng của bạn? Hãy gửi brief trực tiếp cho <strong>@${creatorUsername}</strong>.`;
+          }
+          const commBtn = document.getElementById('dynCommCtaBtn');
+          if (commBtn) {
+            commBtn.href = pUrl(`/artists/${encodeURIComponent(creatorUsername)}/`);
+          }
+
+          // Owner check
+          const isOwner = currentUser && creatorUsername && (currentUser.username.toLowerCase() === creatorUsername.toLowerCase());
+
+          // Licenses data & state
+          const rawLicenses = art.license_options || [];
+          const userOwnership = art.user_ownership || [];
+
+          function formatVND(value) {
+            if (value === null || value === undefined || isNaN(value)) return '0 ₫';
+            return Math.round(Number(value)).toLocaleString('vi-VN') + ' ₫';
+          }
+
+          const licenses = rawLicenses.map(lo => {
+            const isOwned = userOwnership.includes(lo.license_type);
+            const isCommercial = lo.license_type === 'COMMERCIAL';
+            return {
+              id: lo.id,
+              type: lo.license_type,
+              displayName: isCommercial ? 'Sử dụng thương mại (Commercial)' : 'Sử dụng cá nhân (Personal)',
+              price: Number(lo.price),
+              terms: lo.terms || (isCommercial
+                ? 'Sử dụng cho mục đích thương mại: ấn phẩm phát hành, bao bì sản phẩm, dự án game, quảng cáo tiếp thị có doanh thu.'
+                : 'Sử dụng cho mục đích cá nhân: in ấn trang trí phòng, ảnh đại diện, hình nền thiết bị, phi thương mại.'),
+              is_owned: !!isOwned
+            };
+          });
+
+          let selectedLicenseType = licenses.length > 0 ? licenses[0].type : '';
+
+          const licStack = document.getElementById('dynArtLicenseStack');
+          const summaryTier = document.getElementById('dynSummaryTierName');
+          const summaryTotal = document.getElementById('dynSummaryTotalAmount');
+          const buyBtn = document.getElementById('dynArtBuyBtn');
+          const buyBtnText = document.getElementById('dynArtBuyBtnText');
+          const studioBtn = document.getElementById('dynArtOwnerStudioBtn');
+
+          function renderLicenseUI() {
+            if (!licStack) return;
+
+            if (licenses.length === 0) {
+              licStack.innerHTML = '<div style="font-size: 0.9rem; color: var(--text-muted); padding: 16px;">Tác phẩm hiện chưa mở bán gói quyền.</div>';
+              if (buyBtn) buyBtn.disabled = true;
+              return;
+            }
+
+            licStack.innerHTML = licenses.map(lic => {
+              const isActive = lic.type === selectedLicenseType;
+              return `
+                <div class="license-card-option ${isActive ? 'active' : ''} ${lic.is_owned ? 'is-owned' : ''}"
+                     data-license-type="${lic.type}" data-license-id="${lic.id}" id="dynCardLicense_${lic.type}">
+                  <div class="license-top-row">
+                    <div class="license-title-group">
+                      <div class="license-radio-circle"></div>
+                      <div>
+                        <div class="license-card-name">${lic.displayName}</div>
+                        ${lic.is_owned ? `
+                          <span class="license-owned-badge">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            ĐÃ SỞ HỮU
+                          </span>
+                        ` : ''}
                       </div>
-                      <span style="font-size: 1.15rem; font-weight: 800; color: var(--primary-berry);">${formattedPrice}</span>
                     </div>
-                    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0; line-height: 1.5;">${lic.terms || (isPersonal ? 'Sử dụng cá nhân, in ấn trang trí, avatar không sinh lợi nhuận.' : 'Sử dụng thương mại, xuất bản, quảng cáo truyền thông.')}</p>
+                    <div class="license-card-price">${formatVND(lic.price)}</div>
                   </div>
-                `;
-              }).join('');
+                  <div class="license-card-desc">${lic.terms}</div>
+                  ${lic.is_owned ? `
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;">
+                      <a href="/api/artworks/${art.id}/download-file/" class="license-download-btn" onclick="if (window.ArtFair && window.ArtFair.downloadOriginalArtworkFile) { event.preventDefault(); window.ArtFair.downloadOriginalArtworkFile(${art.id}); }" download>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="7 10 12 15 17 10"></polyline>
+                          <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Tải tệp gốc bàn giao</span>
+                      </a>
+                      <a href="${pUrl('/dashboard/#tab-library')}" class="license-download-btn" style="background: var(--bg-lavender); color: #58248E; border-color: rgba(88,36,142,0.25);">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <span>Kho tranh cá nhân &rarr;</span>
+                      </a>
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('');
 
-              // Add card click listeners
-              licStack.querySelectorAll('.dyn-license-card').forEach(card => {
-                card.addEventListener('click', () => {
-                  licStack.querySelectorAll('.dyn-license-card').forEach(c => {
-                    c.style.borderColor = 'var(--border-subtle)';
-                    c.style.background = '#FFFFFF';
-                    const r = c.querySelector('input[type="radio"]');
-                    if (r) r.checked = false;
-                  });
-                  card.style.borderColor = 'var(--primary-berry)';
-                  card.style.background = '#FFF7FA';
-                  const radio = card.querySelector('input[type="radio"]');
-                  if (radio) radio.checked = true;
-                  selectedLicenseId = card.getAttribute('data-license-id');
-                });
+            // Card click listener
+            licStack.querySelectorAll('.license-card-option').forEach(card => {
+              card.addEventListener('click', () => {
+                selectedLicenseType = card.getAttribute('data-license-type');
+                updateSelectionState();
               });
+            });
+
+            updateSelectionState();
+          }
+
+          function updateSelectionState() {
+            const currentLic = licenses.find(l => l.type === selectedLicenseType) || licenses[0];
+            if (!currentLic) return;
+
+            licStack.querySelectorAll('.license-card-option').forEach(c => {
+              if (c.getAttribute('data-license-type') === currentLic.type) {
+                c.classList.add('active');
+              } else {
+                c.classList.remove('active');
+              }
+            });
+
+            if (summaryTier) summaryTier.textContent = currentLic.displayName;
+            if (summaryTotal) summaryTotal.textContent = formatVND(currentLic.price);
+
+            if (buyBtn && buyBtnText) {
+              if (isOwner) {
+                buyBtn.disabled = true;
+                buyBtnText.textContent = 'Bạn là tác giả của tác phẩm này';
+                if (studioBtn) {
+                  studioBtn.style.display = 'inline-flex';
+                  studioBtn.href = pUrl('/studio/');
+                }
+              } else if (currentLic.is_owned) {
+                buyBtn.disabled = true;
+                buyBtnText.textContent = 'Bạn đã sở hữu gói quyền này (Tải tệp ở trên)';
+                if (studioBtn) studioBtn.style.display = 'none';
+              } else if (art.status && art.status !== 'PUBLISHED') {
+                buyBtn.disabled = true;
+                buyBtnText.textContent = art.status === 'ARCHIVED' ? 'Tác phẩm đã lưu trữ' : 'Tác phẩm chưa phát hành';
+                if (studioBtn) studioBtn.style.display = 'none';
+              } else {
+                buyBtn.disabled = false;
+                buyBtnText.textContent = `Mua quyền ${currentLic.displayName} (${formatVND(currentLic.price)})`;
+                if (studioBtn) studioBtn.style.display = 'none';
+              }
+            }
+          }
+
+          renderLicenseUI();
+
+          // Resume pending purchase from sessionStorage if returning from login
+          const savedPending = sessionStorage.getItem('artfair_pending_purchase');
+          if (savedPending) {
+            try {
+              const pendingObj = JSON.parse(savedPending);
+              if (pendingObj && (pendingObj.artworkSlug === art.slug || pendingObj.artworkId === art.id)) {
+                sessionStorage.removeItem('artfair_pending_purchase');
+                if (pendingObj.licenseType) {
+                  selectedLicenseType = pendingObj.licenseType;
+                  updateSelectionState();
+                }
+                setTimeout(() => doCheckout(), 600);
+              }
+            } catch (_) {
+              sessionStorage.removeItem('artfair_pending_purchase');
             }
           }
 
           // Buy button listener
-          const buyBtn = document.getElementById('dynArtBuyBtn');
           if (buyBtn) {
             buyBtn.addEventListener('click', async () => {
-              if (!selectedLicenseId) {
-                if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Vui lòng chọn một gói quyền sử dụng.', 'info');
+              if (isOwner) return;
+              const curUser = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
+              if (!curUser) {
+                sessionStorage.setItem('artfair_pending_purchase', JSON.stringify({
+                  artworkId: art.id,
+                  artworkSlug: art.slug,
+                  licenseType: selectedLicenseType
+                }));
+                if (window.ArtFair && window.ArtFair.showNotice) {
+                  window.ArtFair.showNotice('Vui lòng đăng nhập để tiến hành mua quyền sử dụng.');
+                } else if (window.ArtFair && window.ArtFair.showToast) {
+                  window.ArtFair.showToast('Vui lòng đăng nhập để mua quyền sử dụng.', 'info');
+                }
+                if (window.ArtFair && window.ArtFair.openAuthModal) {
+                  window.ArtFair.openAuthModal('login');
+                }
                 return;
               }
-              const user = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
-              if (!user) {
-                if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Vui lòng đăng nhập để mua quyền sử dụng tác phẩm.', 'info');
-                if (window.ArtFair && window.ArtFair.openAuthModal) window.ArtFair.openAuthModal('login');
-                return;
-              }
-
-              // Create order and trigger Simulated Payment modal
-              buyBtn.disabled = true;
-              buyBtn.textContent = 'Đang khởi tạo đơn hàng...';
-              try {
-                const orderRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/artworks/orders/', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ license_id: selectedLicenseId })
-                });
-                const orderData = await orderRes.json();
-                if (orderRes.ok && orderData.order_code) {
-                  // Open simulated payment modal
-                  const payModal = document.getElementById('dynSimPaymentModalBackdrop');
-                  const codeEl = document.getElementById('dynPayOrderCode');
-                  const licEl = document.getElementById('dynPayLicenseName');
-                  const prcEl = document.getElementById('dynPayPrice');
-                  if (codeEl) codeEl.textContent = orderData.order_code;
-                  if (licEl) licEl.textContent = orderData.license_type === 'COMMERCIAL' ? 'Thương mại (Commercial)' : 'Cá nhân (Personal)';
-                  if (prcEl) prcEl.textContent = Number(orderData.price_paid || 0).toLocaleString('vi-VN') + ' đ';
-
-                  // Close handlers
-                  const closeBtn = document.getElementById('btnDynClosePayModal');
-                  if (closeBtn) closeBtn.onclick = () => { if (payModal) payModal.style.display = 'none'; };
-
-                  // Payment actions
-                  const btnSuccess = document.getElementById('btnDynSimSuccess');
-                  const btnFail = document.getElementById('btnDynSimFail');
-                  const btnCancel = document.getElementById('btnDynSimCancel');
-
-                  async function sendDynPayment(act) {
-                    try {
-                      const pRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/orders/${orderData.order_code}/simulate-payment/`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: act })
-                      });
-                      const pData = await pRes.json();
-                      if (payModal) payModal.style.display = 'none';
-
-                      if (act === 'SUCCESS') {
-                        if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast(pData.detail || 'Thanh toán mô phỏng thành công! Quyền sử dụng đã được cấp.', 'success');
-                        buyBtn.disabled = true;
-                        buyBtn.innerHTML = `✓ Đã sở hữu quyền sử dụng`;
-                        buyBtn.style.background = '#28A745';
-                        buyBtn.style.borderColor = '#28A745';
-
-                        // Pop-up banner to direct user to Library or Orders
-                        const banner = document.createElement('div');
-                        banner.style.cssText = 'position:fixed; bottom:24px; right:24px; background:#FFFFFF; border:1px solid #B7EB8F; border-radius:12px; padding:18px 20px; box-shadow:0 12px 32px rgba(46,18,77,0.18); z-index:2000; max-width:380px;';
-                        banner.innerHTML = `
-                          <div style="font-weight:700; color:#389E0D; margin-bottom:6px; display:flex; align-items:center; gap:6px; font-size:0.95rem;">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Thanh toán thành công!
-                          </div>
-                          <p style="font-size:0.85rem; color:#555; margin:0 0 12px 0;">Quyền tác phẩm đã được kích hoạt. Bạn có thể tải file gốc hoặc xuất chứng nhận bản quyền PDF.</p>
-                          <div style="display:flex; gap:8px;">
-                            <a href="${pUrl('/dashboard/#tab-library')}" class="btn btn-primary btn-sm" style="flex:1; text-align:center; text-decoration:none; padding:8px 12px; font-size:0.84rem;">Vào Kho tranh</a>
-                            <a href="${pUrl('/dashboard/#tab-orders')}" class="btn btn-secondary btn-sm" style="flex:1; text-align:center; text-decoration:none; padding:8px 12px; font-size:0.84rem;">Xem Đơn hàng</a>
-                          </div>
-                        `;
-                        document.body.appendChild(banner);
-                        setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
-                      } else if (act === 'FAILED') {
-                        if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Giao dịch mô phỏng thất bại. Quyền sử dụng tác phẩm chưa được cấp.', 'error');
-                      } else {
-                        if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Đã hủy giao dịch thanh toán.', 'info');
-                      }
-                    } catch (_) {
-                      if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Lỗi kết nối thanh toán.', 'error');
-                    }
-                  }
-
-                  if (btnSuccess) btnSuccess.onclick = () => sendDynPayment('SUCCESS');
-                  if (btnFail) btnFail.onclick = () => sendDynPayment('FAILED');
-                  if (btnCancel) btnCancel.onclick = () => sendDynPayment('CANCEL');
-
-                  if (payModal) payModal.style.display = 'flex';
-                } else {
-                  if (window.ArtFair && window.ArtFair.showToast) {
-                    window.ArtFair.showToast(orderData.detail || 'Không thể tạo đơn hàng.', 'error');
-                  }
-                }
-              } catch (_) {
-                if (window.ArtFair && window.ArtFair.showToast) {
-                  window.ArtFair.showToast('Lỗi kết nối khi khởi tạo đơn hàng.', 'error');
-                }
-              } finally {
-                buyBtn.disabled = false;
-                buyBtn.innerHTML = `
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-                  <span>Mua quyền sử dụng</span>
-                `;
-              }
+              await doCheckout();
             });
+          }
+
+          async function doCheckout() {
+            const currentLic = licenses.find(l => l.type === selectedLicenseType) || licenses[0];
+            if (!currentLic) return;
+
+            buyBtn.disabled = true;
+            if (buyBtnText) buyBtnText.textContent = 'Đang khởi tạo đơn hàng...';
+
+            try {
+              const orderRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/artworks/orders/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  artwork_id: art.id,
+                  artwork_slug: art.slug,
+                  license_type: currentLic.type,
+                  license_id: currentLic.id
+                })
+              });
+
+              if (orderRes.status === 403) {
+                const bodyText = await orderRes.clone().text().catch(() => '');
+                if (bodyText.includes('CSRF') || bodyText.includes('csrf') || bodyText.includes('Csrftoken')) {
+                  if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Phiên xác thực đã thay đổi. Vui lòng tải lại trang và thử lại.', 'error');
+                  if (window.ArtFair && window.ArtFair.fetchCsrfToken) await window.ArtFair.fetchCsrfToken();
+                  return;
+                }
+              }
+
+              const orderData = await orderRes.json();
+
+              if ((orderRes.status === 201 || orderRes.status === 200) && orderData.order_code) {
+                // Open Simulated Payment Modal
+                const payModal = document.getElementById('dynSimPaymentModalBackdrop');
+                const codeEl = document.getElementById('dynPayOrderCode');
+                const titleEl = document.getElementById('dynPayArtworkTitle');
+                const licEl = document.getElementById('dynPayLicenseName');
+                const prcEl = document.getElementById('dynPayPrice');
+
+                if (codeEl) codeEl.textContent = orderData.order_code;
+                if (titleEl) titleEl.textContent = art.title;
+                if (licEl) licEl.textContent = orderData.license_type === 'COMMERCIAL' ? 'Thương mại (Commercial)' : 'Cá nhân (Personal)';
+                if (prcEl) prcEl.textContent = formatVND(orderData.price_paid);
+
+                const closeBtn = document.getElementById('btnDynClosePayModal');
+                if (closeBtn) closeBtn.onclick = () => { if (payModal) payModal.style.display = 'none'; };
+
+                const btnSuccess = document.getElementById('btnDynSimSuccess');
+                const btnFail = document.getElementById('btnDynSimFail');
+                const btnCancel = document.getElementById('btnDynSimCancel');
+
+                async function sendDynPayment(act) {
+                  const actionBtns = [btnSuccess, btnFail, btnCancel].filter(Boolean);
+                  actionBtns.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
+
+                  try {
+                    const pRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/orders/${orderData.order_code}/simulate-payment/`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: act })
+                    });
+                    const pData = await pRes.json();
+                    if (payModal) payModal.style.display = 'none';
+
+                    if (act === 'SUCCESS') {
+                      if (window.ArtFair && window.ArtFair.showToast) {
+                        window.ArtFair.showToast(pData.detail || 'Thanh toán mô phỏng thành công! Quyền sử dụng đã được cấp.', 'success');
+                      }
+                      currentLic.is_owned = true;
+                      renderLicenseUI();
+
+                      // Floating confirmation banner
+                      const banner = document.createElement('div');
+                      banner.style.cssText = 'position:fixed; bottom:24px; right:24px; background:#FFFFFF; border:1px solid #B7EB8F; border-radius:12px; padding:18px 20px; box-shadow:0 12px 32px rgba(46,18,77,0.18); z-index:2000; max-width:380px;';
+                      banner.innerHTML = `
+                        <div style="font-weight:700; color:#389E0D; margin-bottom:6px; display:flex; align-items:center; gap:6px; font-size:0.95rem;">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                          Thanh toán thành công!
+                        </div>
+                        <p style="font-size:0.85rem; color:#555; margin:0 0 12px 0;">Quyền tác phẩm đã được kích hoạt. Bạn có thể tải file gốc hoặc xuất chứng nhận bản quyền PDF.</p>
+                        <div style="display:flex; gap:8px;">
+                          <a href="${pUrl('/dashboard/#tab-library')}" class="btn btn-primary btn-sm" style="flex:1; text-align:center; text-decoration:none; padding:8px 12px; font-size:0.84rem;">Vào Kho tranh</a>
+                          <a href="${pUrl('/dashboard/#tab-orders')}" class="btn btn-secondary btn-sm" style="flex:1; text-align:center; text-decoration:none; padding:8px 12px; font-size:0.84rem;">Xem Đơn hàng</a>
+                        </div>
+                      `;
+                      document.body.appendChild(banner);
+                      setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
+                    } else if (act === 'FAILED') {
+                      if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Giao dịch mô phỏng thất bại. Quyền sử dụng tác phẩm chưa được cấp.', 'error');
+                    } else {
+                      if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Đã hủy giao dịch thanh toán.', 'info');
+                    }
+                  } catch (_) {
+                    if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Lỗi kết nối thanh toán.', 'error');
+                  } finally {
+                    actionBtns.forEach(b => { b.disabled = false; b.style.opacity = '1'; });
+                  }
+                }
+
+                if (btnSuccess) btnSuccess.onclick = () => sendDynPayment('SUCCESS');
+                if (btnFail) btnFail.onclick = () => sendDynPayment('FAILED');
+                if (btnCancel) btnCancel.onclick = () => sendDynPayment('CANCEL');
+
+                if (payModal) payModal.style.display = 'flex';
+              } else {
+                const errMsg = orderData.detail || (orderData.artwork_id ? orderData.artwork_id[0] : null) || (orderData.license_type ? orderData.license_type[0] : null) || 'Không thể tạo đơn hàng.';
+                if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast(errMsg, 'error');
+                if (orderData.already_owned) {
+                  currentLic.is_owned = true;
+                  renderLicenseUI();
+                }
+              }
+            } catch (_) {
+              if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Lỗi kết nối khi khởi tạo đơn hàng.', 'error');
+            } finally {
+              updateSelectionState();
+            }
           }
 
           // Favorite button listener
           const favBtn = document.getElementById('dynArtFavBtn');
           if (favBtn) {
             favBtn.addEventListener('click', async () => {
-              const user = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
-              if (!user) {
+              const curUser = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
+              if (!curUser) {
                 if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Vui lòng đăng nhập để lưu tác phẩm yêu thích.', 'info');
                 if (window.ArtFair && window.ArtFair.openAuthModal) window.ArtFair.openAuthModal('login');
                 return;
@@ -864,12 +2105,13 @@
                 if (favRes.ok) {
                   const favData = await favRes.json();
                   const isFav = favData.is_favorited;
-                  favBtn.style.color = isFav ? '#C52A70' : 'inherit';
-                  favBtn.innerHTML = isFav
-                    ? `<svg width="22" height="22" viewBox="0 0 24 24" fill="#C52A70" stroke="#C52A70" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`
-                    : `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+                  const svg = favBtn.querySelector('svg');
+                  if (svg) {
+                    svg.setAttribute('fill', isFav ? '#E11D48' : 'none');
+                    svg.setAttribute('stroke', isFav ? '#E11D48' : 'var(--text-plum)');
+                  }
                   if (window.ArtFair && window.ArtFair.showToast) {
-                    window.ArtFair.showToast(isFav ? 'Đã thêm vào mục Yêu thích!' : 'Đã xóa khỏi mục Yêu thích.', 'info');
+                    window.ArtFair.showToast(favData.detail || (isFav ? 'Đã thêm vào mục Yêu thích!' : 'Đã xóa khỏi mục Yêu thích.'), 'info');
                   }
                 }
               } catch (_) {}

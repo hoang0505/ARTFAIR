@@ -118,12 +118,129 @@ def write_page(relative_path, html_content):
     print(f"  [PAGE] -> dist/{relative_path}")
 
 
+def sync_live_backend_data():
+    """
+    Safely queries live backend API (https://hoang0505.pythonanywhere.com/api/)
+    to import any newly registered artists and published artworks into local SQLite
+    before static site generation, ensuring they are compiled directly as static pages.
+    """
+    import urllib.request
+    from django.utils.text import slugify
+    from accounts.models import ArtistProfile
+
+    try:
+        req = urllib.request.Request(
+            f"{BACKEND_HOST}/api/accounts/artists/",
+            headers={'User-Agent': 'ARTFAIR-Static-Builder/1.0'}
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            if resp.status == 200:
+                artists = json.loads(resp.read().decode('utf-8'))
+                artists_list = artists.get('results', artists) if isinstance(artists, dict) else artists
+                for a in artists_list:
+                    uname = a.get('username')
+                    if uname:
+                        user, created = User.objects.get_or_create(
+                            username=uname,
+                            defaults={
+                                'role': User.Role.CREATOR,
+                                'email': f"{uname}@artfair.vn",
+                                'is_active': True
+                            }
+                        )
+                        if user.role != User.Role.CREATOR:
+                            user.role = User.Role.CREATOR
+                            user.save()
+                        profile, _ = ArtistProfile.objects.get_or_create(user=user)
+                        if a.get('display_name'):
+                            profile.display_name = a['display_name']
+                        if a.get('bio'):
+                            profile.bio = a['bio']
+                        if a.get('is_accepting_commissions') is not None:
+                            profile.is_accepting_commissions = a['is_accepting_commissions']
+                        profile.save()
+        print("  [SYNC] Live artists synced from backend.")
+    except Exception as e:
+        print(f"  [SYNC] Note: Live artists sync skipped ({e}). Using local database.")
+
+    try:
+        req = urllib.request.Request(
+            f"{BACKEND_HOST}/api/artworks/",
+            headers={'User-Agent': 'ARTFAIR-Static-Builder/1.0'}
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            if resp.status == 200:
+                art_resp = json.loads(resp.read().decode('utf-8'))
+                art_list = art_resp.get('results', art_resp) if isinstance(art_resp, dict) else art_resp
+                for item in art_list:
+                    slug = item.get('slug')
+                    if not slug:
+                        continue
+                    creator_data = item.get('creator') or {}
+                    uname = creator_data.get('username')
+                    if not uname:
+                        continue
+                    creator, _ = User.objects.get_or_create(
+                        username=uname,
+                        defaults={'role': User.Role.CREATOR, 'email': f"{uname}@artfair.vn", 'is_active': True}
+                    )
+                    cat_data = item.get('category') or {}
+                    cat_name = cat_data.get('name', 'Nghệ thuật số')
+                    cat_slug = cat_data.get('slug') or slugify(cat_name)
+                    cat, _ = Category.objects.get_or_create(
+                        slug=cat_slug,
+                        defaults={'name': cat_name}
+                    )
+                    artwork = Artwork.objects.filter(slug=slug).first()
+                    if not artwork:
+                        artwork = Artwork.objects.create(
+                            creator=creator,
+                            title=item.get('title', slug),
+                            slug=slug,
+                            description=item.get('description', ''),
+                            category=cat,
+                            style=item.get('style', ''),
+                            status=Artwork.Status.PUBLISHED,
+                        )
+                    else:
+                        artwork.creator = creator
+                        artwork.category = cat
+                        if item.get('title'): artwork.title = item['title']
+                        if item.get('description'): artwork.description = item['description']
+                        if item.get('style'): artwork.style = item['style']
+                        artwork.status = Artwork.Status.PUBLISHED
+
+                    if item.get('preview_image'):
+                        img_path = str(item['preview_image']).replace('/media/', '').lstrip('/')
+                        artwork.preview_image.name = img_path
+                    artwork.save()
+
+                    # License options
+                    live_licenses = item.get('license_options') or []
+                    for lo in live_licenses:
+                        ltype = lo.get('license_type')
+                        lprice = lo.get('price', 0)
+                        lterms = lo.get('terms', '')
+                        if ltype:
+                            LicenseOption.objects.update_or_create(
+                                artwork=artwork,
+                                license_type=ltype,
+                                defaults={'price': lprice, 'terms': lterms, 'is_active': True}
+                            )
+        print("  [SYNC] Live published artworks synced from backend.")
+    except Exception as e:
+        print(f"  [SYNC] Note: Live artworks sync skipped ({e}). Using local database.")
+
+
 def build():
     print("=" * 60)
     print("ARTFAIR - Building Static Site for GitHub Pages")
     print(f"Base Repository Prefix: {REPO_PREFIX}")
     print(f"Live Backend API:       {BACKEND_HOST}")
     print("=" * 60)
+
+    # 0. Sync live artists and artworks from PythonAnywhere backend
+    sync_live_backend_data()
 
     # 1. Clean and initialize dist directory
     if DIST_DIR.exists():

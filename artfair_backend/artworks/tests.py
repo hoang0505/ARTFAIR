@@ -463,6 +463,37 @@ class Screen02OrderAndPaymentTests(TestCase):
         self.assertEqual(created_order.price_paid, Decimal('250000'))
         self.assertEqual(created_order.status, Order.Status.PENDING)
 
+    def test_order_creation_by_license_id_only(self):
+        """
+        Dynamic frontend fallback sends license_id.
+        Backend must resolve artwork and license_type from LicenseOption,
+        verifying creator ownership, active status, and creating pending order.
+        """
+        self.client.force_login(self.buyer1)
+        order_url = reverse('artworks:order_create')
+        res = self.client.post(order_url, {
+            'license_id': str(self.lic_personal.id)
+        })
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Decimal(str(res.data['price_paid'])), Decimal('250000'))
+        self.assertEqual(res.data['license_type'], 'PERSONAL')
+
+    def test_order_creation_with_all_fields(self):
+        """
+        Sending artwork_id, artwork_slug, license_type, and license_id simultaneously.
+        """
+        self.client.force_login(self.buyer2)
+        order_url = reverse('artworks:order_create')
+        res = self.client.post(order_url, {
+            'artwork_id': self.artwork.id,
+            'artwork_slug': self.artwork.slug,
+            'license_type': 'COMMERCIAL',
+            'license_id': str(self.lic_commercial.id)
+        })
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Decimal(str(res.data['price_paid'])), Decimal('850000'))
+        self.assertEqual(res.data['license_type'], 'COMMERCIAL')
+
     def test_payment_simulation_success_and_download_grant(self):
         """
         Simulated SUCCESS payment completes order, updates timestamp, and unlocks file download.

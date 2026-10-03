@@ -292,21 +292,31 @@ class OrderSerializer(serializers.ModelSerializer):
 class CreateOrderSerializer(serializers.Serializer):
     artwork_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     artwork_slug = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    license_type = serializers.ChoiceField(choices=LicenseOption.LicenseType.choices, required=True)
+    license_type = serializers.ChoiceField(choices=LicenseOption.LicenseType.choices, required=False, allow_blank=True, allow_null=True)
+    license_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def validate(self, attrs):
         user = self.context['request'].user
         artwork_id_raw = attrs.get('artwork_id')
         artwork_slug_raw = attrs.get('artwork_slug')
-        license_type = attrs['license_type']
-
-        if not artwork_id_raw and not artwork_slug_raw:
-            raise serializers.ValidationError({'artwork_id': 'Vui lòng cung cấp mã hoặc slug tác phẩm.'})
+        license_type = attrs.get('license_type')
+        license_id_raw = attrs.get('license_id')
 
         artwork = None
+        license_option = None
+
+        # 0. Direct lookup by license_id if provided
+        if license_id_raw:
+            str_lic_id = str(license_id_raw).strip()
+            if str_lic_id.isdigit():
+                license_option = LicenseOption.objects.filter(pk=int(str_lic_id), is_active=True).first()
+                if license_option:
+                    artwork = license_option.artwork
+                    if not license_type:
+                        license_type = license_option.license_type
 
         # 1. Authoritative cross-environment resolution by slug if provided
-        if artwork_slug_raw:
+        if not artwork and artwork_slug_raw:
             str_slug = str(artwork_slug_raw).strip()
             if str_slug:
                 artwork = Artwork.objects.filter(slug=str_slug).first()
@@ -320,6 +330,8 @@ class CreateOrderSerializer(serializers.Serializer):
                 artwork = Artwork.objects.filter(slug=str_id).first()
 
         if not artwork:
+            if not artwork_id_raw and not artwork_slug_raw and not license_id_raw:
+                raise serializers.ValidationError({'artwork_id': 'Vui lòng cung cấp mã hoặc slug tác phẩm.'})
             raise serializers.ValidationError({'artwork_id': 'Tác phẩm không tồn tại trên hệ thống.'})
 
         # Distinct, informative status validation
@@ -341,9 +353,16 @@ class CreateOrderSerializer(serializers.Serializer):
         if artwork.creator == user:
             raise serializers.ValidationError({'detail': 'Nghệ sĩ không thể tự mua quyền sử dụng tác phẩm của chính mình.'})
 
-        license_option = artwork.license_options.filter(license_type=license_type, is_active=True).first()
+        if not license_option:
+            if not license_type:
+                raise serializers.ValidationError({'license_type': 'Vui lòng chọn gói quyền sử dụng (PERSONAL hoặc COMMERCIAL).'})
+            license_option = artwork.license_options.filter(license_type=license_type, is_active=True).first()
+
         if not license_option:
             raise serializers.ValidationError({'license_type': 'Gói quyền sử dụng này hiện không khả dụng cho tác phẩm.'})
+
+        # Ensure license_type is populated from matched license_option
+        license_type = license_option.license_type
 
         already_owned = Order.objects.filter(
             buyer=user,
@@ -360,6 +379,7 @@ class CreateOrderSerializer(serializers.Serializer):
 
         attrs['artwork'] = artwork
         attrs['license_option'] = license_option
+        attrs['license_type'] = license_type
         return attrs
 
     def create(self, validated_data):
