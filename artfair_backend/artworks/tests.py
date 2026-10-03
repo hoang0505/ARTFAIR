@@ -1572,6 +1572,130 @@ class Screen04DashboardAndPersonalHubTests(TestCase):
         self.assertEqual(fav_res.status_code, status.HTTP_200_OK)
         self.assertTrue(fav_res.data['favorited'])
 
+    def test_e2e_new_creator_register_upload_publish_and_other_buyer_purchases_and_downloads(self):
+        """
+        End-to-End Integration Test for Lỗi 2:
+        1. A new user registers as CREATOR.
+        2. Creator uploads a master file and publishes a new artwork via Wizard with PERSONAL and COMMERCIAL licenses.
+        3. A different new user registers as BUYER.
+        4. Buyer views the artwork detail page / API.
+        5. Buyer places an order for the PERSONAL license.
+        6. Buyer completes simulated payment.
+        7. Buyer verifies artwork is in their library.
+        8. Buyer downloads the original delivery file.
+        9. Creator views their dashboard metrics and verifies sales transactions ledger.
+        10. Creator cannot purchase their own artwork.
+        11. Buyer cannot purchase the same license twice.
+        """
+        # Step 1: Creator registration via API
+        creator_client = APIClient()
+        reg_creator_res = creator_client.post(reverse('accounts:register'), {
+            'username': 'fresh_creator_e2e',
+            'email': 'fresh_creator_e2e@test.local',
+            'password': 'CreatorSecret123!',
+            'role': User.Role.CREATOR,
+            'display_name': 'Họa sĩ E2E Mới',
+        })
+        self.assertEqual(reg_creator_res.status_code, status.HTTP_201_CREATED)
+        creator_token = reg_creator_res.data['token']
+        creator_client.credentials(HTTP_AUTHORIZATION=f'Token {creator_token}')
+
+        # Step 2: Creator publishes new artwork via Wizard
+        master_img = make_test_image('e2e_fresh_master.png', color=(200, 100, 150), width=1024, height=768)
+        publish_res = creator_client.post(reverse('artworks:creator_studio_publish_wizard'), {
+            'action': 'publish',
+            'title': 'Bức Họa E2E Độc Bản',
+            'description': 'Tác phẩm kỹ thuật số độ phân giải cao dành cho kiểm thử end-to-end.',
+            'category_id': self.category.id,
+            'personal_price': '150000',
+            'commercial_price': '450000',
+            'rights_confirmed': 'true',
+            'file': master_img,
+        }, format='multipart')
+        self.assertEqual(publish_res.status_code, status.HTTP_201_CREATED)
+        art_data = publish_res.data.get('artwork', publish_res.data)
+        art_id = art_data['id']
+        art_slug = art_data['slug']
+
+        created_art = Artwork.objects.get(pk=art_id)
+        self.assertEqual(created_art.status, Artwork.Status.PUBLISHED)
+        self.assertEqual(created_art.creator.username, 'fresh_creator_e2e')
+        self.assertEqual(created_art.license_options.count(), 2)
+
+        # Step 3: New Buyer registration via API
+        buyer_client = APIClient()
+        reg_buyer_res = buyer_client.post(reverse('accounts:register'), {
+            'username': 'fresh_buyer_e2e',
+            'email': 'fresh_buyer_e2e@test.local',
+            'password': 'BuyerSecret123!',
+            'role': User.Role.BUYER,
+        })
+        self.assertEqual(reg_buyer_res.status_code, status.HTTP_201_CREATED)
+        buyer_token = reg_buyer_res.data['token']
+        buyer_client.credentials(HTTP_AUTHORIZATION=f'Token {buyer_token}')
+
+        # Step 4: Buyer fetches public artwork detail by slug
+        detail_res = buyer_client.get(reverse('artworks:public_artwork_detail', kwargs={'lookup': art_slug}))
+        self.assertEqual(detail_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(detail_res.data['title'], 'Bức Họa E2E Độc Bản')
+        self.assertEqual(len(detail_res.data['license_options']), 2)
+
+        # Step 5: Buyer creates order for PERSONAL license
+        create_order_res = buyer_client.post(reverse('artworks:order_create'), {
+            'artwork_slug': art_slug,
+            'license_type': LicenseOption.LicenseType.PERSONAL,
+        })
+        self.assertEqual(create_order_res.status_code, status.HTTP_201_CREATED)
+        order_code = create_order_res.data['order_code']
+        self.assertEqual(Decimal(str(create_order_res.data['price_paid'])), Decimal('150000'))
+        self.assertEqual(create_order_res.data['status'], Order.Status.PENDING)
+
+        # Step 6: Buyer simulates payment SUCCESS
+        pay_res = buyer_client.post(
+            reverse('artworks:order_simulate_payment', kwargs={'order_code': order_code}),
+            {'action': 'SUCCESS'}
+        )
+        self.assertEqual(pay_res.status_code, status.HTTP_200_OK)
+        order_data = pay_res.data.get('order', pay_res.data)
+        self.assertEqual(order_data['status'], Order.Status.COMPLETED)
+
+        # Step 7: Buyer downloads original delivery file
+        dl_res = buyer_client.get(reverse('artworks:artwork_download_file', kwargs={'artwork_id': art_id}))
+        self.assertEqual(dl_res.status_code, status.HTTP_200_OK)
+        self.assertIn('Content-Disposition', dl_res.headers)
+
+        # Step 8: Buyer views library
+        lib_res = buyer_client.get(reverse('artworks:my_library_list'))
+        self.assertEqual(lib_res.status_code, status.HTTP_200_OK)
+        lib_items = lib_res.data.get('results', lib_res.data)
+        self.assertEqual(len(lib_items), 1)
+        self.assertEqual(lib_items[0]['artwork_title'], 'Bức Họa E2E Độc Bản')
+        self.assertEqual(lib_items[0]['order_code'], order_code)
+
+        # Step 9: Creator views dashboard metrics and verifies sales transactions
+        metrics_res = creator_client.get(reverse('artworks:creator_dashboard_metrics'))
+        self.assertEqual(metrics_res.status_code, status.HTTP_200_OK)
+        self.assertEqual(Decimal(str(metrics_res.data['total_revenue'])), Decimal('150000'))
+        self.assertEqual(len(metrics_res.data['sales_transactions']), 1)
+        self.assertEqual(metrics_res.data['sales_transactions'][0]['order_code'], order_code)
+        self.assertEqual(metrics_res.data['sales_transactions'][0]['buyer_username'], 'fresh_buyer_e2e')
+
+        # Step 10: Creator cannot purchase their own artwork
+        own_buy_res = creator_client.post(reverse('artworks:order_create'), {
+            'artwork_slug': art_slug,
+            'license_type': LicenseOption.LicenseType.PERSONAL,
+        })
+        self.assertEqual(own_buy_res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Nghệ sĩ không thể tự mua', str(own_buy_res.data))
+
+        # Step 11: Buyer cannot purchase the same license twice
+        dup_buy_res = buyer_client.post(reverse('artworks:order_create'), {
+            'artwork_slug': art_slug,
+            'license_type': LicenseOption.LicenseType.PERSONAL,
+        })
+        self.assertEqual(dup_buy_res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(dup_buy_res.data.get('already_owned'))
+
 
 
 

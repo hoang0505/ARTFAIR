@@ -120,22 +120,14 @@
     const method = (options.method || 'GET').toUpperCase();
     const headers = Object.assign({}, options.headers || {});
 
-    // Check if endpoint is an unauthenticated public auth endpoint or public read endpoint
+    // Check if endpoint is an unauthenticated public auth endpoint
     const isPublicAuthEndpoint = url.includes('/api/accounts/auth/login') ||
                                  url.includes('/api/accounts/auth/register') ||
                                  url.includes('/api/accounts/auth/csrf');
 
-    // Public read endpoints never require token; omitting token protects against stale token 401
-    const isPublicReadEndpoint = (method === 'GET') && (
-      (url.startsWith('/api/artworks/') && !url.includes('/creator') && !url.includes('/my-artworks') && !url.includes('/library') && !url.includes('/favorites')) ||
-      (url.startsWith('/api/accounts/artists') && !url.includes('/artist-profile/')) ||
-      url.startsWith('/api/artworks/categories') ||
-      url.startsWith('/api/artworks/tags')
-    );
-
     // Attach Token Authorization header if user has authenticated token
     const token = getAuthToken();
-    if (token && !headers['Authorization'] && !isPublicAuthEndpoint && !isPublicReadEndpoint) {
+    if (token && !headers['Authorization'] && !isPublicAuthEndpoint) {
       headers['Authorization'] = `Token ${token}`;
     }
 
@@ -162,7 +154,7 @@
         const clone = res.clone();
         try {
           const bodyText = await clone.text();
-          if (bodyText.includes('Invalid token') || bodyText.includes('invalid_token') || bodyText.includes('Authentication credentials were not provided')) {
+          if (bodyText.includes('Invalid token') || bodyText.includes('invalid_token')) {
             console.warn('[ARTFAIR Auth] Stale or invalid token detected. Purging invalid token from storage...');
             setAuthToken('');
             state.currentUser = null;
@@ -710,11 +702,6 @@
     lastFocusedOpener = document.activeElement;
     const backdrop = document.getElementById('authModalBackdrop');
     if (!backdrop) return;
-
-    // If user is currently unauthenticated, wipe any orphan or stale token so fresh auth is clean
-    if (!state.currentUser) {
-      setAuthToken('');
-    }
 
     // Lock background scroll
     document.body.classList.add('modal-open');
