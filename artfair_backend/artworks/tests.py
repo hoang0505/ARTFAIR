@@ -1296,3 +1296,23 @@ class Screen04DashboardAndPersonalHubTests(TestCase):
         self.assertEqual(Notification.objects.filter(recipient=self.creator).count(), 1)
         self.assertEqual(Notification.objects.filter(recipient=self.buyer1).count(), 1)
 
+    def test_artwork_filter_artist_case_insensitive(self):
+        """
+        Verify that ?artist=<username> filters artworks case-insensitively.
+        """
+        art = Artwork.objects.create(
+            creator=self.creator,
+            title='Art by Creator',
+            category=self.category,
+            status=Artwork.Status.PUBLISHED
+        )
+
+        # Query uppercase
+        url = reverse('artworks:public_artwork_list') + f'?artist={self.creator.username.upper()}'
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        results = res.data.get('results', res.data)
+        ids = [item['id'] for item in results]
+        self.assertIn(art.id, ids)
+
+

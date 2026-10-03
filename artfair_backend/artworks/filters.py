@@ -15,7 +15,7 @@ class ArtworkFilter(django_filters.FilterSet):
     - max_price: maximum price for specified license_type (or any active license)
     """
     category = django_filters.CharFilter(field_name='category__slug', lookup_expr='exact')
-    artist = django_filters.CharFilter(field_name='creator__username', lookup_expr='exact')
+    artist = django_filters.CharFilter(field_name='creator__username', lookup_expr='iexact')
     tag = django_filters.CharFilter(field_name='tags__slug', lookup_expr='exact')
     license_type = django_filters.ChoiceFilter(
         choices=LicenseOption.LicenseType.choices,

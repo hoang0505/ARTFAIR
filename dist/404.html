@@ -23,7 +23,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="tC9le2feEAtDNcPzurQfZPkgdLQE62iWgIuPpOXUCqLjwzBfWZDr7ZJmVyUmOupx">
+  <meta name="csrf-token" content="Bt5ar0emU2V7262uyfpN7BaylwOSw4Sz7f76ymZTRhYMopUf23AJbqc2QxsEEXwR">
   
 <style>
   .artwork-detail-grid {
@@ -356,6 +356,180 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Simulated Payment Modal for Dynamic Artwork Checkout -->
+<div id="dynSimPaymentModalBackdrop" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+  <div style="background: #FFFFFF; border-radius: var(--radius-xl); padding: 32px; max-width: 480px; width: 90%; box-shadow: var(--shadow-card); position: relative;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-light); padding-bottom: 12px;">
+      <h3 style="margin: 0; font-family: var(--font-serif); color: var(--text-plum); font-size: 1.3rem;">Cổng thanh toán mô phỏng</h3>
+      <button type="button" id="btnDynClosePayModal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+    </div>
+    <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.88rem;">
+        <span style="color: var(--text-muted);">Mã đơn hàng:</span>
+        <strong id="dynPayOrderCode" style="color: var(--text-plum); font-family: monospace;"></strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.88rem;">
+        <span style="color: var(--text-muted);">Gói quyền:</span>
+        <strong id="dynPayLicenseName" style="color: var(--text-plum);"></strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.95rem; border-top: 1px dashed var(--border-subtle); padding-top: 8px; margin-top: 8px;">
+        <span style="color: var(--text-muted); font-weight: 600;">Số tiền cần thanh toán:</span>
+        <strong id="dynPayPrice" style="color: var(--primary-berry); font-size: 1.15rem;"></strong>
+      </div>
+    </div>
+    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 20px 0; line-height: 1.5;">
+      💡 Đây là môi trường thử nghiệm Sandbox (không trừ tiền thật). Bạn có thể chọn kết quả giao dịch bên dưới để kiểm thử hệ sinh thái cấp quyền tự động.
+    </p>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button type="button" class="btn btn-primary" id="btnDynSimSuccess" style="background: #28A745; border-color: #28A745; padding: 12px; font-weight: 700;">
+        ✓ Mô phỏng Thành công (Cấp quyền & Tải file)
+      </button>
+      <button type="button" class="btn btn-secondary" id="btnDynSimFail" style="color: #DC3545; border-color: #DC3545; padding: 10px;">
+        ✗ Mô phỏng Thất bại
+      </button>
+      <button type="button" class="btn btn-ghost" id="btnDynSimCancel" style="padding: 8px;">
+        Hủy giao dịch
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Dynamic Commission Detail Container (Rendered dynamically when visiting a newly created commission) -->
+<div id="dynamicCommissionDetailContainer" class="container" style="display: none; padding-top: 28px; padding-bottom: 64px;">
+  <nav class="breadcrumb" style="display: flex; gap: 8px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px; align-items: center; flex-wrap: wrap;">
+    <a href="/ARTFAIR/" id="dynCommBcHome" style="color: var(--text-plum); text-decoration: none;">Trang chủ</a>
+    <span>/</span>
+    <a href="/ARTFAIR/dashboard/" id="dynCommBcDash" style="color: var(--text-plum); text-decoration: none;">Khu vực cá nhân</a>
+    <span>/</span>
+    <span id="dynCommBcCode" style="color: var(--text-berry); font-weight: 600;">Đơn đặt vẽ</span>
+  </nav>
+
+  <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 28px 32px; box-shadow: var(--shadow-card); margin-bottom: 32px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px; flex-wrap: wrap;">
+          <span id="dynCommCodeBadge" style="font-family: monospace; font-size: 0.95rem; font-weight: 700; color: var(--text-berry); background: var(--bg-lavender-subtle); padding: 3px 10px; border-radius: var(--radius-sm); border: 1px solid rgba(197, 42, 112, 0.2);">CMS</span>
+          <span id="dynCommStatusBadge" class="commission-badge" style="font-size: 0.85rem; font-weight: 700; padding: 4px 12px; border-radius: var(--radius-full);">Trạng thái</span>
+          <span style="font-size: 0.78rem; background: #FFF0F6; color: #C41D7F; border: 1px solid #FFADD2; border-radius: var(--radius-full); padding: 2px 10px; font-weight: 600;">Thanh toán mô phỏng Sandbox</span>
+        </div>
+        <h1 id="dynCommTitle" style="font-family: var(--font-serif); font-size: 1.7rem; color: var(--text-plum); margin: 0 0 6px 0; font-weight: 700;"></h1>
+        <p id="dynCommMeta" style="margin: 0; font-size: 0.88rem; color: var(--text-muted);"></p>
+      </div>
+
+      <div style="text-align: right;">
+        <span style="display: inline-block; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 4px;">Vai trò của bạn:</span>
+        <div><span id="dynCommRolePill" class="role-pill" style="font-size: 0.85rem; padding: 4px 12px;">Đang xác thực</span></div>
+      </div>
+    </div>
+
+    <!-- Stepper -->
+    <div style="padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+      <div id="dynCommStepperTrack" class="stepper-track" style="display: flex; justify-content: space-between; position: relative;"></div>
+    </div>
+  </div>
+
+  <!-- Content Grid -->
+  <div style="display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 32px; align-items: start;">
+    <!-- Left Column -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <!-- Brief Details -->
+      <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px 28px; box-shadow: var(--shadow-sm);">
+        <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">Mô tả ý tưởng & Brief</h2>
+        <p id="dynCommDesc" style="font-size: 0.95rem; color: var(--text-plum); line-height: 1.68; margin: 0 0 16px 0; white-space: pre-line;"></p>
+        <div id="dynCommRefBox" style="display: none; background: var(--bg-lavender-subtle); border-radius: var(--radius-sm); padding: 12px 16px; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.85rem; color: var(--text-plum); font-weight: 600;" id="dynCommRefName">Tệp tham khảo</span>
+          <a id="dynCommRefDownload" href="#" class="btn btn-secondary btn-sm" style="text-decoration: none;">Tải tệp tham khảo</a>
+        </div>
+      </div>
+
+      <!-- Deliverables -->
+      <div id="dynCommDeliverableCard" style="display: none; background: #FFFFFF; border: 2px solid var(--primary-berry); border-radius: var(--radius-lg); padding: 24px 28px; box-shadow: var(--shadow-sm);">
+        <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">Sản phẩm bàn giao hoàn chỉnh</h2>
+        <div id="dynCommDeliveryFileBox" style="background: #FFF0F6; border: 1px solid #FFADD2; border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--primary-berry); margin-bottom: 4px;">Tệp tác phẩm hoàn chỉnh (Kho riêng tư)</div>
+              <strong id="dynCommDeliveryFileName" style="color: var(--text-plum); font-size: 1.05rem; display: block; font-family: monospace;">Tệp bàn giao bảo mật</strong>
+            </div>
+            <a id="dynCommDownloadDeliverableBtn" href="#" class="btn btn-primary" style="display: flex; align-items: center; gap: 8px; text-decoration: none;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Tải tệp bàn giao gốc</span>
+            </a>
+          </div>
+        </div>
+        <div id="dynCommCertBox" style="display: none; background: #F6FFED; border: 1px solid #B7EB8F; border-radius: var(--radius-md); padding: 16px 20px; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <strong style="color: #389E0D; font-size: 0.95rem; display: block;">✓ Giấy chứng nhận bản quyền đã phát hành</strong>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">Chứng nhận số hợp đồng commission và phạm vi sử dụng được xác thực bởi ARTFAIR.</span>
+          </div>
+          <a id="dynCommCertLink" href="#" target="_blank" class="btn btn-secondary" style="border-color: #52C41A; color: #237804; text-decoration: none; font-weight: 700;">📄 Tải chứng nhận PDF</a>
+        </div>
+      </div>
+
+      <!-- Events Timeline -->
+      <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px 28px; box-shadow: var(--shadow-sm);">
+        <h2 style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">Lịch sử tiến trình & Sự kiện</h2>
+        <div id="dynCommEventsTimeline" class="events-timeline" style="display: flex; flex-direction: column; gap: 16px; border-left: 2px solid var(--bg-lavender); margin-left: 8px; padding-left: 18px;"></div>
+      </div>
+    </div>
+
+    <!-- Right Column: Financial & Actions -->
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-card);">
+        <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 16px 0; font-weight: 700; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">Tóm tắt tài chính & Ký quỹ</h3>
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Giá thỏa thuận:</span>
+            <strong id="dynCommPrice" style="font-size: 1.3rem; color: var(--text-berry); font-family: var(--font-serif);">0 ₫</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Trạng thái thanh toán:</span>
+            <span id="dynCommEscrowBadge" style="font-size: 0.82rem; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-sm);"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Hạn bàn giao đã chốt:</span>
+            <strong id="dynCommDeadline" style="font-size: 0.95rem; color: var(--text-plum);">Thỏa thuận</strong>
+          </div>
+        </div>
+
+        <!-- Action Buttons Container -->
+        <div id="dynCommActionButtons" style="display: flex; flex-direction: column; gap: 10px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Dynamic Commission Escrow Payment Modal -->
+<div id="dynCommPaymentModalBackdrop" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(3px);">
+  <div style="background: #FFFFFF; border-radius: var(--radius-xl); padding: 32px; max-width: 480px; width: 90%; box-shadow: var(--shadow-card);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-light); padding-bottom: 12px;">
+      <h3 style="margin: 0; font-family: var(--font-serif); color: var(--text-plum); font-size: 1.3rem;">Ký quỹ mô phỏng Sandbox</h3>
+      <button type="button" id="btnDynCloseCommPayModal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+    </div>
+    <div style="background: var(--bg-lavender-subtle); border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.88rem;">
+        <span style="color: var(--text-muted);">Mã đặt vẽ:</span>
+        <strong id="dynCommPayCode" style="color: var(--text-plum); font-family: monospace;"></strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 0.95rem; border-top: 1px dashed var(--border-subtle); padding-top: 8px; margin-top: 8px;">
+        <span style="color: var(--text-muted); font-weight: 600;">Số tiền ký quỹ (Escrow):</span>
+        <strong id="dynCommPayAmount" style="color: var(--primary-berry); font-size: 1.15rem;"></strong>
+      </div>
+    </div>
+    <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 0 20px 0; line-height: 1.5;">
+      🔒 Số tiền này sẽ được giữ an toàn tại hệ thống Ký quỹ ARTFAIR và chỉ giải ngân cho nghệ sĩ khi bạn bấm nghiệm thu hoàn tất.
+    </p>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button type="button" class="btn btn-primary" id="btnDynCommSimPaySuccess" style="background: #28A745; border-color: #28A745; padding: 12px; font-weight: 700;">
+        ✓ Xác nhận ký quỹ mô phỏng thành công
+      </button>
+      <button type="button" class="btn btn-ghost" id="btnDynCommSimPayCancel" style="padding: 8px;">
+        Hủy bỏ
+      </button>
     </div>
   </div>
 </div>
@@ -954,7 +1128,7 @@
                 return;
               }
 
-              // Create order
+              // Create order and trigger Simulated Payment modal
               buyBtn.disabled = true;
               buyBtn.textContent = 'Đang khởi tạo đơn hàng...';
               try {
@@ -965,7 +1139,72 @@
                 });
                 const orderData = await orderRes.json();
                 if (orderRes.ok && orderData.order_code) {
-                  window.location.href = pUrl(`/orders/${orderData.order_code}/`);
+                  // Open simulated payment modal
+                  const payModal = document.getElementById('dynSimPaymentModalBackdrop');
+                  const codeEl = document.getElementById('dynPayOrderCode');
+                  const licEl = document.getElementById('dynPayLicenseName');
+                  const prcEl = document.getElementById('dynPayPrice');
+                  if (codeEl) codeEl.textContent = orderData.order_code;
+                  if (licEl) licEl.textContent = orderData.license_type === 'COMMERCIAL' ? 'Thương mại (Commercial)' : 'Cá nhân (Personal)';
+                  if (prcEl) prcEl.textContent = Number(orderData.price_paid || 0).toLocaleString('vi-VN') + ' đ';
+
+                  // Close handlers
+                  const closeBtn = document.getElementById('btnDynClosePayModal');
+                  if (closeBtn) closeBtn.onclick = () => { if (payModal) payModal.style.display = 'none'; };
+
+                  // Payment actions
+                  const btnSuccess = document.getElementById('btnDynSimSuccess');
+                  const btnFail = document.getElementById('btnDynSimFail');
+                  const btnCancel = document.getElementById('btnDynSimCancel');
+
+                  async function sendDynPayment(act) {
+                    try {
+                      const pRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/orders/${orderData.order_code}/simulate-payment/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: act })
+                      });
+                      const pData = await pRes.json();
+                      if (payModal) payModal.style.display = 'none';
+
+                      if (act === 'SUCCESS') {
+                        if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast(pData.detail || 'Thanh toán mô phỏng thành công! Quyền sử dụng đã được cấp.', 'success');
+                        buyBtn.disabled = true;
+                        buyBtn.innerHTML = `✓ Đã sở hữu quyền sử dụng`;
+                        buyBtn.style.background = '#28A745';
+                        buyBtn.style.borderColor = '#28A745';
+
+                        // Pop-up banner to direct user to Library or Orders
+                        const banner = document.createElement('div');
+                        banner.style.cssText = 'position:fixed; bottom:24px; right:24px; background:#FFFFFF; border:1px solid #B7EB8F; border-radius:12px; padding:18px 20px; box-shadow:0 12px 32px rgba(46,18,77,0.18); z-index:2000; max-width:380px;';
+                        banner.innerHTML = `
+                          <div style="font-weight:700; color:#389E0D; margin-bottom:6px; display:flex; align-items:center; gap:6px; font-size:0.95rem;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Thanh toán thành công!
+                          </div>
+                          <p style="font-size:0.85rem; color:#555; margin:0 0 12px 0;">Quyền tác phẩm đã được kích hoạt. Bạn có thể tải file gốc hoặc xuất chứng nhận bản quyền PDF.</p>
+                          <div style="display:flex; gap:8px;">
+                            <a href="${pUrl('/dashboard/#tab-library')}" class="btn btn-primary btn-sm" style="flex:1; text-align:center; text-decoration:none; padding:8px 12px; font-size:0.84rem;">Vào Kho tranh</a>
+                            <a href="${pUrl('/dashboard/#tab-orders')}" class="btn btn-secondary btn-sm" style="flex:1; text-align:center; text-decoration:none; padding:8px 12px; font-size:0.84rem;">Xem Đơn hàng</a>
+                          </div>
+                        `;
+                        document.body.appendChild(banner);
+                        setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
+                      } else if (act === 'FAILED') {
+                        if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Giao dịch mô phỏng thất bại. Quyền sử dụng tác phẩm chưa được cấp.', 'error');
+                      } else {
+                        if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Đã hủy giao dịch thanh toán.', 'info');
+                      }
+                    } catch (_) {
+                      if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Lỗi kết nối thanh toán.', 'error');
+                    }
+                  }
+
+                  if (btnSuccess) btnSuccess.onclick = () => sendDynPayment('SUCCESS');
+                  if (btnFail) btnFail.onclick = () => sendDynPayment('FAILED');
+                  if (btnCancel) btnCancel.onclick = () => sendDynPayment('CANCEL');
+
+                  if (payModal) payModal.style.display = 'flex';
                 } else {
                   if (window.ArtFair && window.ArtFair.showToast) {
                     window.ArtFair.showToast(orderData.detail || 'Không thể tạo đơn hàng.', 'error');
@@ -1020,6 +1259,295 @@
 
       if (h1) h1.textContent = 'Không tìm thấy tác phẩm';
       if (p) p.innerHTML = `Không tìm thấy tác phẩm với mã định danh <strong>${slug}</strong> trên ARTFAIR.<br>Vui lòng kiểm tra lại đường dẫn hoặc quay về trang Khám phá.`;
+      return;
+    }
+
+    // C. Route 3: Commission Tracking (/commissions/<id>/)
+    const matchComm = path.match(/(?:\/ARTFAIR)?\/commissions\/([0-9]+)\/?$/);
+    if (matchComm && matchComm[1]) {
+      const commId = matchComm[1];
+      const defaultBox = document.getElementById('notFoundDefaultContainer');
+      const commBox = document.getElementById('dynamicCommissionDetailContainer');
+      const h1 = document.querySelector('#notFoundDefaultContainer h1');
+      const p = document.querySelector('#notFoundDefaultContainer p');
+
+      if (h1) h1.textContent = 'Đang tải đơn đặt vẽ...';
+      if (p) p.textContent = `Hệ thống đang kết nối dữ liệu đơn đặt vẽ #${commId}...`;
+
+      try {
+        const commApiUrl = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+          ? window.ArtFairConfig.apiUrl(`/api/commissions/${commId}/`)
+          : `/api/commissions/${commId}/`;
+        const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(commApiUrl);
+
+        if (res.status === 401) {
+          if (h1) h1.textContent = 'Yêu cầu đăng nhập';
+          if (p) p.innerHTML = `Vui lòng đăng nhập bằng tài khoản tham gia để xem đơn đặt vẽ #${commId}.<br><br><button type="button" class="btn btn-primary" onclick="window.ArtFair && window.ArtFair.openAuthModal ? window.ArtFair.openAuthModal('login') : null">Đăng nhập tài khoản</button>`;
+          return;
+        }
+
+        if (res.status === 403) {
+          if (h1) h1.textContent = 'Từ chối truy cập (403)';
+          if (p) p.innerHTML = `Đơn đặt vẽ này được bảo mật và chỉ <strong>Người mua</strong> hoặc <strong>Nghệ sĩ</strong> liên quan mới có quyền xem thông tin.<br><br><a href="${pUrl('/dashboard/')}" class="btn btn-primary">Về Khu vực cá nhân</a>`;
+          return;
+        }
+
+        if (res.ok) {
+          const comm = await res.json();
+          if (defaultBox) defaultBox.style.display = 'none';
+          if (commBox) commBox.style.display = 'block';
+
+          document.title = `Đơn đặt vẽ ${comm.commission_code || ('#' + comm.id)} | ARTFAIR`;
+
+          // Breadcrumbs
+          const bcHome = document.getElementById('dynCommBcHome');
+          if (bcHome) bcHome.href = pUrl('/');
+          const bcDash = document.getElementById('dynCommBcDash');
+          if (bcDash) bcDash.href = pUrl('/dashboard/');
+          const bcCode = document.getElementById('dynCommBcCode');
+          if (bcCode) bcCode.textContent = comm.commission_code || ('#' + comm.id);
+
+          // Header
+          const codeEl = document.getElementById('dynCommCodeBadge');
+          if (codeEl) codeEl.textContent = comm.commission_code || ('#' + comm.id);
+          const statusBadge = document.getElementById('dynCommStatusBadge');
+          if (statusBadge) {
+            statusBadge.className = `commission-badge status-${(comm.status || '').toLowerCase()}`;
+            statusBadge.textContent = comm.status_display || comm.status;
+          }
+          const titleEl = document.getElementById('dynCommTitle');
+          if (titleEl) titleEl.textContent = comm.title;
+          const metaEl = document.getElementById('dynCommMeta');
+          if (metaEl) {
+            metaEl.textContent = `Khởi tạo ngày ${comm.created_at ? new Date(comm.created_at).toLocaleString('vi-VN') : ''} • Người đặt: @${comm.buyer ? comm.buyer.username : ''} • Nghệ sĩ: @${comm.creator ? comm.creator.username : ''}`;
+          }
+
+          // User role
+          const currentUser = (window.ArtFair && window.ArtFair.state && window.ArtFair.state.currentUser) || null;
+          const isBuyer = currentUser && comm.buyer && (currentUser.id === comm.buyer.id || currentUser.username === comm.buyer.username);
+          const isCreator = currentUser && comm.creator && (currentUser.id === comm.creator.id || currentUser.username === comm.creator.username);
+          const rolePill = document.getElementById('dynCommRolePill');
+          if (rolePill) {
+            if (isBuyer) {
+              rolePill.className = 'role-pill buyer';
+              rolePill.textContent = 'Bạn là Người mua (Buyer)';
+            } else if (isCreator) {
+              rolePill.className = 'role-pill creator';
+              rolePill.textContent = 'Bạn là Nghệ sĩ (Creator)';
+            } else {
+              rolePill.className = 'role-pill staff';
+              rolePill.textContent = 'Quản trị viên / Khách';
+            }
+          }
+
+          // Stepper
+          const stepper = document.getElementById('dynCommStepperTrack');
+          if (stepper) {
+            const steps = [
+              { num: 1, label: 'Gửi Brief', activeStatuses: ['REQUESTED', 'QUOTED', 'IN_PROGRESS', 'DELIVERED', 'REVISION_REQUESTED', 'COMPLETED'] },
+              { num: 2, label: 'Báo giá', activeStatuses: ['QUOTED', 'IN_PROGRESS', 'DELIVERED', 'REVISION_REQUESTED', 'COMPLETED'] },
+              { num: 3, label: 'Ký quỹ mô phỏng', activeStatuses: ['IN_PROGRESS', 'DELIVERED', 'REVISION_REQUESTED', 'COMPLETED'] },
+              { num: 4, label: 'Bàn giao', activeStatuses: ['DELIVERED', 'COMPLETED'] },
+              { num: 5, label: 'Nghiệm thu', activeStatuses: ['COMPLETED'] }
+            ];
+            stepper.innerHTML = steps.map(s => {
+              const isDone = s.activeStatuses.includes(comm.status);
+              const isCurrent = (comm.status === 'REQUESTED' && s.num === 1) ||
+                                (comm.status === 'QUOTED' && s.num === 2) ||
+                                (comm.status === 'IN_PROGRESS' && s.num === 3) ||
+                                (comm.status === 'DELIVERED' && s.num === 4) ||
+                                (comm.status === 'COMPLETED' && s.num === 5);
+              return `
+                <div class="stepper-node ${isDone ? 'completed' : ''} ${isCurrent ? 'active' : ''}">
+                  <div class="stepper-circle">${s.num}</div>
+                  <div class="stepper-label">${s.label}</div>
+                </div>
+              `;
+            }).join('');
+          }
+
+          // Description & Ref
+          const descEl = document.getElementById('dynCommDesc');
+          if (descEl) descEl.textContent = comm.description || 'Không có mô tả chi tiết.';
+          const refBox = document.getElementById('dynCommRefBox');
+          if (refBox && comm.reference_image) {
+            refBox.style.display = 'flex';
+            const refName = document.getElementById('dynCommRefName');
+            if (refName) refName.textContent = comm.reference_filename || 'Tệp tham khảo / Moodboard';
+            const refDown = document.getElementById('dynCommRefDownload');
+            if (refDown) {
+              refDown.href = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+                ? window.ArtFairConfig.apiUrl(`/api/commissions/${comm.id}/download-reference/`)
+                : `/api/commissions/${comm.id}/download-reference/`;
+            }
+          }
+
+          // Deliverables
+          const delCard = document.getElementById('dynCommDeliverableCard');
+          if (delCard) {
+            if (comm.final_delivery_file || ['DELIVERED', 'COMPLETED'].includes(comm.status)) {
+              delCard.style.display = 'block';
+              const fnEl = document.getElementById('dynCommDeliveryFileName');
+              if (fnEl) fnEl.textContent = comm.final_delivery_filename || 'Tệp bàn giao bảo mật';
+              const downBtn = document.getElementById('dynCommDownloadDeliverableBtn');
+              if (downBtn) {
+                downBtn.href = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+                  ? window.ArtFairConfig.apiUrl(`/api/commissions/${comm.id}/download-deliverable/`)
+                  : `/api/commissions/${comm.id}/download-deliverable/`;
+              }
+              const certBox = document.getElementById('dynCommCertBox');
+              if (certBox && comm.status === 'COMPLETED') {
+                certBox.style.display = 'flex';
+                const certLink = document.getElementById('dynCommCertLink');
+                if (certLink) {
+                  certLink.href = (window.ArtFairConfig && window.ArtFairConfig.apiUrl)
+                    ? window.ArtFairConfig.apiUrl(`/api/commissions/${comm.id}/certificate/`)
+                    : `/api/commissions/${comm.id}/certificate/`;
+                }
+              }
+            }
+          }
+
+          // Financial Summary
+          const priceEl = document.getElementById('dynCommPrice');
+          if (priceEl) {
+            const priceVal = comm.agreed_price || comm.budget || 0;
+            priceEl.textContent = Number(priceVal).toLocaleString('vi-VN') + ' ₫';
+          }
+          const escrowBadge = document.getElementById('dynCommEscrowBadge');
+          if (escrowBadge) {
+            if (comm.is_escrow_released) {
+              escrowBadge.style.color = '#389E0D';
+              escrowBadge.style.background = '#F6FFED';
+              escrowBadge.style.border = '1px solid #B7EB8F';
+              escrowBadge.textContent = 'Đã giải ngân';
+            } else if (comm.is_paid) {
+              escrowBadge.style.color = '#096DD9';
+              escrowBadge.style.background = '#E6F7FF';
+              escrowBadge.style.border = '1px solid #91D5FF';
+              escrowBadge.textContent = 'Đang giữ ký quỹ';
+            } else {
+              escrowBadge.style.color = '#8C8C8C';
+              escrowBadge.style.background = '#F5F5F5';
+              escrowBadge.style.border = '1px solid #D9D9D9';
+              escrowBadge.textContent = 'Chưa thanh toán';
+            }
+          }
+          const deadEl = document.getElementById('dynCommDeadline');
+          if (deadEl) {
+            const d = comm.agreed_delivery_date || comm.deadline;
+            deadEl.textContent = d ? new Date(d).toLocaleDateString('vi-VN') : 'Thỏa thuận';
+          }
+
+          // Action Buttons
+          const actsEl = document.getElementById('dynCommActionButtons');
+          if (actsEl) {
+            let btnsHtml = '';
+            if (isBuyer && comm.status === 'QUOTED') {
+              btnsHtml += `
+                <button type="button" class="btn btn-primary" id="btnDynOpenCommPay" style="width: 100%; padding: 12px; font-weight: 700;">
+                  ✓ Đồng ý báo giá & Ký quỹ mô phỏng
+                </button>
+              `;
+            } else if (isBuyer && comm.status === 'DELIVERED') {
+              btnsHtml += `
+                <button type="button" class="btn btn-primary" id="btnDynApproveDelivery" style="background:#28A745; border-color:#28A745; width:100%; padding:12px; font-weight:700;">
+                  ✓ Nghiệm thu tác phẩm & Giải ngân
+                </button>
+              `;
+            } else if (isCreator && comm.status === 'REQUESTED') {
+              btnsHtml += `
+                <a href="${pUrl(`/commissions/${comm.id}/`)}" class="btn btn-primary" style="width:100%; padding:12px; text-align:center; text-decoration:none; font-weight:700;">
+                  Gửi báo giá cho Người mua
+                </a>
+              `;
+            }
+            actsEl.innerHTML = btnsHtml || '<div style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding:8px 0;">Không có thao tác khả dụng ở trạng thái này.</div>';
+
+            // Bind Escrow Pay button
+            const btnOpenCommPay = document.getElementById('btnDynOpenCommPay');
+            if (btnOpenCommPay) {
+              btnOpenCommPay.addEventListener('click', () => {
+                const payModal = document.getElementById('dynCommPaymentModalBackdrop');
+                const pCode = document.getElementById('dynCommPayCode');
+                const pAmt = document.getElementById('dynCommPayAmount');
+                if (pCode) pCode.textContent = comm.commission_code || ('#' + comm.id);
+                if (pAmt) pAmt.textContent = Number(comm.agreed_price || comm.budget || 0).toLocaleString('vi-VN') + ' VND';
+                if (payModal) payModal.style.display = 'flex';
+              });
+            }
+
+            // Bind Approve delivery
+            const btnApprove = document.getElementById('btnDynApproveDelivery');
+            if (btnApprove) {
+              btnApprove.addEventListener('click', async () => {
+                if (!confirm('Xác nhận nghiệm thu tác phẩm? Thao tác này sẽ giải ngân số tiền ký quỹ mô phỏng cho nghệ sĩ và cấp Giấy chứng nhận bản quyền PDF.')) return;
+                btnApprove.disabled = true;
+                try {
+                  const compRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/commissions/${comm.id}/complete/`, { method: 'POST' });
+                  if (compRes.ok) {
+                    if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Nghiệm thu hoàn tất! Đang làm mới...', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                  }
+                } catch (_) {}
+              });
+            }
+          }
+
+          // Bind Escrow Modal buttons
+          const closeCommPay = document.getElementById('btnDynCloseCommPayModal');
+          const cancelCommPay = document.getElementById('btnDynCommSimPayCancel');
+          const successCommPay = document.getElementById('btnDynCommSimPaySuccess');
+          const commPayModal = document.getElementById('dynCommPaymentModalBackdrop');
+
+          if (closeCommPay) closeCommPay.addEventListener('click', () => { if (commPayModal) commPayModal.style.display = 'none'; });
+          if (cancelCommPay) cancelCommPay.addEventListener('click', () => { if (commPayModal) commPayModal.style.display = 'none'; });
+          if (successCommPay) {
+            successCommPay.addEventListener('click', async () => {
+              successCommPay.disabled = true;
+              try {
+                const payRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/commissions/${comm.id}/accept-and-pay/`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'SUCCESS' })
+                });
+                if (payRes.ok) {
+                  if (commPayModal) commPayModal.style.display = 'none';
+                  if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Ký quỹ mô phỏng thành công! Đơn chuyển sang Đang thực hiện.', 'success');
+                  setTimeout(() => window.location.reload(), 1000);
+                } else {
+                  const payErr = await payRes.json().catch(() => ({}));
+                  if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast(payErr.detail || 'Không thể ký quỹ.', 'error');
+                }
+              } catch (_) {
+                if (window.ArtFair && window.ArtFair.showToast) window.ArtFair.showToast('Lỗi kết nối khi ký quỹ.', 'error');
+              } finally {
+                successCommPay.disabled = false;
+              }
+            });
+          }
+
+          // Events Timeline
+          const timelineEl = document.getElementById('dynCommEventsTimeline');
+          if (timelineEl && comm.events && comm.events.length > 0) {
+            timelineEl.innerHTML = comm.events.map(ev => `
+              <div style="position: relative;">
+                <div style="position: absolute; left: -25px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary-berry); border: 2px solid #FFFFFF;"></div>
+                <div>
+                  <strong style="color: var(--text-plum); font-size: 0.92rem; display: block;">${ev.title}</strong>
+                  <span style="font-size: 0.76rem; color: var(--text-muted);">Bởi @${ev.actor ? ev.actor.username : 'Hệ thống'} • ${ev.created_at ? new Date(ev.created_at).toLocaleString('vi-VN') : ''}</span>
+                  ${ev.note ? `<p style="margin: 4px 0 0 0; font-size: 0.84rem; color: var(--text-plum); background: #FAFAFA; padding: 6px 10px; border-radius: var(--radius-sm);">${ev.note}</p>` : ''}
+                </div>
+              </div>
+            `).join('');
+          }
+
+          return;
+        }
+      } catch (_) {}
+
+      if (h1) h1.textContent = 'Không tìm thấy đơn đặt vẽ';
+      if (p) p.innerHTML = `Không tìm thấy đơn đặt vẽ <strong>#${commId}</strong> trên ARTFAIR.<br>Vui lòng kiểm tra lại liên kết hoặc quay về Bảng điều khiển cá nhân.`;
       return;
     }
   })();

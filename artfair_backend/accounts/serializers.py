@@ -23,6 +23,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'password', 'role')
 
+    def validate_username(self, value):
+        username = value.strip()
+        if not username:
+            raise serializers.ValidationError("Tên đăng nhập không được để trống.")
+        if User.objects.filter(username__iexact=username).exists():
+            raise serializers.ValidationError("Tên đăng nhập này đã được sử dụng (không phân biệt chữ hoa/thường).")
+        return username
+
     def validate_email(self, value):
         normalized = User.objects.normalize_email(value)
         if User.objects.filter(email__iexact=normalized).exists():

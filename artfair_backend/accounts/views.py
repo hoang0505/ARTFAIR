@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.middleware.csrf import get_token, rotate_token
 from django.shortcuts import get_object_or_404
+from django.http import Http404
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from rest_framework import status, permissions
@@ -9,13 +10,14 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView, RetrieveUpdateAPIView, ListAPIView
 from rest_framework.authtoken.models import Token
 
-from .models import User, ArtistProfile
+from .models import User, ArtistProfile, Notification
 from .serializers import (
     RegisterSerializer,
     LoginSerializer,
     UserMeSerializer,
     ArtistProfileSerializer,
     PublicArtistProfileSerializer,
+    NotificationSerializer,
 )
 from .permissions import IsCreator
 
@@ -184,14 +186,22 @@ class PublicArtistProfileView(RetrieveAPIView):
     """
     Public view for artist profile by username.
     Hides private contact details and unverified credentials.
+    Supports case-insensitive username lookup.
     """
     permission_classes = [permissions.AllowAny]
     serializer_class = PublicArtistProfileSerializer
-    lookup_field = 'user__username'
     lookup_url_kwarg = 'username'
 
-    def get_queryset(self):
-        return ArtistProfile.objects.filter(user__role=User.Role.CREATOR, user__is_active=True)
+    def get_object(self):
+        username = self.kwargs.get('username')
+        profile = ArtistProfile.objects.select_related('user').filter(
+            user__username__iexact=username,
+            user__role=User.Role.CREATOR,
+            user__is_active=True
+        ).first()
+        if not profile:
+            raise Http404("Không tìm thấy nghệ sĩ phù hợp.")
+        return profile
 
 
 class PublicArtistListView(ListAPIView):
@@ -281,7 +291,7 @@ class ArtistReviewsByUsernameView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, username):
-        artist = get_object_or_404(User, username=username, role=User.Role.CREATOR, is_active=True)
+        artist = get_object_or_404(User, username__iexact=username, role=User.Role.CREATOR, is_active=True)
         profile = getattr(artist, 'artist_profile', None)
         reviews = ArtistReview.objects.filter(artist=artist).select_related('reviewer').order_by('-created_at')
         return Response({

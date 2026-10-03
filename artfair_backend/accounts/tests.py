@@ -235,4 +235,74 @@ class AccountsAuthTests(TestCase):
         res = self.client.post(reverse('accounts:login'), login_payload)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+    def test_registration_rejects_case_insensitive_duplicate_username(self):
+        """
+        Verify that registering a username differing only by case is rejected.
+        """
+        User.objects.create_user(
+            username='OriginalArtist',
+            email='original@example.com',
+            password='Password123!'
+        )
+
+        res = self.client.post(reverse('accounts:register'), {
+            'username': 'originalartist',
+            'email': 'different@example.com',
+            'password': 'Password123!',
+            'role': User.Role.BUYER
+        })
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('username', res.data)
+
+    def test_public_artist_profile_case_insensitive(self):
+        """
+        Verify that public artist profile can be queried case-insensitively.
+        """
+        artist = User.objects.create_user(
+            username='MasterPainter',
+            email='painter@example.com',
+            password='Password123!',
+            role=User.Role.CREATOR
+        )
+        artist.artist_profile.display_name = 'Master Painter'
+        artist.artist_profile.save()
+
+        # Query lowercase username
+        res = self.client.get(reverse('accounts:public_artist_profile', kwargs={'username': 'masterpainter'}))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['display_name'], 'Master Painter')
+
+    def test_notification_mark_read_endpoints(self):
+        """
+        Verify both /read/ and /mark-read/ aliases work to mark a notification as read.
+        """
+        user = User.objects.create_user(
+            username='notif_user',
+            email='notif@example.com',
+            password='Password123!'
+        )
+        notif1 = user.notifications.create(
+            title='Test 1',
+            message='Msg 1'
+        )
+        notif2 = user.notifications.create(
+            title='Test 2',
+            message='Msg 2'
+        )
+
+        self.client.force_authenticate(user=user)
+
+        # Test canonical /read/ endpoint
+        res1 = self.client.post(reverse('accounts:notification_mark_read', kwargs={'pk': notif1.pk}))
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+        notif1.refresh_from_db()
+        self.assertTrue(notif1.is_read)
+
+        # Test alias /mark-read/ endpoint
+        res2 = self.client.post(reverse('accounts:notification_mark_read_alias', kwargs={'pk': notif2.pk}))
+        self.assertEqual(res2.status_code, status.HTTP_200_OK)
+        notif2.refresh_from_db()
+        self.assertTrue(notif2.is_read)
+
+
 

@@ -35,6 +35,7 @@ urlpatterns = [
     # Notifications endpoints
     path('notifications/', NotificationListView.as_view(), name='notifications_list'),
     path('notifications/<int:pk>/read/', NotificationMarkReadView.as_view(), name='notification_mark_read'),
+    path('notifications/<int:pk>/mark-read/', NotificationMarkReadView.as_view(), name='notification_mark_read_alias'),
     path('notifications/mark-all-read/', NotificationMarkAllReadView.as_view(), name='notification_mark_all_read'),
 
     # Artist Reviews & Rating endpoints

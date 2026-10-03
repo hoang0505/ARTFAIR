@@ -260,8 +260,8 @@
       const res = await apiFetch('/api/accounts/notifications/');
       if (res.ok) {
         const data = await res.json();
-        state.notifications = data.results || (Array.isArray(data) ? data : []);
-        state.unreadNotificationCount = state.notifications.filter(n => !n.is_read).length;
+        state.notifications = data.notifications || data.results || (Array.isArray(data) ? data : []);
+        state.unreadNotificationCount = (typeof data.unread_count === 'number') ? data.unread_count : state.notifications.filter(n => !n.is_read).length;
         updateNotificationBadge();
         renderNotificationDropdownItems();
       }
@@ -308,8 +308,9 @@
         if (notif && !notif.is_read) {
           await markNotificationAsRead(id);
         }
-        if (notif && notif.link_url) {
-          const targetUrl = (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(notif.link_url) : notif.link_url;
+        const destRoute = notif?.target_url || notif?.link_url;
+        if (destRoute) {
+          const targetUrl = (window.ArtFairConfig && window.ArtFairConfig.pageUrl) ? window.ArtFairConfig.pageUrl(destRoute) : destRoute;
           window.location.href = targetUrl;
         }
       });
@@ -1081,6 +1082,9 @@
       }
     } catch (err) {}
     setAuthToken(null);
+    try {
+      sessionStorage.removeItem('artfair_pending_purchase');
+    } catch (_) {}
     state.currentUser = null;
     state.favoriteIds = new Set();
     state.notifications = [];
@@ -2683,7 +2687,13 @@
         const resNotif = await apiFetch('/api/accounts/notifications/');
         if (resNotif.ok) {
           const dataNotif = await resNotif.json();
-          const notifs = dataNotif.results || (Array.isArray(dataNotif) ? dataNotif : []);
+          const notifs = dataNotif.notifications || dataNotif.results || (Array.isArray(dataNotif) ? dataNotif : []);
+          const notifBadge = document.getElementById('notificationsCountBadge');
+          if (notifBadge) {
+            const unreadC = (typeof dataNotif.unread_count === 'number') ? dataNotif.unread_count : notifs.filter(n => !n.is_read).length;
+            notifBadge.textContent = unreadC;
+          }
+
           const nCont = document.getElementById('dashNotificationsContainer');
           if (nCont) {
             if (notifs.length === 0) {
@@ -2712,8 +2722,8 @@
                         <p style="margin: 0; font-size: 0.88rem; color: var(--text-plum); line-height: 1.5;">${n.message}</p>
                       </div>
                       <div style="display: flex; gap: 8px; align-items: center;">
-                        ${n.target_url ? `
-                          <a href="${pUrl(n.target_url)}" class="btn btn-primary btn-sm" style="text-decoration: none; font-size: 0.8rem;">
+                        ${(n.target_url || n.link_url) ? `
+                          <a href="${pUrl(n.target_url || n.link_url)}" class="btn btn-primary btn-sm" style="text-decoration: none; font-size: 0.8rem;">
                             Xem chi tiết &rarr;
                           </a>
                         ` : ''}
@@ -2732,13 +2742,17 @@
                 btn.addEventListener('click', async () => {
                   const notifId = btn.getAttribute('data-notif-id');
                   try {
-                    await apiFetch(`/api/accounts/notifications/${notifId}/mark-read/`, { method: 'POST' });
+                    await apiFetch(`/api/accounts/notifications/${notifId}/read/`, { method: 'POST' });
                     const card = document.getElementById(`dashNotif_${notifId}`);
                     if (card) {
                       card.classList.remove('unread');
                       card.style.background = '#FFFFFF';
                       card.style.borderColor = 'var(--border-subtle)';
                       btn.remove();
+                    }
+                    if (notifBadge) {
+                      const curVal = parseInt(notifBadge.textContent, 10) || 1;
+                      notifBadge.textContent = Math.max(0, curVal - 1);
                     }
                   } catch (_) {}
                 });
