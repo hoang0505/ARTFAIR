@@ -13,7 +13,9 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="NmOcYpTlxBfpR3nE52ERzJ9VVDDStNa9oRmlwTi9VixMMNbWlRTcrPXi38qDJPZV">
+  <meta name="csrf-token" content="GU5QAuBSl4ckdimDEtx4bwFqbcwX4LBAJ06NPopjbGmNKC8Ci9TDc55caL4CIe19">
+  <!-- ARTFAIR Environment Configuration -->
+  <script src="/ARTFAIR/static/js/config.js"></script>
   
 </head>
 <body>
@@ -135,7 +137,7 @@
     <!-- Cover Banner -->
     <div class="artist-cover-banner" style="height: 220px; position: relative; background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 50%, #E8D7F1 100%); overflow: hidden;">
       
-        <img src="https://hoang0505.pythonanywhere.com/media/covers/2026/10/Straume___Flow___%D0%A2%D0%B5%D1%87%D0%B5%D0%BD%D0%B8%D0%B5.jpeg" alt="Cover của bngoc05" style="width: 100%; height: 100%; object-fit: cover;">
+        <img src="https://hoang0505.pythonanywhere.com/media/covers/2026/10/Straume___Flow___%25D0%25A2%25D0%25B5%25D1%2587%25D0%25B5%25D0%25BD%25D0%25B8%25D0%25B5.jpeg" alt="Cover của bngoc05" style="width: 100%; height: 100%; object-fit: cover;">
       
     </div>
 
@@ -148,7 +150,7 @@
         <!-- Avatar -->
         <div class="artist-avatar-wrapper" style="width: 120px; height: 120px; border-radius: var(--radius-full); border: 4px solid #FFFFFF; background: linear-gradient(135deg, var(--primary-berry), var(--primary-violet)); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: 700; box-shadow: 0 8px 24px rgba(197, 42, 112, 0.25); overflow: hidden; flex-shrink: 0;">
           
-            <img src="https://hoang0505.pythonanywhere.com/media/avatars/2026/10/%E1%BA%A2nh_ch%E1%BB%A5p_m%C3%A0n_h%C3%ACnh_2025-01-17_104650.png" alt="bngoc05" style="width: 100%; height: 100%; object-fit: cover;">
+            <img src="https://hoang0505.pythonanywhere.com/media/avatars/2026/10/%25E1%25BA%25A2nh_ch%25E1%25BB%25A5p_m%25C3%25A0n_h%25C3%25ACnh_2025-01-17_104650.png" alt="bngoc05" style="width: 100%; height: 100%; object-fit: cover;">
           
         </div>
 
@@ -223,7 +225,7 @@
       <div class="artist-stats-row" style="display: flex; gap: 28px; flex-wrap: wrap; padding-top: 18px; border-top: 1px solid var(--border-subtle);">
         <div class="stat-pill-item" style="display: flex; flex-direction: column;">
           <span style="font-size: 1.3rem; font-weight: 800; color: var(--text-berry); font-family: var(--font-serif);">
-            0
+            1
           </span>
           <span style="font-size: 0.82rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px;">
             Tác phẩm đang bán
@@ -279,15 +281,63 @@
         </p>
       </div>
       <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-plum);">
-        0 tác phẩm
+        1 tác phẩm
       </span>
     </div>
 
     
-      <div style="background: #FFFFFF; border: 1px dashed var(--border-subtle); border-radius: var(--radius-lg); padding: 48px 24px; text-align: center; color: var(--text-muted);">
-        <p style="font-size: 1.05rem; margin-bottom: 8px;">Nghệ sĩ chưa phát hành tác phẩm nào trên sàn.</p>
-        <p style="font-size: 0.88rem; margin: 0;">Bạn có thể liên hệ đặt vẽ tác phẩm theo yêu cầu riêng thông qua nút Commission.</p>
+      <div class="artworks-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; margin-bottom: 32px;">
+        
+          <div class="artwork-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s;">
+            <!-- Thumbnail Image -->
+            <a href="/ARTFAIR/artworks/hjhj/" style="display: block; position: relative; height: 220px; background: #FAF5FF; overflow: hidden; text-decoration: none;">
+              
+                <img src="https://hoang0505.pythonanywhere.com/media/previews/2026/10/%25E1%25BA%25A2nh_ch%25E1%25BB%25A5p_m%25C3%25A0n_h%25C3%25ACnh_2025-08-08_100058_preview.jpg" alt="hjhj" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy">
+              
+              
+              
+                <span style="position: absolute; top: 10px; left: 10px; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: var(--radius-full); background: rgba(255, 255, 255, 0.9); color: var(--text-plum); backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+                  Concept Art
+                </span>
+              
+            </a>
+
+            <!-- Card Info -->
+            <div style="padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="margin-bottom: 12px;">
+                <h3 style="font-family: var(--font-serif); font-size: 1.05rem; margin: 0 0 6px 0; color: var(--text-plum); font-weight: 700; line-height: 1.3;">
+                  <a href="/ARTFAIR/artworks/hjhj/" style="color: inherit; text-decoration: none;">
+                    hjhj
+                  </a>
+                </h3>
+                <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                  
+                </p>
+              </div>
+
+              <!-- Prices & Action -->
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; padding-top: 10px; border-top: 1px dashed var(--border-subtle);">
+                  <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Giá từ:</span>
+                  <span style="font-size: 0.95rem; font-weight: 800; color: var(--text-berry);">
+                    
+                      11000 ₫
+                    
+                  </span>
+                </div>
+
+                <a href="/ARTFAIR/artworks/hjhj/" class="btn btn-secondary btn-sm" style="width: 100%; text-align: center; text-decoration: none;">
+                  Xem chi tiết tác phẩm
+                </a>
+              </div>
+            </div>
+          </div>
+        
       </div>
+
+      <!-- Pagination -->
+      
+
     
 
   </div>
@@ -362,7 +412,7 @@
     </div>
 
     <form id="commissionRequestForm" enctype="multipart/form-data">
-      <input type="hidden" name="csrfmiddlewaretoken" value="NmOcYpTlxBfpR3nE52ERzJ9VVDDStNa9oRmlwTi9VixMMNbWlRTcrPXi38qDJPZV">
+      <input type="hidden" name="csrfmiddlewaretoken" value="GU5QAuBSl4ckdimDEtx4bwFqbcwX4LBAJ06NPopjbGmNKC8Ci9TDc55caL4CIe19">
       <input type="hidden" name="creator_username" value="bngoc05">
 
       <!-- Tiêu đề -->
