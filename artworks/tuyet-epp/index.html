@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="fHqfBV9NCUdWeRacxP0ORsbubh65rYwwpH062plaeHpbMrlcyfTZF8us7eXUfq6C">
+  <meta name="csrf-token" content="cT8xemNwUUtKXoBKL5OMIcHOydKoBqexTKbWh3OqF5mRLSibOHlGMe9SZhjqBoKZ">
   <!-- ARTFAIR Environment Configuration -->
   <script src="/ARTFAIR/static/js/config.js"></script>
   
@@ -1677,6 +1677,7 @@
     id: 17,
     slug: "tuyet-epp",
     title: "Tuyệt đẹpp",
+    creatorUsername: "hoang0708",
     isOwner: false,
     licenses: [{"id": 32, "type": "COMMERCIAL", "name": "S\u1eed d\u1ee5ng th\u01b0\u01a1ng m\u1ea1i (Commercial)", "price": 271000, "terms": "S\u1eed d\u1ee5ng th\u01b0\u01a1ng m\u1ea1i: ph\u00e1t h\u00e0nh \u1ea5n ph\u1ea9m, bao b\u00ec s\u1ea3n ph\u1ea9m, game, truy\u1ec1n th\u00f4ng c\u00f3 doanh thu.", "is_owned": false}, {"id": 33, "type": "PERSONAL", "name": "S\u1eed d\u1ee5ng c\u00e1 nh\u00e2n (Personal)", "price": 246244, "terms": "S\u1eed d\u1ee5ng phi th\u01b0\u01a1ng m\u1ea1i: in \u1ea5n trang tr\u00ed ph\u00f2ng c\u00e1 nh\u00e2n, \u1ea3nh n\u1ec1n, avatar.", "is_owned": false}]
   };
@@ -1716,14 +1717,73 @@
       if (summaryTotalAmount) summaryTotalAmount.textContent = formatVND(selectedLic.price);
 
       // Update Buy Button
-      if (btnBuy && !artworkData.isOwner) {
-        if (selectedLic.is_owned) {
+      if (btnBuy) {
+        if (artworkData.isOwner) {
+          btnBuy.disabled = true;
+          if (btnBuyText) btnBuyText.textContent = 'Bạn là tác giả của tác phẩm này';
+        } else if (selectedLic.is_owned) {
           btnBuy.disabled = true;
           if (btnBuyText) btnBuyText.textContent = 'Bạn đã sở hữu gói quyền này (Tải tệp ở trên)';
         } else {
           btnBuy.disabled = false;
           if (btnBuyText) btnBuyText.textContent = `Mua quyền ${selectedLic.name} (${formatVND(selectedLic.price)})`;
         }
+      }
+    }
+
+    // Dynamic hydration from live backend to ensure accurate ID, prices and ownership
+    async function hydrateArtworkData() {
+      try {
+        let currentUser = null;
+        try {
+          const meRes = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/accounts/me/');
+          if (meRes.ok) currentUser = await meRes.json();
+        } catch(e) {}
+
+        const slugOrId = artworkData.slug || artworkData.id;
+        const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/${encodeURIComponent(slugOrId)}/`);
+        if (res.ok) {
+          const live = await res.json();
+          if (live && live.id) {
+            artworkData.id = live.id;
+            if (live.slug) artworkData.slug = live.slug;
+            if (live.title) artworkData.title = live.title;
+            if (live.creator && live.creator.username) {
+              artworkData.creatorUsername = live.creator.username;
+            }
+
+            if (currentUser && currentUser.username && artworkData.creatorUsername) {
+              if (currentUser.username.toLowerCase() === artworkData.creatorUsername.toLowerCase()) {
+                artworkData.isOwner = true;
+              }
+            }
+
+            if (live.license_options && live.license_options.length > 0) {
+              artworkData.licenses = live.license_options.map(lo => {
+                const owned = live.user_ownership && live.user_ownership.includes(lo.license_type);
+                return {
+                  id: lo.id,
+                  type: lo.license_type,
+                  name: lo.license_type === 'COMMERCIAL' ? 'Sử dụng thương mại (Commercial)' : 'Sử dụng cá nhân (Personal)',
+                  price: Number(lo.price),
+                  terms: lo.terms,
+                  is_owned: !!owned
+                };
+              });
+            }
+
+            if (live.status && live.status !== 'PUBLISHED') {
+              if (btnBuy) {
+                btnBuy.disabled = true;
+                if (btnBuyText) btnBuyText.textContent = live.status === 'ARCHIVED' ? 'Tác phẩm đã lưu trữ' : 'Tác phẩm chưa phát hành';
+              }
+            }
+
+            updateSelectionUI();
+          }
+        }
+      } catch(err) {
+        console.warn('Artwork live hydration failed, fallback to pre-rendered:', err);
       }
     }
 
@@ -1737,6 +1797,7 @@
 
     // Initial update
     updateSelectionUI();
+    hydrateArtworkData();
 
     // 1. Zoom Lightbox
     const btnOpenZoom = document.getElementById('btnOpenZoom');
@@ -1877,6 +1938,7 @@
           },
           body: JSON.stringify({
             artwork_id: artworkData.id,
+            artwork_slug: artworkData.slug,
             license_type: selectedLicenseType
           })
         });
@@ -1898,6 +1960,12 @@
         } else {
           const errMsg = data.detail || (data.artwork_id ? data.artwork_id[0] : null) || (data.license_type ? data.license_type[0] : null) || 'Không thể tạo đơn hàng.';
           showToast(errMsg, 'error');
+          if (data.status === 'ARCHIVED' || data.status === 'DRAFT') {
+            if (btnBuy) {
+              btnBuy.disabled = true;
+              if (btnBuyText) btnBuyText.textContent = data.status === 'ARCHIVED' ? 'Tác phẩm đã lưu trữ' : 'Tác phẩm chưa phát hành';
+            }
+          }
           if (data.already_owned) {
             // Update UI to owned
             markLicenseAsOwned(data.license_type || selectedLicenseType);
