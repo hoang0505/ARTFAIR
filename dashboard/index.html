@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="LEOvuXlsVXFoo0sWZT89C4A6oieQ2J7h2HmVeXN6blNz8W91Pfuy57cyBkrHRlhX">
+  <meta name="csrf-token" content="ZvPwMnJ6XLqBfwev445xFg9lN7ZbK4QZ9vpndRVtzyCQN6pv5uYItWsjJ4Q0ywq5">
   <!-- ARTFAIR Environment Configuration -->
   <script src="/ARTFAIR/static/js/config.js"></script>
   
@@ -477,7 +477,7 @@
           <div class="stat-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px;">
             <div class="stat-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm);">
               <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500;">Số tác phẩm đang bán</div>
-              <div style="font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: var(--text-plum);">
+              <div style="font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: var(--text-plum);" id="revenueArtworksCount">
                 0
               </div>
               <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Tác phẩm trên sàn</div>
@@ -485,7 +485,7 @@
 
             <div class="stat-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm);">
               <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500;">Lượt bán thành công</div>
-              <div style="font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: #10B981;">
+              <div style="font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: #10B981;" id="revenueSalesCount">
                 0
               </div>
               <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Giao dịch hoàn tất</div>
@@ -493,7 +493,7 @@
 
             <div class="stat-card" style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--shadow-sm);">
               <div style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 500;">Tổng doanh thu (Mô phỏng)</div>
-              <div style="font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: var(--primary-berry);">
+              <div style="font-family: var(--font-serif); font-size: 1.6rem; font-weight: 700; color: var(--primary-berry);" id="revenueTotalRevenue">
                 0 <span style="font-size: 0.9rem;">₫</span>
               </div>
               <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">100% về ví nghệ sĩ</div>
@@ -523,11 +523,13 @@
           <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-card);">
             <h3 style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-plum); margin: 0 0 16px 0;">Sổ giao dịch bán tác phẩm</h3>
             
-            
-              <div style="text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 0.9rem;">
-                Chưa có đơn hàng nào được ghi nhận.
-              </div>
-            
+            <div id="revenueSalesTableContainer">
+              
+                <div style="text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 0.9rem;">
+                  Chưa có đơn hàng nào được ghi nhận.
+                </div>
+              
+            </div>
           </div>
         </section>
 

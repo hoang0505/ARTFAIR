@@ -13,7 +13,7 @@
 
   <!-- ARTFAIR Core CSS -->
   <link rel="stylesheet" href="/ARTFAIR/static/css/artfair.css">
-  <meta name="csrf-token" content="RXZuleUQu4uGn8RwAHqrZsq1chWxfnUt80xU5emuKsCR74yBq3MQsv2tpj9o4Z49">
+  <meta name="csrf-token" content="fHqfBV9NCUdWeRacxP0ORsbubh65rYwwpH062plaeHpbMrlcyfTZF8us7eXUfq6C">
   <!-- ARTFAIR Environment Configuration -->
   <script src="/ARTFAIR/static/js/config.js"></script>
   
@@ -1866,6 +1866,9 @@
 
     // Create Order API call
     async function createPendingOrder() {
+      if (btnBuy) {
+        btnBuy.disabled = true;
+      }
       try {
         const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)('/api/artworks/orders/', {
           method: 'POST',
@@ -1889,7 +1892,7 @@
 
         const data = await res.json();
 
-        if (res.status === 201) {
+        if (res.status === 201 || res.status === 200) {
           currentPendingOrder = data;
           openSimPaymentModal(data);
         } else {
@@ -1902,6 +1905,10 @@
         }
       } catch(err) {
         showToast('Lỗi kết nối khi tạo đơn hàng. Vui lòng thử lại.', 'error');
+      } finally {
+        if (btnBuy) {
+          btnBuy.disabled = false;
+        }
       }
     }
 
@@ -1933,6 +1940,9 @@
 
     async function sendPaymentAction(action) {
       if (!currentPendingOrder) return;
+
+      const actionButtons = [btnSimSuccess, btnSimFailed, btnSimCancel].filter(Boolean);
+      actionButtons.forEach(b => { b.disabled = true; b.style.opacity = '0.6'; b.style.pointerEvents = 'none'; });
 
       try {
         const res = await (window.ArtFair && window.ArtFair.apiFetch ? window.ArtFair.apiFetch : fetch)(`/api/artworks/orders/${currentPendingOrder.order_code}/simulate-payment/`, {
@@ -1988,6 +1998,8 @@
         }
       } catch(err) {
         showToast('Lỗi máy chủ khi xử lý giao dịch.', 'error');
+      } finally {
+        actionButtons.forEach(b => { b.disabled = false; b.style.opacity = '1'; b.style.pointerEvents = 'auto'; });
       }
     }
 
@@ -2021,7 +2033,7 @@
           dlWrap.style.flexWrap = 'wrap';
           dlWrap.style.marginTop = '10px';
           dlWrap.innerHTML = `
-            <a href="https://hoang0505.pythonanywhere.com/api/artworks/${artworkData.id}/download-file/" class="license-download-btn" download>
+            <a href="https://hoang0505.pythonanywhere.com/api/artworks/${artworkData.id}/download-file/" class="license-download-btn" onclick="if (window.ArtFair && window.ArtFair.downloadOriginalArtworkFile) { event.preventDefault(); window.ArtFair.downloadOriginalArtworkFile(${artworkData.id}); }" download>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
