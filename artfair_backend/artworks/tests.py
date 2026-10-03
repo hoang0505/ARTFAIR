@@ -1315,4 +1315,138 @@ class Screen04DashboardAndPersonalHubTests(TestCase):
         ids = [item['id'] for item in results]
         self.assertIn(art.id, ids)
 
+    def test_pending_order_creation_is_idempotent(self):
+        """
+        Verify that multiple attempts to create an order for the same artwork
+        and license type while one is already PENDING returns the existing order
+        instead of creating duplicate database records.
+        """
+        self.client.force_login(self.buyer1)
+        url = reverse('artworks:order_create')
+        payload = {
+            'artwork_id': self.artwork.id,
+            'license_type': LicenseOption.LicenseType.PERSONAL
+        }
+
+        # 1st creation
+        res1 = self.client.post(url, payload)
+        self.assertEqual(res1.status_code, status.HTTP_201_CREATED)
+        order_code1 = res1.data['order_code']
+
+        # 2nd creation (user double-clicks or re-initiates)
+        res2 = self.client.post(url, payload)
+        self.assertEqual(res2.status_code, status.HTTP_201_CREATED)
+        order_code2 = res2.data['order_code']
+
+        self.assertEqual(order_code1, order_code2)
+        # Verify only 1 pending order exists in database
+        count = Order.objects.filter(
+            buyer=self.buyer1,
+            artwork=self.artwork,
+            license_type=LicenseOption.LicenseType.PERSONAL,
+            status=Order.Status.PENDING
+        ).count()
+        self.assertEqual(count, 1)
+
+    def test_payment_simulation_idempotency_prevents_duplicate_financials(self):
+        """
+        Verify that calling simulate-payment SUCCESS multiple times does not
+        duplicate revenue in financials or create multiple notifications.
+        """
+        order = Order.objects.create(
+            buyer=self.buyer1,
+            artwork=self.artwork,
+            license_type=LicenseOption.LicenseType.PERSONAL,
+            license_option=self.lic_pers,
+            price_paid=Decimal('150000'),
+            terms_snapshot='Điều khoản cá nhân',
+            status=Order.Status.PENDING
+        )
+        pay_url = reverse('artworks:order_simulate_payment', kwargs={'order_code': order.order_code})
+        self.client.force_login(self.buyer1)
+
+        # 1st success payment
+        res1 = self.client.post(pay_url, {'action': 'SUCCESS'})
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+
+        fin1 = get_creator_financials(self.creator)
+        self.assertEqual(fin1['total_revenue'], Decimal('150000'))
+
+        # 2nd success payment (e.g. network retry or rapid click)
+        res2 = self.client.post(pay_url, {'action': 'SUCCESS'})
+        self.assertEqual(res2.status_code, status.HTTP_200_OK)
+
+        fin2 = get_creator_financials(self.creator)
+        self.assertEqual(fin2['total_revenue'], Decimal('150000'))
+        self.assertEqual(fin2['available_balance'], Decimal('150000'))
+
+    def test_download_file_fallback_for_preview_only_artwork(self):
+        """
+        Verify that an artwork with only preview_image (and no ArtworkFile record)
+        falls back gracefully to preview_image instead of returning 404.
+        """
+        preview_art = Artwork.objects.create(
+            title='Preview Only Art',
+            creator=self.creator,
+            category=self.category,
+            preview_image=make_test_image('preview_only.png'),
+            status=Artwork.Status.PUBLISHED
+        )
+        lic = LicenseOption.objects.create(
+            artwork=preview_art,
+            license_type=LicenseOption.LicenseType.PERSONAL,
+            price=Decimal('100000'),
+            terms='Terms'
+        )
+        Order.objects.create(
+            buyer=self.buyer1,
+            artwork=preview_art,
+            license_type=LicenseOption.LicenseType.PERSONAL,
+            license_option=lic,
+            price_paid=Decimal('100000'),
+            status=Order.Status.COMPLETED
+        )
+
+        dl_url = reverse('artworks:artwork_download_file', kwargs={'artwork_id': preview_art.id})
+        self.client.force_login(self.buyer1)
+        res = self.client.get(dl_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res['Content-Type'], 'image/png')
+
+    def test_download_file_with_token_query_param(self):
+        """
+        Verify that a buyer can download their purchased artwork file via ?token=
+        query param when unauthenticated in session (cross-origin scenario).
+        """
+        from rest_framework.authtoken.models import Token
+        token, _ = Token.objects.get_or_create(user=self.buyer1)
+
+        # Buyer1 buys artwork
+        Order.objects.create(
+            buyer=self.buyer1,
+            artwork=self.artwork,
+            license_type=LicenseOption.LicenseType.PERSONAL,
+            license_option=self.lic_pers,
+            price_paid=Decimal('150000'),
+            status=Order.Status.COMPLETED
+        )
+
+        dl_url = reverse('artworks:artwork_download_file', kwargs={'artwork_id': self.artwork.id})
+
+        # Anonymous client without session
+        anon_client = APIClient()
+
+        # 1. Without token -> 401 Unauthorized
+        res_no_token = anon_client.get(dl_url)
+        self.assertEqual(res_no_token.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # 2. With invalid token -> 401 Unauthorized
+        res_bad_token = anon_client.get(f'{dl_url}?token=invalid_token_123')
+        self.assertEqual(res_bad_token.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # 3. With valid token -> 200 OK
+        res_valid_token = anon_client.get(f'{dl_url}?token={token.key}')
+        self.assertEqual(res_valid_token.status_code, status.HTTP_200_OK)
+
+
 

@@ -2311,8 +2311,65 @@
             const totalWithdrawn = document.getElementById('withdrawTotalWithdrawnDisplay');
             if (totalWithdrawn) totalWithdrawn.textContent = (metrics.total_withdrawn || 0).toLocaleString('vi-VN') + ' VND';
 
+            const artCountEl = document.getElementById('revenueArtworksCount');
+            if (artCountEl) artCountEl.textContent = metrics.published_artworks_count ?? metrics.total_artworks ?? 0;
+
+            const salesCountEl = document.getElementById('revenueSalesCount');
+            if (salesCountEl) salesCountEl.textContent = metrics.total_completed_sales_count ?? (metrics.sales_transactions ? metrics.sales_transactions.length : 0);
+
+            const totalRevEl = document.getElementById('revenueTotalRevenue');
+            if (totalRevEl) totalRevEl.innerHTML = (metrics.total_revenue || 0).toLocaleString('vi-VN') + ' <span style="font-size: 0.9rem;">₫</span>';
+
             const withdrawInputEl = document.getElementById('withdrawAmountInput');
             if (withdrawInputEl) withdrawInputEl.max = availBal;
+
+            // Render sales transactions table
+            const salesContainer = document.getElementById('revenueSalesTableContainer');
+            if (salesContainer) {
+              const sales = metrics.sales_transactions || [];
+              if (sales.length === 0) {
+                salesContainer.innerHTML = '<div style="text-align: center; padding: 32px 16px; color: var(--text-muted); font-size: 0.9rem;">Chưa có đơn hàng nào được ghi nhận.</div>';
+              } else {
+                salesContainer.innerHTML = `
+                  <div style="overflow-x: auto;">
+                    <table class="data-table" style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                      <thead>
+                        <tr style="border-bottom: 2px solid var(--border-subtle); text-align: left; color: var(--text-plum);">
+                          <th style="padding: 10px;">Mã đơn</th>
+                          <th style="padding: 10px;">Thời gian</th>
+                          <th style="padding: 10px;">Tác phẩm</th>
+                          <th style="padding: 10px;">Người mua</th>
+                          <th style="padding: 10px;">Gói quyền</th>
+                          <th style="padding: 10px; text-align: right;">Doanh thu</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${sales.map(sale => `
+                          <tr style="border-bottom: 1px solid var(--border-subtle);">
+                            <td style="padding: 12px 10px; font-weight: 600; color: var(--text-plum);">${sale.order_code}</td>
+                            <td style="padding: 12px 10px; color: var(--text-muted);">${sale.completed_at || ''}</td>
+                            <td style="padding: 12px 10px;">
+                              <a href="${pUrl(`/artworks/${sale.artwork_slug}/`)}" style="color: inherit; text-decoration: none; font-weight: 700;">
+                                ${sale.artwork_title}
+                              </a>
+                            </td>
+                            <td style="padding: 12px 10px;">@${sale.buyer_username}</td>
+                            <td style="padding: 12px 10px;">
+                              <span style="background: var(--bg-lavender-subtle); padding: 2px 8px; border-radius: var(--radius-full); font-size: 0.78rem;">
+                                ${sale.license_name || sale.license_type}
+                              </span>
+                            </td>
+                            <td style="padding: 12px 10px; text-align: right; font-weight: 700; color: var(--primary-berry);">
+                              +${sale.price_paid.toLocaleString('vi-VN')} ₫
+                            </td>
+                          </tr>
+                        `).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                `;
+              }
+            }
 
             // Render withdrawals history
             if (metrics.withdrawals && metrics.withdrawals.length > 0) {

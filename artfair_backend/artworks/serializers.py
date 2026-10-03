@@ -333,6 +333,20 @@ class CreateOrderSerializer(serializers.Serializer):
         license_option = validated_data['license_option']
         license_type = validated_data['license_type']
 
+        # Idempotency check: Reuse existing pending order if user clicks multiple times
+        existing_pending = Order.objects.filter(
+            buyer=user,
+            artwork=artwork,
+            license_type=license_type,
+            status=Order.Status.PENDING
+        ).first()
+
+        if existing_pending:
+            existing_pending.price_paid = license_option.price
+            existing_pending.terms_snapshot = license_option.terms
+            existing_pending.save(update_fields=['price_paid', 'terms_snapshot'])
+            return existing_pending
+
         order = Order.objects.create(
             buyer=user,
             artwork=artwork,
@@ -400,7 +414,9 @@ class PurchasedArtworkLibrarySerializer(serializers.ModelSerializer):
         return None
 
     def get_has_original_file(self, obj):
-        return bool(hasattr(obj.artwork, 'original_file') and obj.artwork.original_file.file)
+        has_orig = bool(hasattr(obj.artwork, 'original_file') and obj.artwork.original_file.file)
+        has_preview = bool(obj.artwork.preview_image)
+        return has_orig or has_preview
 
     def get_download_url(self, obj):
         return f"/api/artworks/{obj.artwork.id}/download-file/"
