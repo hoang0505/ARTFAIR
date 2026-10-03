@@ -158,6 +158,12 @@ def sync_live_backend_data():
                             profile.bio = a['bio']
                         if a.get('is_accepting_commissions') is not None:
                             profile.is_accepting_commissions = a['is_accepting_commissions']
+                        if a.get('avatar'):
+                            av_url = a['avatar']
+                            profile.avatar.name = av_url.split('/media/', 1)[1] if '/media/' in av_url else av_url.lstrip('/')
+                        if a.get('cover_image'):
+                            cv_url = a['cover_image']
+                            profile.cover_image.name = cv_url.split('/media/', 1)[1] if '/media/' in cv_url else cv_url.lstrip('/')
                         profile.save()
         print("  [SYNC] Live artists synced from backend.")
     except Exception as e:
@@ -211,8 +217,11 @@ def sync_live_backend_data():
                         artwork.status = Artwork.Status.PUBLISHED
 
                     if item.get('preview_image'):
-                        img_path = str(item['preview_image']).replace('/media/', '').lstrip('/')
-                        artwork.preview_image.name = img_path
+                        p_url = str(item['preview_image'])
+                        artwork.preview_image.name = p_url.split('/media/', 1)[1] if '/media/' in p_url else p_url.lstrip('/')
+                    if item.get('watermarked_image'):
+                        w_url = str(item['watermarked_image'])
+                        artwork.watermarked_image.name = w_url.split('/media/', 1)[1] if '/media/' in w_url else w_url.lstrip('/')
                     artwork.save()
 
                     # License options

@@ -138,9 +138,22 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [FRONTEND_DIR / 'static']
 
 # CSRF Trusted Origins for LAN, reverse proxy, or PythonAnywhere
-CSRF_TRUSTED_ORIGINS = [
+_default_csrf_trusted = [
+    'https://hoang0505.github.io',
+    'http://hoang0505.github.io',
+    'https://hoang0505.pythonanywhere.com',
+    'http://hoang0505.pythonanywhere.com',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+]
+_env_csrf_trusted = [
     origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()
 ]
+CSRF_TRUSTED_ORIGINS = sorted(list(set(_default_csrf_trusted + _env_csrf_trusted)))
 
 # Reverse proxy SSL header (essential for PythonAnywhere & Nginx HTTPS)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -191,12 +204,18 @@ REST_FRAMEWORK = {
 # CORS Configuration for GitHub Pages & Local Cross-Origin
 CORS_ALLOWED_ORIGINS = [
     'https://hoang0505.github.io',
+    'http://hoang0505.github.io',
+    'https://hoang0505.pythonanywhere.com',
+    'http://hoang0505.pythonanywhere.com',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:5500',
     'http://127.0.0.1:5500',
+]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.github\.io$",
 ]
 _extra_cors = os.getenv('CORS_ALLOWED_ORIGINS', '')
 if _extra_cors:
